@@ -1,0 +1,10 @@
+*.annot
+*.o
+*.cmx
+*.cmi
+*.cmxa
+*.a
+*.mp3
+*.wav
+*~
+._d
