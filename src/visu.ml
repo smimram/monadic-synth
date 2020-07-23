@@ -34,7 +34,7 @@ let graphics () =
       );
     return v
 
-let bands ~dt ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) () =
+let bands ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) ~dt =
   Graphics.open_graph "";
   let fg = Graphics.red in
   let buflen = 2 * bands in
@@ -90,6 +90,6 @@ module Stereo = struct
   let bands =
     let b = bands in
     fun ~dt ?bands ?amp () ->
-      let bands = b ~dt ?bands ?amp () in
+      let bands = b ~dt ?bands ?amp in
       fun x -> Stereo.to_mono x >>= bands >>= drop >> return x
 end
