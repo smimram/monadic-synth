@@ -1,4 +1,4 @@
-SOURCES = extlib.ml common.ml stream.ml visu.ml pattern.ml instrument.ml output.ml OSC.ml
+SOURCES = extlib.ml stream.ml visu.ml pattern.ml instrument.ml output.ml OSC.ml
 RESULT = msynth
 THREADS = yes
 ANNOTATE = true

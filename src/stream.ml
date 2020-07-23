@@ -1,7 +1,6 @@
 open Extlib
-open Common
 
-type sample = Common.sample
+type sample = float
 
 (** {2 Stream monad} *)
 
@@ -67,8 +66,9 @@ let prev (x0:'a) : 'a -> 'a t =
     return ans
 
 (** Stream duplication. Once the left part has been evaluated, the right part
-    can be used as many times as wanted. This has to be used if you need to use a
-    stream more than once. *)
+   can be used as many times as wanted. This has to be used if you need to use a
+   stream more than once, in order to avoid each copy asking for a different
+   sample. *)
 let dup () : 'a t -> unit t * 'a t =
   let x = ref None in
   fun s ->
@@ -91,7 +91,7 @@ module Sparse = struct
   let bind : ('a -> 'b t) -> 'a t -> 'b t =
     fun f x k -> x (fun x -> f x k)
 
-  let to_stream init s =
+  let to_stream init (s : 'a t) =
     let x = ref init in
     let f x' = x := x' in
     s f;
@@ -430,55 +430,6 @@ module Spectral = struct
     sampler ~dt ~freq:f0 buf
 end
 
-(** Generic oscillator. *)
-let osc ~dt kind =
-  match kind with
-  | `Sine -> sine ~dt
-  | `Square -> square ~dt ?width:None
-  | `Saw -> saw ~dt
-  | `Triangle -> triangle ~dt
-  | `Noise -> (fun freq -> noise)
-
-(** Frequency modulation synthesis. *)
-let fm ~dt ?(carrier=`Sine) ?(modulator=`Sine) () =
-  let carrier = osc ~dt carrier in
-  let modulator = osc ~dt modulator in
-  fun ?(ratio=1.) depth freq ->
-    modulator (ratio *. freq) >>= (fun m -> carrier (freq +. depth *. m))
-
-let random_zero ~dt =
-  let x = ref 0. in
-  fun ?(attraction=500.) speed ->
-    let attraction = attraction *. dt in
-    let speed = speed *. dt in
-    fun () ->
-      let ans = !x in
-      let to_zero = Random.float 1. < attraction in
-      let d = (Random.float 2. -. 1.) *. speed in
-      let d = if to_zero && (!x *. d) > 0. then -.d else d in
-      x := ans +. d;
-      ans
-
-let karplus_strong ~dt ?(f=return) freq =
-  let n = samples ~dt (1. /. freq) in
-  let buflen = n+1 in
-  let buf = Array.init buflen (fun i -> if i = 0 then 0. else noise ()) in
-  let pos = ref 0 in
-  let get k = if k < 0 then buf.(k+buflen) else buf.(k) in
-  let ks () =
-    let k = !pos - n in
-    let x = get (k - 1) in
-    let y = get k in
-    (x +. y) /. 2.
-  in
-  let write x =
-    buf.(!pos) <- x;
-    incr pos;
-    if !pos = buflen then pos := 0;
-    return x
-  in
-  ks >>= f >>= write
-
 (** {2 Control} *)
 
 (** When a stream becomes true. *)
@@ -537,15 +488,62 @@ let fallback (x:'a t) (y:'a t) b : 'a t =
 
 let fallblank x b = fallback x blank b
 
-(*
-let sample_hold ~dt =
+(** Generate a random value at given frequency. *)
+let random ~dt =
+  let x = ref 0. in
   let every = every ~dt in
-  let h = ref 0. in
-  let set x = h := x in
-  fun time ->
-    every ~dt time >>= on set
-    return !h
-*)
+  fun ?(min=0.) ?(max=1.) freq ->
+    every (1. /. freq) >>= on (fun () -> x := Random.float (max -. min) +. min) >> stream_ref x
+
+(** Generic oscillator. *)
+let osc ~dt kind =
+  match kind with
+  | `Sine -> sine ~dt
+  | `Square -> square ~dt ?width:None
+  | `Saw -> saw ~dt
+  | `Triangle -> triangle ~dt
+  | `Noise -> (fun freq -> noise)
+  | `Random -> random ~dt ~min:(-1.) ~max:(1.)
+
+(** Frequency modulation synthesis. *)
+let fm ~dt ?(carrier=`Sine) ?(modulator=`Sine) () =
+  let carrier = osc ~dt carrier in
+  let modulator = osc ~dt modulator in
+  fun ?(ratio=1.) depth freq ->
+    modulator (ratio *. freq) >>= (fun m -> carrier (freq +. depth *. m))
+
+let random_zero ~dt =
+  let x = ref 0. in
+  fun ?(attraction=500.) speed ->
+    let attraction = attraction *. dt in
+    let speed = speed *. dt in
+    fun () ->
+      let ans = !x in
+      let to_zero = Random.float 1. < attraction in
+      let d = (Random.float 2. -. 1.) *. speed in
+      let d = if to_zero && (!x *. d) > 0. then -.d else d in
+      x := ans +. d;
+      ans
+
+let karplus_strong ~dt ?(f=return) freq =
+  let n = samples ~dt (1. /. freq) in
+  let buflen = n+1 in
+  let buf = Array.init buflen (fun i -> if i = 0 then 0. else noise ()) in
+  let pos = ref 0 in
+  let get k = if k < 0 then buf.(k+buflen) else buf.(k) in
+  let ks () =
+    let k = !pos - n in
+    let x = get (k - 1) in
+    let y = get k in
+    (x +. y) /. 2.
+  in
+  let write x =
+    buf.(!pos) <- x;
+    incr pos;
+    if !pos = buflen then pos := 0;
+    return x
+  in
+  ks >>= f >>= write
 
 (** ADSR envelope *)
 let adsr ?(event=Event.create ()) ?(on_die=ignore) ~dt () =

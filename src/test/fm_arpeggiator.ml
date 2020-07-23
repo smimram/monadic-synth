@@ -17,7 +17,7 @@ let s ~dt =
     mul s adsr
   in
   let s = Instrument.play ~dt note (Pattern.midi tempo s) >>= amp 0.1 in
-  let s = bind3 (Filter.biquad ~dt `Low_pass) (OSC.float "/1/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/1/fader4" ~max:10000. 10000.) s in
+  let s = bind3 (Filter.biquad ~dt `Low_pass) (OSC.float "/oscControl/slider3" ~min:0.1 ~max:20. 0.5) (OSC.float "/oscControl/slider4" ~max:10000. 10000.) s in
   (* let s = s >>= agc ~dt () in *)
   let s = s >>= stereo  >>= Stereo.dephase ~dt (-0.01) in
   (* let kick = Instrument.kick ~dt ~vol:1. tempo >>= amp 0.7 >>= stereo in *)
@@ -25,5 +25,5 @@ let s ~dt =
   s
 
 let () =
-  OSC.server 8000;
+  OSC.server 10000;
   Output.play s
