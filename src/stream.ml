@@ -268,7 +268,7 @@ end
 
 (** {2 Oscillators} *)
 
-let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) ~dt : float -> sample t =
+let integrate ~dt ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () : float -> sample t =
   let y = ref init in
   let handler = function
     | `Reset -> y := init; on_reset ()
@@ -281,12 +281,12 @@ let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=fal
     if !y >= 1. && periodic then (y := !y -. 1.; on_reset ());
     ans
 
-let now ?event ~dt : sample t =
-  integrate ~dt ?event 1.
+let now ~dt ?event () : sample t =
+  integrate ~dt ?event () 1.
 
 (* TODO: implement periodic with events *)
-let periodic ?(init=0.) ?on_reset ~dt =
-  integrate ~periodic:true ~dt ~init ?on_reset
+let periodic ~dt ?(init=0.) ?on_reset () =
+  integrate ~periodic:true ~dt ~init ?on_reset ()
 
 let exponential ?(init=1.) ~dt =
   let y = ref 1. in
@@ -301,12 +301,12 @@ let exponential_hl ?init ~dt =
   fun h -> e (-. log 2. /. h)
 
 let saw ~dt : float -> sample t =
-  let p = periodic ~dt in
+  let p = periodic ~dt () in
   fun freq ->
     p freq >>= (fun x -> return (2. *. x -. 1.))
 
 let triangle ~dt =
-  let p = periodic ~dt ~init:0.25 in
+  let p = periodic ~dt ~init:0.25 () in
   let f t =
     if t <= 0.5 then
       return (4. *. t -. 1.)
@@ -316,14 +316,14 @@ let triangle ~dt =
   fun freq -> p freq >>= f
 
 let sine ~dt : float -> sample t =
-  let p = periodic ~dt in
+  let p = periodic ~dt () in
   let a = 2. *. pi in
   fun freq ->
     p freq >>= (fun t -> return (sin (a *. t)))
 
 let square ~dt =
   let square (w:float) (x:float) : sample t = return (if x <= w then -1. else 1.) in
-  let p = periodic ~dt in
+  let p = periodic ~dt () in
   fun ?(width=0.5) freq ->
     p freq >>= square width
 
@@ -331,7 +331,7 @@ let noise : sample t =
   fun () -> Random.float 2. -. 1.
 
 let sampler ~dt ?(interpolation=`Closest) ?(freq=1.) buf =
-  let p = periodic ~dt in
+  let p = periodic ~dt () in
   let buflen = Array.length buf in
   let fbuflen = float buflen in
   let f =
@@ -358,7 +358,7 @@ module Spectral = struct
     sampler ~dt ?interpolation ?freq buf
 
   (* See http://zynaddsubfx.sourceforge.net/doc/PADsynth/PADsynth.htm *)
-  let pad ?(bandwidth=40.) ?(harmonics=Array.init 64 (fun i -> 1./.(float i)*.(if i mod 2 = 0 then 2. else 1.))) ~dt =
+  let pad ~dt ?(bandwidth=40.) ?(harmonics=Array.init 64 (fun i -> 1./.(float i)*.(if i mod 2 = 0 then 2. else 1.))) () =
     let buflen = 1 lsl 17 in
     let f0 = 512. in
     let nharmonics = Array.length harmonics in
@@ -385,7 +385,7 @@ module Spectral = struct
     let spectrum = Array.append spectrum (Array.init (buflen/2) (fun k -> if k = 0 then spectrum.(0) else spectrum.(buflen/2-k))) in
     sampler ~dt ~freq:f0 spectrum
 
-  let harmonics ?(harmonics=8) ?(shape=`Gaussian) ?(width=0.01) ?(decay=`Exponential 100.) ~dt =
+  let harmonics ~dt ?(harmonics=8) ?(shape=`Gaussian) ?(width=0.01) ?(decay=`Exponential 100.) () =
     (* Frequency to synthesize. *)
     let f0 = 500. in
     (* IFFT length. *)
@@ -473,7 +473,7 @@ let at ~dt =
 let every ~dt =
   let b = ref false in
   let on_reset () = b := true in
-  let p = periodic ~dt ~on_reset in
+  let p = periodic ~dt ~on_reset () in
   let ans () = if !b then (b := false; return true) else return false in
   fun time ->
     let freq = 1. /. time in
@@ -581,7 +581,7 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) ~dt () =
 let ramp ~dt from =
   let arrived = ref false in
   let changed = changed () in
-  let move = integrate ~dt ~init:from in
+  let move = integrate ~dt ~init:from () in
   fun dest duration ->
     let a' = (dest-.from)/.duration in
     let move = move a' in
@@ -728,7 +728,7 @@ let agc ~dt ?(period=0.1) ?(up=0.5) ?(down=15.) ?(blank=0.01) ?(target=0.8) ?(cl
 
 module Slicer = struct
   let hachoir ~dt =
-    let p = periodic ~dt in
+    let p = periodic ~dt () in
     fun duration ?(width=0.5) x ->
       p (1. /. duration) >>= (fun y -> if y <= width then return x else return 0.)
 
@@ -752,7 +752,7 @@ module Slicer = struct
       every time >>= on reset >> f ~lp_freq ~lp_q x
 
   let eurotrance ~dt =
-    let p = periodic ~dt in
+    let p = periodic ~dt () in
     fun duration x ->
       p (1./.duration) >>= (fun t ->
         let d = int_of_float (t *. 8.) in

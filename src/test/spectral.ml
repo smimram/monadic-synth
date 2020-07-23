@@ -19,8 +19,8 @@ let s ~dt =
 
 let s ~dt =
   (* let s = Spectral.harmonics ~dt () in *)
-  let s = Spectral.pad ~dt in
-  s 440. >>= Visu.bands ~dt ~bands:4096 >>= amp 0.08 >>= Stereo.schroeder ~dt
+  let s = Spectral.pad ~dt () in
+  s 440. >>= Visu.bands ~dt ~bands:4096 () >>= amp 0.08 >>= Stereo.schroeder ~dt
 
 let () =
   Output.play s

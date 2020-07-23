@@ -71,7 +71,7 @@ let emitter ~dt ?(loop=true) f l =
   let l0 = l in
   let l = ref l in
   let toff = ref 0. in
-  let now = now ~dt in
+  let now = now ~dt () in
   let rec aux time =
     match !l with
     | (t,e) :: tl when t +. !toff <= time ->
