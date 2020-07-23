@@ -1,6 +1,6 @@
 (** Function for visualizing stream. *)
 
-open Stdlib
+open Extlib
 open Stream
 
 let graphics () =

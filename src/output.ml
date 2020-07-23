@@ -47,7 +47,7 @@ let play ?(samplerate=44100) s =
   let dt = 1. /. float samplerate in
   Random.self_init ();
   let buflen = 1024 in
-  let buf = Array.init 2 (fun _ -> Array.create buflen 0.) in
+  let buf = Array.init 2 (fun _ -> Array.make buflen 0.) in
   let out = new pulseaudio samplerate in
   let wavout = new wav samplerate "output.wav" in
   let s = s ~dt in

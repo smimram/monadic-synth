@@ -1,4 +1,4 @@
-open Stdlib
+open Extlib
 open Stream
 
 let s ~dt =

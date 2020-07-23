@@ -68,11 +68,11 @@ module File = struct
     let ic = open_in fname in
     let ans = ref "" in
     let buflen = 1024 in
-    let buf = String.create buflen in
+    let buf = Bytes.create buflen in
     let n = ref 1 in
     while !n <> 0 do
       n := input ic buf 0 buflen;
-      ans := !ans ^ String.sub buf 0 !n
+      ans := !ans ^ String.sub (Bytes.unsafe_to_string buf) 0 !n
     done;
     !ans
 end

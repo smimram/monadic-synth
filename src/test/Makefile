@@ -1,7 +1,7 @@
 ML = $(wildcard *.ml)
 PROG = $(ML:.ml=)
 
-all: lib $(PROG)
+all: .gitignore lib $(PROG)
 
 ci:
 	@$(MAKE) -C .. $@
@@ -14,8 +14,12 @@ clean:
 
 %: %.ml ../msynth.cmxa
 	ocamlopt -thread \
-	-I +pulseaudio -I +mm -I +lo -I .. \
+	-I +../pulseaudio -I +../mm -I +../lo -I .. \
 	unix.cmxa threads.cmxa str.cmxa graphics.cmxa bigarray.cmxa pulseaudio.cmxa mm.cmxa lo.cmxa msynth.cmxa \
 	-o $@ $^
+
+.gitignore: $(PROG)
+	@rm -f $@
+	@for i in $(PROG); do echo $$i >> $@; done
 
 .PHONY: lib

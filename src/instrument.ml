@@ -1,4 +1,4 @@
-open Stdlib
+open Extlib
 open Stream
 open Stream.Common
 

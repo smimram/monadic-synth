@@ -26,7 +26,6 @@ let s ~dt =
   (* let synth = let d = Note.duration tempo 0.5 in synth >>= Stereo.delay ~dt d ~feedback:0.1 ~ping_pong:d in *)
   let synth = synth >>= Stereo.dephase ~dt 0.01 in
   let synth = Stereo.bmul (OSC.bool "/1/toggle1" true) synth in
-(*
   let bass = [72;71;69;67] in
   let bass = List.map (fun n -> Pattern.repeat 4 [0.,2.,`Nop; 0.,0.5,`Note (n,1.); 0.5,0.5,`Note (n,1.)]) bass in
   let bass = Pattern.concat bass in
@@ -34,8 +33,6 @@ let s ~dt =
   let bass = Instrument.play ~dt (Note.adsr ~r:0.1 sine) (Pattern.midi tempo bass) in
   let bass = cmul 0.5 bass in
   let bass = bass >>= stereo >>= Stereo.dephase ~dt (-0.02) in
-*)
-  let bass = blank >>= stereo in
   (* let kick = Instrument.kick ~dt ~vol:1. tempo >>= stereo in *)
   let pd = Instrument.play_drums ~dt ~snare:(fun ~on_die freq vol -> cmul vol (Note.Drum.snare ~dt ~on_die ~lp:2000. ())) in
   let drums = pd (Pattern.midi_drums tempo (Pattern.load_drums "c1.drums")) >>= stereo in

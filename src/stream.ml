@@ -1,4 +1,4 @@
-open Stdlib
+open Extlib
 open Common
 
 type sample = Common.sample
@@ -9,7 +9,7 @@ type 'a t = unit -> 'a
 
 type 'a stream = 'a t
 
-let return : 'a -> 'a t = fun x dt -> x
+let return : 'a -> 'a t = fun x () -> x
 
 let bind : ('a -> 'b t) -> 'a t -> 'b t =
   fun f x () -> f (x ()) ()
@@ -117,7 +117,7 @@ let cadd a s =
 
 let mul = funct2 ( *. )
 
-let amp x y = return (x *.y)
+let amp x y = return (x *. y)
 
 let add = funct2 ( +. )
 
@@ -179,7 +179,7 @@ module Sample = struct
 
   let ringbuffer maxduration =
     let buflen = maxduration + 1 in
-    let buf = Array.create buflen 0. in
+    let buf = Array.make buflen 0. in
     let pos = ref 0 in
     let read delay : sample t =
       assert (0 <= delay && delay <= maxduration);
@@ -358,7 +358,7 @@ module Spectral = struct
     sampler ~dt ?interpolation ?freq buf
 
   (* See http://zynaddsubfx.sourceforge.net/doc/PADsynth/PADsynth.htm *)
-  let pad ~dt ?(bandwidth=40.) ?(harmonics=Array.init 64 (fun i -> 1./.(float i+.1.) *. (if i mod 2 = 0 then 2. else 1.))) () =
+  let pad ~dt ?(bandwidth=40.) ?(harmonics=Array.init 64 (fun i -> 1./.(float i)*.(if i mod 2 = 0 then 2. else 1.))) () =
     let buflen = 1 lsl 17 in
     let f0 = 512. in
     let nharmonics = Array.length harmonics in
@@ -373,11 +373,10 @@ module Spectral = struct
     let band0 = f0 *. float nharmonics *. dt in
     for i = 0 to nharmonics - 1 do
       let h = harmonics.(i) in
-      let i = float i +. 1. in
       (* Bandwidth in Hz *)
-      let bandwidth = bandwidth *. f0 *. i in
+      let bandwidth = bandwidth *. f0 *. float i in
       for j = 0 to buflen / 2 - 1 do
-        let a = profile (i /. float nharmonics -. band0) bandwidth in
+        let a = profile (float i /. float nharmonics -. band0) bandwidth in
         spectrum.(j) <- spectrum.(j) +. a *. h
       done
     done;
@@ -1081,4 +1080,3 @@ module Stereo = struct
 end
 
 let stereo = Stereo.of_mono
-

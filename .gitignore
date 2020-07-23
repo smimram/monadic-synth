@@ -1,8 +1,6 @@
 *.annot
 *.o
-*.cmx
-*.cmi
-*.cmxa
+*.cm*
 *.a
 *.mp3
 *.wav
