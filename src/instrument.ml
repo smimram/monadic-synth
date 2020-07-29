@@ -7,7 +7,7 @@ type 'event note =
     note : int;
     stream : sample stream;
     event : 'event Event.t;
-    released : bool ref;
+    mutable released : bool;
     alive : bool ref;
   }
 
@@ -36,7 +36,7 @@ let create ~dt ~event (note:'a Note.t) =
           note = n;
           stream;
           event;
-          released = ref false;
+          released = false;
           alive;
         }
       in
@@ -45,7 +45,7 @@ let create ~dt ~event (note:'a Note.t) =
       (
         try
           (* Only kill oldest alive note. *)
-          List.rev_iter (fun note -> if note.note = n && !(note.alive) && not !(note.released) then (Event.emit note.event `Release; note.released := true; raise Exit)) !playing
+          List.rev_iter (fun note -> if note.note = n && not note.released && !(note.alive) then (note.released <- true; Event.emit note.event `Release; raise Exit)) !playing
         with
         | Exit -> ()
       )

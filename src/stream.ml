@@ -37,6 +37,9 @@ let funct2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t =
 let seq : (unit -> 'a) -> 'a stream =
   fun f -> f
 
+let get : 'a stream -> 'a =
+  fun f -> f ()
+
 module Common = struct
   let ( >>= ) x f = bind f x
 
@@ -827,11 +830,13 @@ module Note = struct
       fun freq vol ->
        bmul (stream_ref alive) (cmul vol (f freq))
 
-  let detune ?(cents=7.) ?(wet=0.5) (note : 'a t) : 'a t =
+  let detune ?(cents=return 7.) ?(wet=return 0.5) (note : 'a t) : 'a t =
     fun ~dt ~event ~on_die ->
       let n = note ~dt ~event ~on_die in
       let nd = note ~dt ~event ~on_die in
       fun freq vol ->
+        let cents = get cents in
+        let wet = get wet in
         let freqd = freq *. (2. ** (cents /. 1200.)) in
         cmul (1.-.wet/.2.) (add (n freq vol) (cmul wet (nd freqd vol)))
 
@@ -870,7 +875,16 @@ module Note = struct
 
   (** Simple note with adsr envelope and volume. *)
   let adsr ~dt ~event ~on_die ?a ?d ?s ?r f freq vol =
-    let env = adsr ~dt ~event ~on_die ?a ?d ?s ?r () in
+    let g = function
+      | Some x -> Some (get x)
+      | None -> None
+    in
+    (
+      match g a with
+      | Some a -> Printf.printf "a : %f\n%!" a
+      | None -> Printf.printf "a : none\n%!"
+    );
+    let env = adsr ~dt ~event ~on_die ?a:(g a) ?d:(g d) ?s:(g s) ?r:(g r) () in
     let s = f ~dt freq in
     let s = mul env s in
     cmul vol s
@@ -1136,7 +1150,14 @@ module Events = struct
                let c, n, v = c.controller_channel, c.controller_param, float c.controller_value  /. 127. in
                Printf.printf "controller (%d): %d at %f\n%!" c n v;
                add (c, `Controller (n, v))
-             (* | Sequencer.Event.Pitch_bend c -> Printf.printf "pitch bend: %d\n%!" c.controller_value *)
+             | Sequencer.Event.Pitch_bend c ->
+               let c, n, v = c.controller_channel, c.controller_param, float c.controller_value  /. 127. in
+               Printf.printf "pitch bend (%d): %d at %f\n%!" c n v;
+               add (c, `Pitch_bend (n, v))
+             | Sequencer.Event.Program_change c ->
+               let c, n, v = c.controller_channel, c.controller_param, c.controller_value in
+               Printf.printf "program change (%d): %d at %d\n%!" c n v;
+               add (c, `Program_change (n, v))
              (* | _ -> Printf.printf "ignored event\n%!"; *)
              | Sequencer.Event.Unhandled n ->
                Printf.printf "unhandled midi: %d\n%!" n

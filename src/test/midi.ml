@@ -11,18 +11,23 @@ let s ~dt =
   (* in *)
   (* let pad = Pattern.merge pad [0.,32.,`Note(40,2.5)] in *)
   (* let pad = sine ~dt 440. in *)
-  let note = Note.adsr saw in
   let midi_dup, midi = Stream.dup () (Stream.Events.midi ()) in
-  let pad = midi >>= Stream.Events.all_channels >>= Instrument.play_stream ~dt note >>= clip in
-  let pad = mul pad (midi >>= Stream.Events.controller 1 1.) in
+  let knob n ?mode ?min ?max default = midi >>= Stream.Events.controller n ?mode ?min ?max default in
+  let note =
+    let a = knob 4 ~max:0.1 0.01 in
+    Note.adsr ~a saw
+  in
+  let note = Note.detune ~cents:(knob 0 ~max:50. 7.) ~wet:(knob 1 0.5) note in
+  let pad = midi >>= Stream.Events.channel 0 >>= Instrument.play_stream ~dt note >>= clip in
+  (* let pad = mul pad (knob 0 1.) in *)
   (* let pad = pad >>= amp 0.07 >>= Stereo.schroeder ~dt >>= Stereo.dephase ~dt (-0.01) in *)
   let pad =
     let lp = Filter.biquad ~dt `Low_pass in
-    let q = midi >>= Stream.Events.controller 3 ~min:0.1 ~max:5. 1. in
-    let freq = midi >>= Stream.Events.controller 4  ~mode:`Logarithmic ~max:10000. 1500. in
+    let q = knob 2 ~min:0.1 ~max:5. 1. in
+    let freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. in
     bind3 lp q freq pad
   in
-  midi_dup >> pad >>= Stereo.of_mono
+  midi_dup >> pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01
 
 let () =
   (* OSC.server 8000; *)
