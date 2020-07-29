@@ -67,6 +67,14 @@ let arpeggiate tempo ?(note=0.25) mode (p : 'a t) : 'a t =
               for i = 0 to notes - 1 do
                 add (float i *. note) note n.(i mod 8)
               done
+            | `Up ->
+              let n = match l with
+                | [n1;n2;n3;n4] -> [|n1;n2;n3;n4|]
+                | _ -> assert false
+              in
+               for i = 0 to notes - 1 do
+                add (float i *. note) note n.(i mod 4)
+              done
             | `Staccato ->
               for i = 0 to notes - 1 do
                 List.iter (fun n -> add (float i *. note) note n) l

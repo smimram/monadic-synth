@@ -52,7 +52,8 @@ let s ~dt =
       (* drums *)
   (* in *)
   let s = Stereo.add_list [bass;drums;pad] >>= Stereo.amp 0.3 in
-  s >>= Visu.Stereo.bands ~dt ~amp:5. ()
+  s
+  (* s >>= Visu.Stereo.bands ~dt ~amp:5. () *)
 
 let () =
   OSC.server 8000;

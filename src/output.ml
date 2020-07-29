@@ -9,11 +9,51 @@ class pulseaudio ?(channels=2) samplerate =
     }
   in
   let o = Pulseaudio.Simple.create ~client_name:"ocamlsynth" ~dir:Pulseaudio.Dir_playback ~stream_name:"sound" ~sample () in
-object
-  method write buf =
-    Pulseaudio.Simple.write o buf 0 (Array.length buf.(0))
+  object
+    method buflen = 1024
 
-  method close = (* TODO *) ()
+    method write buf =
+      Pulseaudio.Simple.write o buf 0 (Array.length buf.(0))
+
+    method close = (* TODO *) ()
+  end
+
+class alsa ?(channels=2) samplerate =
+  let open Alsa in
+  let dev, period_size =
+    let buflen = 256 in
+    let periods = 4 in
+    let dev = Pcm.open_pcm "default" [Pcm.Playback] [] in
+    let params = Pcm.get_params dev in
+    Pcm.set_access dev params Pcm.Access_rw_interleaved;
+    Pcm.set_format dev params Pcm.Format_float;
+    let _ = Pcm.set_rate_near dev params samplerate Dir_eq in
+    Pcm.set_channels dev params channels;
+    Pcm.set_buffer_size dev params (buflen * periods);
+    Pcm.set_periods dev params periods Dir_eq;
+    Pcm.set_params dev params;
+    let period_size = Pcm.get_period_size params in
+    Pcm.prepare dev;
+    dev, period_size
+  in
+  let ba = Bigarray.Array1.create Bigarray.Float32 Bigarray.C_layout (channels * period_size) in
+object (self)
+  method buflen = period_size
+
+  method write buf =
+    let buflen = self#buflen in
+    for i = 0 to buflen - 1 do
+      for c = 0 to channels - 1 do
+        ba.{channels*i+c} <- buf.(c).(i)
+      done
+    done;
+    try ignore (Pcm.writei_float_ba dev channels ba)
+    with
+    | Alsa.Buffer_xrun ->
+      Printf.eprintf "ALSA: buffer xrun\n%!";
+      Pcm.prepare dev
+
+  method close = ()
 end
 
 (*
@@ -38,25 +78,30 @@ object
   method write buf =
     super#write buf 0 (Array.length buf.(0))
 
-  method close = super#close
+  method close : unit = super#close
 end
 
 exception End_of_stream
 
-let play ?(samplerate=44100) s =
+let play ?(infinite=true) ?(samplerate=44100) s =
   let dt = 1. /. float samplerate in
   Random.self_init ();
-  let buflen = 1024 in
+  let out = new alsa samplerate in
+  let buflen = out#buflen in
   let buf = Array.init 2 (fun _ -> Array.make buflen 0.) in
-  let out = new pulseaudio samplerate in
   let wavout = new wav samplerate "output.wav" in
   let s = s ~dt in
-  let dup_s, s = dup () s in
-  let s = dup_s >> s >>= Stereo.to_mono >>= is_blank ~dt 2. 0.001 >>= activated () >>= on (fun () -> raise End_of_stream) >> s in
+  let s =
+    if infinite then
+      s
+    else
+      let dup_s, s = dup () s in
+      dup_s >> s >>= Stereo.to_mono >>= is_blank ~dt 2. 0.001 >>= activated () >>= on (fun () -> raise End_of_stream) >> s
+  in
   try
     while true do
       for i = 0 to buflen - 1 do
-        let (l,r) = s () in
+        let l, r = s () in
         buf.(0).(i) <- l;
         buf.(1).(i) <- r
       done;

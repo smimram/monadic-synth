@@ -1,3 +1,4 @@
 B src/**
+B +threads
 S src/**
-PKG pulseaudio
+PKG alsa pulseaudio mm

@@ -8,7 +8,7 @@ let s ~dt =
     let denv, env = dup () env in
     let s = mul env s in
     let s = denv >> bind2 (Filter.first_order ~dt `Low_pass) (cmul 10000. env) s in
-    let s = cmul vol s in
+    let s = s >>= amp vol in
     s
   in
   let vm = 1. in
