@@ -42,25 +42,10 @@ let register_bool path f =
   in
   add_handler path h
 
-let stretch ~mode ~min ~max =
-  let d = max -. min in
-  match mode with
-  | `Linear ->
-    (fun x -> x *. d +. min),
-    (fun x -> (x -. min) /. d)
-  | `Logarithmic ->
-    (fun x ->
-      let x = (10. ** x -. 1.) /. 9. in
-      x *. d +. min
-    ),
-    (fun x ->
-      let x = (x -. min) /. d in
-      log10 (x *. 9. +. 1.))
-
 (* TODO: initialize sliders *)
-let float ?(mode=`Linear) ?(min=0.) ?(max=1.) path init =
+let float ?mode ?min ?max path init =
   let x = ref init in
-  let stretch, stretch_inv = stretch ~mode ~min ~max in
+  let stretch = Stream.stretch ?mode ?min ?max in
   let f x' = x := stretch x' in
   register_float path f;
   stream_ref x

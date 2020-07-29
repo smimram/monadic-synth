@@ -48,7 +48,7 @@ let create ~dt ~event (note:'a Note.t) =
         | Exit -> ()
       )
     (* playing := List.filter (fun (n',_) -> n' <> n) !playing *)
-    | `Nop -> ()
+    | _ -> ()
   in
   Event.register event handler;
   stream
@@ -91,66 +91,22 @@ let emitter ~dt ?(loop=true) f l =
   in
   now >>= aux
 
-(** Play a stream of lists events. *)
-let play_stream ~dt (note:'a Note.t) events =
-  let event = Event.create () in
-  let s = create ~dt ~event note in
-  events >>= (fun l -> return (List.iter (Event.emit event) l)) >> s
-
 (** Play timed events. *)
 let play ~dt (note:'a Note.t) events =
   let event = Event.create () in
   let s = create ~dt ~event note in
   emitter ~dt (Event.emit event) events >> s
 
-let play_midi ~dt (note:'a Note.t) =
+(** Play a stream of lists events. *)
+let play_stream ~dt (note:'a Note.t) =
   let event = Event.create () in
   let s = create ~dt ~event note in
-  let e = ref [] in
-  let m = Mutex.create () in
-  let _ =
-    Thread.create
-      (fun () ->
-         let open Alsa in
-         let seq = Sequencer.create "default" `Input in
-         Sequencer.set_client_name seq "Monadic synth";
-         let port = Sequencer.create_port seq "Input" [Port_cap_write; Port_cap_subs_write] [Port_type_MIDI_generic] in
-         Sequencer.subscribe_read_all seq port;
-         Printf.printf "synth started\n%!";
-         let add ev =
-           Mutex.lock m;
-           e := ev :: !e;
-           Mutex.unlock m
-         in
-         (* while false do *)
-         while true do
-           match (Sequencer.input_event seq).ev_event with
-           | Sequencer.Event.Note_on n ->
-             let n, v = n.note_note, (float_of_int n.note_velocity /. 127.) in
-             Printf.printf "note on: %d at %f\n%!" n v;
-             add (`Note_on (n, v))
-           | Sequencer.Event.Note_off n ->
-             let n = n.note_note in
-             Printf.printf "note off: %d\n%!" n;
-             add (`Note_off n)
-           (* | Sequencer.Event.Controller c -> Printf.printf "controller: %d\n%!" c.controller_value *)
-           (* | Sequencer.Event.Pitch_bend c -> Printf.printf "pitch bend: %d\n%!" c.controller_value *)
-           (* | _ -> Printf.printf "ignored event\n%!"; *)
-           | Sequencer.Event.Unhandled n ->
-             Printf.printf "unhandled midi: %d\n%!" n
-           | _ -> ()
-         done
-      ) ()
-  in
-  let f () =
-    Mutex.lock m;
-    let l = List.rev !e in
-    if l <> [] then Printf.printf "****got events\n%!";
-    e := [];
-    Mutex.unlock m;
-    List.iter (Event.emit event) l
-  in
-  f >> s
+  fun l ->
+    List.iter (Event.emit event) l;
+    s
+
+let play_midi ~dt note =
+  Stream.midi () >>= play_stream ~dt note
 
 let play_drum ~dt note events =
   let event = Event.create () in

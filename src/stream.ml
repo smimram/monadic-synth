@@ -34,6 +34,9 @@ let funct : ('a -> 'b) -> 'a t -> 'b t =
 let funct2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t =
   fun f x y -> bind2 (fun x y -> return (f x y)) x y
 
+let seq : (unit -> 'a) -> 'a stream =
+  fun f -> f
+
 module Common = struct
   let ( >>= ) x f = bind f x
 
@@ -66,9 +69,9 @@ let prev (x0:'a) : 'a -> 'a t =
     return ans
 
 (** Stream duplication. Once the left part has been evaluated, the right part
-   can be used as many times as wanted. This has to be used if you need to use a
-   stream more than once, in order to avoid each copy asking for a different
-   sample. *)
+    can be used as many times as wanted. This has to be used if you need to use a
+    stream more than once, in order to avoid each copy asking for a different
+    sample. *)
 let dup () : 'a t -> unit t * 'a t =
   let x = ref None in
   fun s ->
@@ -132,6 +135,26 @@ let soft_clip x =
   if x <= -1. then (-2.)/.3.
   else if x >= 1. then 2./.3.
   else x-.x*.x*.x/.3.
+
+(** Stretch a parameter between 0 and 1 to be between given bounds. *)
+let stretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
+  let d = max -. min in
+  match mode with
+  | `Linear -> fun x -> x *. d +. min
+  | `Logarithmic ->
+    fun x ->
+      let x = (10. ** x -. 1.) /. 9. in
+      x *. d +. min
+
+(** Inverse of [stretch]. *)
+let unstretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
+  let d = max -. min in
+   match mode with
+  | `Linear -> fun x -> (x -. min) /. d
+  | `Logarithmic ->
+    fun x ->
+      let x = (x -. min) /. d in
+      log10 (x *. 9. +. 1.)
 
 (** Event hubs. *)
 module Event = struct
@@ -1078,3 +1101,82 @@ module Stereo = struct
 end
 
 let stereo = Stereo.of_mono
+
+module Events = struct
+  (** Create a stream of MIDI events. *)
+  let midi () =
+    let e = ref [] in
+    let m = Mutex.create () in
+    let _ =
+      Thread.create
+        (fun () ->
+           let open Alsa in
+           let seq = Sequencer.create "default" `Input in
+           Sequencer.set_client_name seq "Monadic synth";
+           let port = Sequencer.create_port seq "Input" [Port_cap_write; Port_cap_subs_write] [Port_type_MIDI_generic] in
+           Sequencer.subscribe_read_all seq port;
+           Printf.printf "synth started\n%!";
+           let add ev =
+             Mutex.lock m;
+             e := ev :: !e;
+             Mutex.unlock m
+           in
+           (* while false do *)
+           while true do
+             match (Sequencer.input_event seq).ev_event with
+             | Sequencer.Event.Note_on n ->
+               let c, n, v = n.note_channel, n.note_note, float_of_int n.note_velocity /. 127. in
+               Printf.printf "note on  (%d): %d at %f\n%!" c n v;
+               add (c, `Note_on (n, v))
+             | Sequencer.Event.Note_off n ->
+               let c, n = n.note_channel, n.note_note in
+               Printf.printf "note off (%d): %d\n%!" c n;
+               add (c, `Note_off n)
+             | Sequencer.Event.Controller c ->
+               let c, n, v = c.controller_channel, c.controller_param, float c.controller_value  /. 127. in
+               Printf.printf "controller (%d): %d at %f\n%!" c n v;
+               add (c, `Controller (n, v))
+             (* | Sequencer.Event.Pitch_bend c -> Printf.printf "pitch bend: %d\n%!" c.controller_value *)
+             (* | _ -> Printf.printf "ignored event\n%!"; *)
+             | Sequencer.Event.Unhandled n ->
+               Printf.printf "unhandled midi: %d\n%!" n
+             | _ -> ()
+           done
+        ) ()
+    in
+    let f () =
+      Mutex.lock m;
+      let l = List.rev !e in
+      e := [];
+      Mutex.unlock m;
+      l
+    in
+    seq f
+
+  (** Keep only one channel. *)
+  let channel c l =
+    return (List.filter_map (fun (c',e) -> if c = c' then Some e else None) l)
+
+  (** Keep all channels. *)
+  let all_channels l =
+    return (List.map snd l)
+
+  (** Value of a controller .*)
+  let controller ?channel (number:int) ?mode ?min ?max init =
+    let stretch = stretch ?mode ?min ?max in
+    let x = ref init in
+    fun l ->
+      List.iter
+        (fun (c',e) ->
+           match channel with
+           | Some c when c <> c' -> ()
+           | _ ->
+             match e with
+             | `Controller (n, v) when n = number -> x := stretch v
+             | _ -> ()
+        ) l;
+      stream_ref x
+end
+
+let midi () =
+  Events.midi () >>= Events.all_channels
