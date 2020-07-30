@@ -107,9 +107,6 @@ let play_stream ~dt (note:'a Note.t) =
     List.iter (Event.emit event) l;
     s
 
-let play_midi ~dt note =
-  Stream.midi () >>= play_stream ~dt note
-
 let play_drum ~dt note events =
   let event = Event.create () in
   let s = create_drum ~event note in
