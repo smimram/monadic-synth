@@ -30,7 +30,7 @@ let s ~dt =
   let bass = List.map (fun n -> Pattern.repeat 4 [0.,2.,`Nop; 0.,0.5,`Note (n,1.); 0.5,0.5,`Note (n,1.)]) bass in
   let bass = Pattern.concat bass in
   let bass = Pattern.transpose (-24) bass in
-  let bass = Instrument.play ~dt (Note.adsr ~r:0.1 sine) (Pattern.midi tempo bass) in
+  let bass = Instrument.play ~dt (Note.adsr ~r:(return 0.1) sine) (Pattern.midi tempo bass) in
   let bass = cmul 0.5 bass in
   let bass = bass >>= stereo >>= Stereo.dephase ~dt (-0.02) in
   (* let kick = Instrument.kick ~dt ~vol:1. tempo >>= stereo in *)

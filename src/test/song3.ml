@@ -8,7 +8,7 @@ let s ~dt =
   let synth = Pattern.transpose (-12) synth in
 
   let sound ~dt freq = saw ~dt freq in
-  let synth = Instrument.play ~dt (Note.adsr ~r:0.01 sound) (Pattern.midi tempo synth) in
+  let synth = Instrument.play ~dt (Note.adsr ~r:(return 0.01) sound) (Pattern.midi tempo synth) in
   let lp = Filter.biquad ~dt `Low_pass in
   let synth =
     let lp_freq = OSC.float ~mode:`Logarithmic "/oscControl/slider1" ~max:10000. 1500. in
