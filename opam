@@ -1,5 +1,5 @@
 opam-version: "2.0"
-name: "monadic-synth"
+name: "msynth"
 version: "~dev"
 synopsis: "A monadic audio synthesizer"
 maintainer: "Samuel Mimram <smimram@gmail.com>"

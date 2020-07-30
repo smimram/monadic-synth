@@ -14,10 +14,10 @@ let s ~dt =
   let midi = MIDI.create () in
   let knob n ?mode ?min ?max default = MIDI.controller midi ~channel:0 n ?mode ?min ?max default in
   let note =
-    let a = knob 4 ~max:0.1 0.01 in
-    let d = knob 5 ~max:0.5 0.05 in
-    let s = knob 5 0.8 in
-    let r = knob 5 ~max:2. 0.1 in
+    let a = knob 4 ~max:0.1 0.01 >>= print "a" in
+    let d = knob 5 ~max:0.5 0.05 >>= print "d" in
+    let s = knob 6 0.8 >>= print "s" in
+    let r = knob 7 ~max:2. 0.1 >>= print "r" in
     Note.adsr ~a ~d ~s ~r saw
   in
   let note = Note.detune ~cents:(knob 0 ~max:50. 7.) ~wet:(knob 1 0.5) note in
@@ -26,11 +26,13 @@ let s ~dt =
   (* let pad = pad >>= amp 0.07 >>= Stereo.schroeder ~dt >>= Stereo.dephase ~dt (-0.01) in *)
   let pad =
     let lp = Filter.biquad ~dt `Low_pass in
-    let q = knob 2 ~min:0.1 ~max:5. 1. in
-    let freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. in
+    let q = knob 2 ~min:0.1 ~max:5. 1. >>= print "lpq" in
+    let freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. >>= print "lpf" in
     bind3 lp q freq pad
   in
-  pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01
+  let pad = pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01 in
+  (* adsr ~a:0.01 ~d:0.5 ~s:0. ~r:2. ~dt () >>= Visu.graphics () >>= drop >> pad *)
+  pad
 
 let () =
   (* OSC.server 8000; *)

@@ -61,6 +61,7 @@ let print ?(every=1) name =
       );
     return x
 
+(** Forget the result of the stream. *)
 let drop _ = return ()
 
 (** Previous value of the stream. *)
@@ -509,10 +510,25 @@ let every ~dt =
 let on f b =
   if b then return (f ()) else return ()
 
+(** Execute a function when a stream change its value. *)
+let on_change f =
+  let old = ref None in
+  fun x ->
+    match !old with
+    | Some x0 when x0 = x -> return x
+    | Some _ -> old := Some x; f x; return x
+    | None -> old := Some x; return x
+
+(** Print value of stream when it changes. *)
+let print name =
+  on_change (fun x -> Printf.printf "%s: %f\n%!" name x)
+
 let fallback (x:'a t) (y:'a t) b : 'a t =
   if b then x else y
 
 let fallblank x b = fallback x blank b
+
+(** {2 Oscillators} *)
 
 (** Generate a random value at given frequency. *)
 let random ~dt =
@@ -582,6 +598,10 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) ~dt () =
     amp := !amp +. amp' *. dt;
     ans
   in
+  let set s =
+    (* Printf.printf "new state: %s\n%!" (match s with `Attack -> "a" | `Decay -> "d" | `Sustain -> "s" | `Release -> "r" | `Dead -> "x"); *)
+    state := s
+  in
   let rec stream ?(a=0.01) ?(d=0.05) ?(s=0.8) ?(r=0.5) ?(sustain=true) ?(release=`Linear) () =
     match !state with
     | `Dead -> 0.
@@ -591,15 +611,16 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) ~dt () =
         match release with
         | `Linear ->
           let a = integ (-. s /. r) in
-          if a <= 0. then die () else a
-        | `Exponential -> if !amp <= 0.001 then die () else integ (-. log2 /. r *. !amp)
+          if a <= 0.0001 || s <= 0.001 || r <= 0.001 then die () else a
+        | `Exponential ->
+          if !amp <= 0.001 || r <= 0.001 then die () else integ (-. log2 /. r *. !amp)
       )
-    | `Decay -> if !amp <= s then (amp := s; state := (if sustain then `Sustain else `Release); stream ()) else integ ((s -. 1.) /. d)
-    | `Attack -> if !amp >= 1. || a = 0. then (state := `Decay; stream ()) else integ (1. /. a)
+    | `Decay -> if !amp <= s || d <= 0.0001 then (amp := s; set (if sustain then `Sustain else `Release); stream ()) else integ ((s -. 1.) /. d)
+    | `Attack -> if !amp >= 1. || a <= 0.0001 then (set `Decay; stream ()) else integ (1. /. a)
   in
   let handler = function
-    | `Release -> state := `Release
-    | `Reset -> amp := 0.; state := `Attack
+    | `Release -> set `Release
+    | `Reset -> amp := 0.; set `Attack
   in
   Event.register event handler;
   stream

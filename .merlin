@@ -1,4 +1,4 @@
 B src/**
 B +threads
 S src/**
-PKG alsa pulseaudio
+PKG alsa pulseaudio graphics

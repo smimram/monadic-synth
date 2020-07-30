@@ -17,7 +17,7 @@ let create ~dt ~event (note:'a Note.t) =
   let stream : sample stream = fun () ->
     let x = List.fold_left (+.) 0. (List.map (fun n -> n.stream ()) !playing) in
     incr n;
-    if !n = 10000 then
+    if !n = 10 then
       (
         n := 0;
         playing := List.filter (fun n -> !(n.alive)) !playing
