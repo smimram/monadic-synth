@@ -37,24 +37,24 @@ class alsa ?(channels=2) samplerate =
     dev, period_size
   in
   let ba = Bigarray.Array1.create Bigarray.Float32 Bigarray.C_layout (channels * period_size) in
-object (self)
-  method buflen = period_size
+  object (self)
+    method buflen = period_size
 
-  method write buf =
-    let buflen = self#buflen in
-    for i = 0 to buflen - 1 do
-      for c = 0 to channels - 1 do
-        ba.{channels*i+c} <- buf.(c).(i)
-      done
-    done;
-    try ignore (Pcm.writei_float_ba dev channels ba)
-    with
-    | Alsa.Buffer_xrun ->
-      Printf.eprintf "ALSA: buffer xrun\n%!";
-      Pcm.prepare dev
+    method write buf =
+      let buflen = self#buflen in
+      for i = 0 to buflen - 1 do
+        for c = 0 to channels - 1 do
+          ba.{channels*i+c} <- buf.(c).(i)
+        done
+      done;
+      try ignore (Pcm.writei_float_ba dev channels ba)
+      with
+      | Alsa.Buffer_xrun ->
+        Printf.eprintf "ALSA: buffer xrun\n%!";
+        Pcm.prepare dev
 
-  method close = ()
-end
+    method close = ()
+  end
 
 (*
 class portaudio ?(channels=2) samplerate =
@@ -73,13 +73,58 @@ end
 *)
 
 class wav ?(channels=2) samplerate fname =
-  let super = new Audio.IO.Writer.to_wav_file channels samplerate fname in
-object
-  method write buf =
-    super#write buf 0 (Array.length buf.(0))
+  let oc = open_out fname in
+  object (self)
+    initializer
+      let bits_per_sample = 16 in
+      self#output "RIFF";
+      self#output_int 0;
+      self#output "WAVE";
+      (* Format *)
+      self#output "fmt ";
+      self#output_int 16;
+      self#output_short 1;
+      self#output_short channels;
+      self#output_int samplerate;
+      self#output_int (samplerate * channels * bits_per_sample / 8);
+      self#output_short (channels * bits_per_sample / 8);
+      self#output_short bits_per_sample;
+      (* Data *)
+      self#output "data";
+      (* size of the data, to be updated afterwards *)
+      self#output_short 0xffff;
+      self#output_short 0xffff
 
-  method close : unit = super#close
-end
+    method private output s = output_string oc s
+
+    method private output_num b n =
+      let s = Bytes.create b in
+      for i = 0 to b - 1 do
+        Bytes.set s i (char_of_int ((n lsr (8 * i)) land 0xff))
+      done;
+      self#output (Bytes.to_string s)
+
+    method private output_byte n = self#output_num 1 n
+
+    method private output_short n = self#output_num 2 n
+
+    method private output_int n = self#output_num 4 n
+
+    method private output_short_float x =
+      let x = min 32767 (max (-32767) (int_of_float (x *. 32767.))) in
+      self#output_short x
+
+    method write buf =
+      assert (Array.length buf = channels);
+      for i = 0 to Array.length buf.(0) - 1 do
+        for c = 0 to channels - 1 do
+          self#output_short_float buf.(c).(i)
+        done
+      done
+
+    method close : unit =
+      close_out oc
+  end
 
 exception End_of_stream
 

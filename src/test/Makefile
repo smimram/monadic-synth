@@ -14,8 +14,8 @@ clean:
 
 %: %.ml ../msynth.cmxa
 	ocamlopt -thread \
-	-I +../alsa -I +../pulseaudio -I +../mm -I +../lo -I +../graphics -I .. \
-	unix.cmxa threads.cmxa str.cmxa graphics.cmxa bigarray.cmxa alsa.cmxa pulseaudio.cmxa mm.cmxa lo.cmxa msynth.cmxa \
+	-I +../alsa -I +../pulseaudio -I +../lo -I +../graphics -I .. \
+	unix.cmxa threads.cmxa str.cmxa graphics.cmxa bigarray.cmxa alsa.cmxa pulseaudio.cmxa lo.cmxa msynth.cmxa \
 	-o $@ $<
 
 .gitignore: $(PROG)

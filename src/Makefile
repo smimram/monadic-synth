@@ -2,7 +2,7 @@ SOURCES = extlib.ml stream.ml visu.ml pattern.ml instrument.ml output.ml OSC.ml
 RESULT = msynth
 THREADS = yes
 ANNOTATE = true
-PACKS = alsa pulseaudio mm lo graphics
+PACKS = alsa pulseaudio lo graphics
 OCAMLOPTFLAGS = -inline 10000 -nodynlink #-unsafe
 
 all: dncl
