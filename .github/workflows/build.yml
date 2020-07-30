@@ -11,6 +11,8 @@ jobs:
       uses: avsm/setup-ocaml@v1.0
     - name: Install depext module
       run: opam install -y depext
+    - name: Use latest ocaml-alsa
+      run: git clone https://github.com/savonet/ocaml-alsa.git && opam pin -y add ocaml-alsa
     - name: Pin locally
       run: opam pin -y add --no-action .
     - name: Install locally
