@@ -1,0 +1,17 @@
+opam-version: "2.0"
+name: "monadic-synth"
+version: "~dev"
+synopsis: "A monadic audio synthesizer"
+maintainer: "Samuel Mimram <smimram@gmail.com>"
+authors: "Samuel Mimram <smimram@gmail.com>"
+license: ""
+homepage: "https://github.com/smimram/monadic-synth"
+bug-reports: "https://github.com/smimram/monadic-synth/issues"
+depends: [
+  "alsa" {>= "0.3.0"}
+]
+build: [
+  [make]
+]
+install: [make "install"]
+dev-repo: "git+https://github.com/smimram/monadic-synth.git"
