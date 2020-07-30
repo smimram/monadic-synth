@@ -9,6 +9,9 @@ ci:
 lib:
 	@$(MAKE) -C ..
 
+test: lib midi
+	./midi
+
 clean:
 	rm -f $(wildcard *.cmi *.cmx *.o) $(PROG)
 

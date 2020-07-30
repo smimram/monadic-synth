@@ -595,7 +595,7 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) ~dt () =
         | `Exponential -> if !amp <= 0.001 then die () else integ (-. log2 /. r *. !amp)
       )
     | `Decay -> if !amp <= s then (amp := s; state := (if sustain then `Sustain else `Release); stream ()) else integ ((s -. 1.) /. d)
-    | `Attack -> if !amp >= 1. then (state := `Decay; stream ()) else integ (1. /. a)
+    | `Attack -> if !amp >= 1. || a = 0. then (state := `Decay; stream ()) else integ (1. /. a)
   in
   let handler = function
     | `Release -> state := `Release

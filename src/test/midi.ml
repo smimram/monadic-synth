@@ -15,7 +15,10 @@ let s ~dt =
   let knob n ?mode ?min ?max default = MIDI.controller midi ~channel:0 n ?mode ?min ?max default in
   let note =
     let a = knob 4 ~max:0.1 0.01 in
-    Note.adsr ~a saw
+    let d = knob 5 ~max:0.5 0.05 in
+    let s = knob 5 0.8 in
+    let r = knob 5 ~max:2. 0.1 in
+    Note.adsr ~a ~d ~s ~r saw
   in
   let note = Note.detune ~cents:(knob 0 ~max:50. 7.) ~wet:(knob 1 0.5) note in
   let pad = MIDI.events ~channel:0 midi >>= Instrument.play_stream ~dt note >>= clip in
