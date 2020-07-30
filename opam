@@ -4,7 +4,7 @@ version: "~dev"
 synopsis: "A monadic audio synthesizer"
 maintainer: "Samuel Mimram <smimram@gmail.com>"
 authors: "Samuel Mimram <smimram@gmail.com>"
-license: ""
+license: "GPL-2.0"
 homepage: "https://github.com/smimram/monadic-synth"
 bug-reports: "https://github.com/smimram/monadic-synth/issues"
 depends: [
