@@ -12,6 +12,18 @@ let s ~dt =
   (* let pad = Pattern.merge pad [0.,32.,`Note(40,2.5)] in *)
   (* let pad = sine ~dt 440. in *)
   let midi = MIDI.create () in
+  let toggle n = MIDI.toggle midi n in
+  let t = toggle 36 >>= on_change (fun x -> Printf.printf "toggle: %b\n%!") in
+  let midi =
+    MIDI.map midi
+      (fun c e ->
+         match e with
+         | `Controller (n, v) ->
+           let n = if t () then n + 8 else n in
+           c, `Controller (n, v)
+         | e -> c, e
+      )
+  in
   let knob n ?mode ?min ?max default = MIDI.controller midi ~channel:0 n ?mode ?min ?max default in
   let note =
     let a = knob 4 ~max:0.1 0.01 >>= print "a" in
@@ -20,15 +32,15 @@ let s ~dt =
     let r = knob 7 ~max:2. 0.1 >>= print "r" in
     Note.adsr ~a ~d ~s ~r saw
   in
-  let note = Note.detune ~cents:(knob 0 ~max:50. 7.) ~wet:(knob 1 0.5) note in
+  let note = Note.detune ~cents:(knob 8 ~max:50. 7.) ~wet:(knob 9 0.5) note in
   let pad = MIDI.events ~channel:0 midi >>= Instrument.play_stream ~dt note >>= clip in
   (* let pad = mul pad (knob 0 1.) in *)
   (* let pad = pad >>= amp 0.07 >>= Stereo.schroeder ~dt >>= Stereo.dephase ~dt (-0.01) in *)
   let pad =
     let lp = Filter.biquad ~dt `Low_pass in
     let* q = knob 2 ~min:0.1 ~max:5. 1. >>= print "lpq"
-    and+ freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. >>= print "lpf"
-    and+ pad = pad in
+    and* freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. >>= print "lpf"
+    and* pad = pad in
     lp q freq pad
   in
   let pad = pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01 in

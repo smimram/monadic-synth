@@ -60,6 +60,8 @@ module Common = struct
 
   let ( let* ) x f = bind f x
 
+  let ( and* ) = prod
+
   let ( let+ ) x f = funct x f
 
   let ( and+ ) = prod
@@ -644,6 +646,7 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) ~dt () =
   Event.register event handler;
   stream
 
+(** Affine from a value to a value in a given time. *)
 let ramp ~dt from =
   let arrived = ref false in
   let changed = changed () in
@@ -915,7 +918,7 @@ module Note = struct
   end
 
   (** Simple note with adsr envelope and volume. *)
-  let adsr ~dt ~event ~on_die ?a ?d ?s ?r f freq vol =
+  let adsr ~dt ~event ~on_die ?a ?d ?s ?r osc freq vol =
     let g = function
       | Some x -> Some (get x)
       | None -> None
@@ -926,7 +929,7 @@ module Note = struct
       | None -> Printf.printf "a : none\n%!"
     );
     let env = adsr ~dt ~event ~on_die ?a:(g a) ?d:(g d) ?s:(g s) ?r:(g r) () in
-    let s = f ~dt freq in
+    let s = osc ~dt freq in
     let s = mul env s in
     cmul vol s
 end

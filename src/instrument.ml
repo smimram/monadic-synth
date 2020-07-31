@@ -11,26 +11,50 @@ type 'event note =
     alive : bool ref;
   }
 
-let create ~dt ~event (note:'a Note.t) =
+let create ~dt ~event ?(portamento=`None) (note:'a Note.t) =
+  (* Currently playing notes. *)
   let playing = ref [] in
   let n = ref 0 in
   let stream : sample stream = fun () ->
     let x = List.fold_left (+.) 0. (List.map (fun n -> n.stream ()) !playing) in
     incr n;
-    if !n = 10 then
+    (* Regularly remove non-alive notes. *)
+    if !n = 50000 then
       (
         n := 0;
         playing := List.filter (fun n -> !(n.alive)) !playing
       );
     x
   in
+  (* let last_freq = ref None in *)
   let handler = function
     | `Note_on (n,v) ->
-      let freq = Note.freq n in
       let event = Event.create () in
       let alive = ref true in
       let on_die () = alive := false in
+      let freq = Note.freq n in
       let stream = note ~dt ~event ~on_die freq v in
+      (*
+      let freq =
+        match portamento with
+        | `None -> return freq
+        | `Linear p ->
+          (
+            match !last_freq with
+            | None ->
+              last_freq := Some freq;
+              return freq
+            | Some a ->
+              let b = freq in
+              last_freq := Some freq;
+              ramp ~dt a b p
+          )
+      in
+      let stream =
+        let* freq = freq in
+        note ~dt ~event ~on_die freq v
+      in
+     *)
       let note =
         {
           note = n;
