@@ -10,6 +10,9 @@ bug-reports: "https://github.com/smimram/monadic-synth/issues"
 depends: [
   "ocamlfind"
   "alsa" {>= "0.3.0"}
+  "pulseaudio"
+  "lo"
+  "graphics"
 ]
 build: [
   [make]
