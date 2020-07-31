@@ -26,10 +26,10 @@ let s ~dt =
   (* let pad = pad >>= amp 0.07 >>= Stereo.schroeder ~dt >>= Stereo.dephase ~dt (-0.01) in *)
   let pad =
     let lp = Filter.biquad ~dt `Low_pass in
-    let q = knob 2 ~min:0.1 ~max:5. 1. >>= print "lpq" in
-    let freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. >>= print "lpf" in
-    bind3 lp q freq pad
-    (* (pad >>= lp) <*> freq <*> q *)
+    let* q = knob 2 ~min:0.1 ~max:5. 1. >>= print "lpq"
+    and+ freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. >>= print "lpf"
+    and+ pad = pad in
+    lp q freq pad
   in
   let pad = pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01 in
   (* adsr ~a:0.01 ~d:0.5 ~s:0. ~r:2. ~dt () >>= Visu.graphics () >>= drop >> pad *)
