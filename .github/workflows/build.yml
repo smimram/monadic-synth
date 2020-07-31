@@ -18,7 +18,7 @@ jobs:
     - name: Pin locally
       run: opam pin -y add --no-action .
     - name: Install locally
-      run: opam depext -y -i monadic-synth
+      run: opam depext -y -i msynth
     - name: Build locally
       run: eval $(opam env) && dune build
     - name: Run tests locally
