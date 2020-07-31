@@ -316,6 +316,7 @@ end
 
 (** {2 Oscillators} *)
 
+(** Integrate a stream. *)
 let integrate ~dt ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () : float -> sample t =
   let y = ref init in
   let handler = function
@@ -367,7 +368,8 @@ let sine ~dt : float -> sample t =
   let p = periodic ~dt () in
   let a = 2. *. pi in
   fun freq ->
-    p freq >>= (fun t -> return (sin (a *. t)))
+    let* t = p freq in
+    return (sin (a *. t))
 
 let square ~dt =
   let square (w:float) (x:float) : sample t = return (if x <= w then -1. else 1.) in
@@ -647,18 +649,15 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) ~dt () =
   stream
 
 (** Affine from a value to a value in a given time. *)
-let ramp ~dt from =
+let ramp ~dt from dest duration =
   let arrived = ref false in
-  let changed = changed () in
-  let move = integrate ~dt ~init:from () in
-  fun dest duration ->
-    let a' = (dest-.from)/.duration in
-    let move = move a' in
-    let move =
-      let d,move = dup () move in
-      d >> move >>= (fun x -> changed (x <= dest)) >>= on (fun () -> arrived := true) >> move
-    in
-    stream_ref arrived >>= fallback (return dest) move
+  let t = integrate ~dt ~periodic:true ~on_reset:(fun () -> arrived := true) () in
+  let a = dest -. from in
+  let a' = 1. /. duration in
+  stream_ref arrived >>=
+  fallback
+    (return dest)
+    (let* t = t a' in return (a *. t +. from))
 
 (** {2 Effects} *)
 
@@ -918,7 +917,7 @@ module Note = struct
   end
 
   (** Simple note with adsr envelope and volume. *)
-  let adsr ~dt ~event ~on_die ?a ?d ?s ?r osc freq vol =
+  let adsr ~dt ~event ~on_die ?a ?d ?s ?r osc =
     let g = function
       | Some x -> Some (get x)
       | None -> None
@@ -929,9 +928,11 @@ module Note = struct
       | None -> Printf.printf "a : none\n%!"
     );
     let env = adsr ~dt ~event ~on_die ?a:(g a) ?d:(g d) ?s:(g s) ?r:(g r) () in
-    let s = osc ~dt freq in
-    let s = mul env s in
-    cmul vol s
+    let osc = osc ~dt in
+    fun freq vol ->
+      let s = osc freq in
+      let s = mul env s in
+      cmul vol s
 end
 
 (** {2 Analysis} *)

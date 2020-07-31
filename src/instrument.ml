@@ -11,7 +11,7 @@ type 'event note =
     alive : bool ref;
   }
 
-let create ~dt ~event ?(portamento=`None) (note:'a Note.t) =
+let create ~dt ~event ?portamento (note:'a Note.t) =
   (* Currently playing notes. *)
   let playing = ref [] in
   let n = ref 0 in
@@ -26,19 +26,17 @@ let create ~dt ~event ?(portamento=`None) (note:'a Note.t) =
       );
     x
   in
-  (* let last_freq = ref None in *)
+  let last_freq = ref None in
   let handler = function
     | `Note_on (n,v) ->
       let event = Event.create () in
       let alive = ref true in
       let on_die () = alive := false in
       let freq = Note.freq n in
-      let stream = note ~dt ~event ~on_die freq v in
-      (*
       let freq =
         match portamento with
-        | `None -> return freq
-        | `Linear p ->
+        | None -> return freq
+        | Some p ->
           (
             match !last_freq with
             | None ->
@@ -47,14 +45,14 @@ let create ~dt ~event ?(portamento=`None) (note:'a Note.t) =
             | Some a ->
               let b = freq in
               last_freq := Some freq;
-              ramp ~dt a b p
+              ramp ~dt a b (get p)
           )
       in
+      let note = note ~dt ~event ~on_die in
       let stream =
         let* freq = freq in
-        note ~dt ~event ~on_die freq v
+        note freq v
       in
-     *)
       let note =
         {
           note = n;
@@ -124,9 +122,9 @@ let play ~dt (note:'a Note.t) events =
   emitter ~dt (Event.emit event) events >> s
 
 (** Play a stream of lists events. *)
-let play_stream ~dt (note:'a Note.t) =
+let play_stream ~dt ?portamento (note:'a Note.t) =
   let event = Event.create () in
-  let s = create ~dt ~event note in
+  let s = create ~dt ?portamento ~event note in
   fun l ->
     List.iter (Event.emit event) l;
     s
