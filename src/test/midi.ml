@@ -48,6 +48,7 @@ let s ~dt =
     lp q freq pad
   in
   let pad =
+    (* TODO: un commenting this makes the sound mono on right channel... *)
     (* let* delay = knob 67 ~max:0.1 0.01 in *)
     pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01
   in

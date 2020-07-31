@@ -225,50 +225,78 @@ module Sample = struct
       if !n = len then n := 0;
       !ans
 
-  let ringbuffer maxduration =
-    let buflen = maxduration + 1 in
-    let buf = Array.make buflen 0. in
-    let pos = ref 0 in
-    let read delay : sample t =
-      assert (0 <= delay && delay <= maxduration);
-      let prev = !pos - delay in
-      let prev = if prev < 0 then prev + buflen else prev in
-      return buf.(prev)
-    in
-    let write x =
-      buf.(!pos) <- x
-    in
-    let advance () =
-      incr pos;
-      if !pos >= buflen then pos := 0
-    in
-    read, write, advance
+  module Ringbuffer = struct
+    type t =
+      {
+        mutable buffer : sample array;
+        mutable pos : int;
+      }
 
-  let delay maxdelay =
-    let peek, write, advance = ringbuffer maxdelay in
-    fun ?(delay=maxdelay) x ->
-      write x; peek delay >>= (fun x -> advance (); return x)
+    let create () =
+      assert false;
+      {
+        buffer = [||];
+        pos = 0;
+      }
+
+    (** Ensure that the buffer can hold this amount of data. *)
+    let prepare r size =
+      if Array.length r.buffer < size + 1 then
+        let buf = r.buffer in
+        r.buffer <- Array.make (size + 1) 0.;
+        Array.blit buf 0 r.buffer 0 (Array.length buf)
+
+    (** Number of sample that the buffer can hold. *)
+    let size r =
+      Array.length r.buffer - 1
+
+    let advance r =
+      r.pos <- r.pos + 1;
+      if r.pos >= Array.length r.buffer then r.pos <- 0
+
+    let past r delay =
+      assert (0 <= delay && delay <= size r);
+      let prev = r.pos - delay in
+      let prev = if prev < 0 then prev + Array.length r.buffer else prev in
+      r.buffer.(prev)
+
+    let write r x =
+      r.buffer.(r.pos) <- x;
+      advance r
+  end
+
+  let delay () =
+    let r = Ringbuffer.create () in
+    fun delay x ->
+      Ringbuffer.prepare r delay;
+      Ringbuffer.write r x;
+      let x = Ringbuffer.past r delay in
+      return x
 
   (** A fixed delay which inputs the sample at t-delay, passes it to a function,
       and writes the result. Useful for implementing the recursive part of
       filters. *)
-  let rec_delay maxdelay =
-    let read, write, advance = ringbuffer maxdelay in
-    fun ?(delay=maxdelay) f ->
-      read delay >>= f >>= (fun y -> write y; advance (); return y)
+  let rec_delay () =
+    let r = Ringbuffer.create () in
+    fun delay f ->
+      Ringbuffer.prepare r delay;
+      let* y = f (Ringbuffer.past r delay) in
+      Ringbuffer.write r y;
+      return y
 
   (** Feedback comb filter. *)
-  let comb m =
-    let d = delay m in
-    fun a x ->
-      d x >>= (fun x' -> return (x-.a*.x'))
+  let comb () =
+    let d = delay () in
+    fun m a x ->
+      let* x' = d m x in
+      return (x -. a *. x')
 
   (** All-pass filter. *)
-  let schroeder_allpass m =
-    let dx = delay m in
-    let dy = rec_delay m in
-    fun g x ->
-      dy (fun y' -> dx x >>= (fun x' -> return (x'+.g*.(y'-.x))))
+  let schroeder_allpass () =
+    let dx = delay () in
+    let dy = rec_delay () in
+    fun m g x ->
+      dy m (fun y' -> dx m x >>= (fun x' -> return (x'+.g*.(y'-.x))))
 
   (** Fast Fourrier transform. *)
   let fft a off len =
@@ -742,32 +770,42 @@ module Filter = struct
       y
 end
 
-let ringbuffer ~dt maxduration =
-  let peek, write, advance = Sample.ringbuffer (samples ~dt maxduration) in
-  let peek delay = peek (samples ~dt delay) in
-  peek, write, advance
+module Ringbuffer = struct
+  type t = Sample.Ringbuffer.t
 
-let delay ~dt maxdelay =
-  let peek, write, advance = ringbuffer ~dt maxdelay in
-  fun ?(dry=1.) ?(wet=0.5) ?(feedback=0.9) ?(delay=maxdelay) x ->
-    let f x xd =
-      let ans = dry *. x +. wet *. xd in
-      write (x +. feedback *. ans);
-      advance ();
-      return ans
-    in
-    peek delay >>= (f x)
+  let create ~dt = dt, Sample.Ringbuffer.create ()
 
-let comb ~dt delay =
-  Sample.comb (samples ~dt delay)
+  let past (dt,r) delay = Sample.Ringbuffer.past r (samples ~dt delay)
 
-let schroeder_allpass ~dt delay =
-  Sample.schroeder_allpass (samples ~dt delay)
+  let write (dt,r) x = Sample.Ringbuffer.write r x
+
+  let prepare (dt,r) len = Sample.Ringbuffer.prepare r (samples ~dt len)
+
+  (* let advance (dt,r) = Sample.Ringbuffer.advance r *)
+end
+
+let delay ~dt =
+  let r = Ringbuffer.create ~dt in
+  fun ?(dry=1.) ?(wet=0.5) ?(feedback=0.9) delay x ->
+    Ringbuffer.prepare r delay;
+    let x' = Ringbuffer.past r delay in
+    let ans = dry *. x +. wet *. x' in
+    Ringbuffer.write r (x +. feedback *. ans);
+    return ans
+
+let comb ~dt =
+  let comb = Sample.comb () in
+  fun delay ->
+  comb (samples ~dt delay)
+
+let schroeder_allpass ~dt =
+  let sa = Sample.schroeder_allpass () in
+  fun delay -> sa (samples ~dt delay)
 
 (** A simple delay with no dry or feedback. *)
-let simple_delay ~dt maxdelay =
-  let d = Sample.delay (samples ~dt maxdelay) in
-  fun ?(delay=maxdelay) -> d ~delay:(samples ~dt delay)
+let simple_delay ~dt =
+  let d = Sample.delay () in
+  fun delay -> d (samples ~dt delay)
 
 (** Auto gain control. *)
 let agc ~dt ?(period=0.1) ?(up=0.5) ?(down=15.) ?(blank=0.01) ?(target=0.8) ?(clipping=true) () =
@@ -837,17 +875,20 @@ module Slicer = struct
         if d = 0 || d = 4 || d = 6 then return x else return 0.)
 end
 
-let chorus ~dt maxdelay =
-  let d = simple_delay ~dt maxdelay in
-  fun ?(wet=1.) ?(delay=maxdelay) x ->
-    d ~delay x >>= (fun x' -> return (x +. wet *. x'))
+let chorus ~dt =
+  let d = simple_delay ~dt in
+  fun ?(wet=1.) delay x ->
+    let* x' = d delay x in
+    return (x +. wet *. x')
 
-let flanger ~dt maxdelay =
-  let chorus = chorus ~dt maxdelay in
+let flanger ~dt =
+  let chorus = chorus ~dt in
   let sine = sine ~dt in
-  let a = maxdelay/.2. in
-  fun ?(wet=1.) freq x ->
-    cadd a (cmul a (sine freq)) >>= (fun d -> chorus ~wet ~delay:d x)
+  fun delay ?(wet=1.) freq x ->
+    let* t = sine freq in
+    let a = delay/.2. in
+    let delay = a +. a *. t in
+    chorus ~wet delay x
 
 module Distortion = struct
   (* amount in [-1,1] *)
@@ -991,18 +1032,18 @@ module Stereo = struct
     in
     bind2 f s1 s2
 
-  let delay ?ping_pong ~dt maxdelay =
-    let delay_l = delay ~dt maxdelay in
-    let delay_r = delay ~dt maxdelay in
+  let delay ?ping_pong ~dt =
+    let delay_l = delay ~dt in
+    let delay_r = delay ~dt in
     (* Initial additional delay. *)
     let delay_r0 =
       match ping_pong with
-      | Some ping_pong -> simple_delay ~dt (ping_pong /. 2.) ?delay:None
+      | Some ping_pong -> simple_delay ~dt (ping_pong /. 2.)
       | None -> return
     in
-    fun ?dry ?wet ?(feedback=0.6) ?delay ((x,y) as c) ->
-      let x = delay_l ?dry ?wet ~feedback ?delay x in
-      let y = delay_r0 y >>= delay_r ?dry ?wet ~feedback ?delay in
+    fun ?dry ?wet ?(feedback=0.6) delay ((x,y) as c) ->
+      let x = delay_l ?dry ?wet ~feedback delay x in
+      let y = delay_r0 y >>= delay_r ?dry ?wet ~feedback delay in
       add (return c) (merge (cmul feedback x) (cmul feedback y))
 
   let add_list ss =
@@ -1026,13 +1067,13 @@ module Stereo = struct
 
   let right (x,y) = return y
 
-  let dephase ~dt maxdelay =
-    let delay_l = simple_delay ~dt (abs_float maxdelay) in
-    let delay_r = simple_delay ~dt (abs_float maxdelay) in
-    fun ?(delay=maxdelay) (x,y) ->
+  let dephase ~dt =
+    let delay_l = simple_delay ~dt in
+    let delay_r = simple_delay ~dt in
+    fun delay (x,y) ->
       let dl, dr = if delay < 0. then 0., -.delay else delay, 0. in
-      let x = delay_l ~delay:dl x in
-      let y = delay_r ~delay:dr y in
+      let x = delay_l dl x in
+      let y = delay_r dr y in
       merge x y
 
   (** Schroeder reverberation. *)
