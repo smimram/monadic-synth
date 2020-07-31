@@ -18,6 +18,6 @@ jobs:
     - name: Install locally
       run: opam depext -y -i msynth
     - name: Build locally
-      run: make
+      run: eval $(opam env) && make
     - name: Build tests
-      run: make -C src/test
+      run: eval $(opam env) && make -C src/test
