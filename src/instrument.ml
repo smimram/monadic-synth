@@ -45,7 +45,10 @@ let create ~dt ~event ?portamento (note:'a Note.t) =
             | Some a ->
               let b = freq in
               last_freq := Some freq;
-              ramp ~dt a b (get p)
+              let ramp = ramp ~dt in
+              (* let ramp = exp_ramp ~dt in *)
+              let* p = p in
+              ramp a b p
           )
       in
       let note = note ~dt ~event ~on_die in

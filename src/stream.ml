@@ -337,6 +337,7 @@ let now ~dt ?event () : sample t =
 let periodic ~dt ?(init=0.) ?on_reset () =
   integrate ~periodic:true ~dt ~init ?on_reset ()
 
+(** Exponential decay with given parameter. *)
 let exponential ?(init=1.) ~dt =
   let y = ref 1. in
   fun k () ->
@@ -346,8 +347,9 @@ let exponential ?(init=1.) ~dt =
 
 (** Same as above but taking half-life as parameter. *)
 let exponential_hl ?init ~dt =
+  let ln2 = log 2. in
   let e = exponential ?init ~dt in
-  fun h -> e (-. log 2. /. h)
+  fun h -> e (-. ln2 /. h)
 
 let saw ~dt : float -> sample t =
   let p = periodic ~dt () in
@@ -649,15 +651,22 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) ~dt () =
   stream
 
 (** Affine from a value to a value in a given time. *)
-let ramp ~dt from dest duration =
+let ramp ~dt =
   let arrived = ref false in
   let t = integrate ~dt ~periodic:true ~on_reset:(fun () -> arrived := true) () in
-  let a = dest -. from in
-  let a' = 1. /. duration in
-  stream_ref arrived >>=
-  fallback
-    (return dest)
-    (let* t = t a' in return (a *. t +. from))
+  fun from dest duration ->
+    let a = dest -. from in
+    let a' = 1. /. duration in
+    stream_ref arrived >>=
+    fallback
+      (return dest)
+      (let* t = t a' in return (a *. t +. from))
+
+let exp_ramp ~dt =
+  let e = exponential_hl ~dt in
+  fun a b duration ->
+    let* e = e duration in
+    return ((1. -. e) *. (b -. a) +. a)
 
 (** {2 Effects} *)
 

@@ -32,8 +32,12 @@ let s ~dt =
     let r = knob 7 ~max:2. 0.1 >>= print "r" in
     Note.adsr ~a ~d ~s ~r saw
   in
-  let note = Note.detune ~cents:(knob 8 ~max:50. 7.) ~wet:(knob 9 0.5) note in
-  let pad = MIDI.events ~channel:0 midi >>= Instrument.play_stream ~dt ~portamento:(return 0.15) note >>= clip in
+  let note =
+    let cents = knob 10 ~max:50. 7. in
+    let wet = knob 9 0.5 in
+    Note.detune ~cents ~wet note
+  in
+  let pad = MIDI.events ~channel:0 midi >>= Instrument.play_stream ~dt (* ~portamento:(return 0.1) *) note >>= clip in
   (* let pad = mul pad (knob 0 1.) in *)
   (* let pad = pad >>= amp 0.07 >>= Stereo.schroeder ~dt >>= Stereo.dephase ~dt (-0.01) in *)
   let pad =
@@ -43,8 +47,11 @@ let s ~dt =
     and* pad = pad in
     lp q freq pad
   in
-  let pad = pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01 in
-  (* let pad = ramp ~dt (-0.5) 0.5 2. >>= Visu.graphics () >>= drop >> pad in *)
+  let pad =
+    (* let* delay = knob 67 ~max:0.1 0.01 in *)
+    pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01
+  in
+  let pad = exp_ramp ~dt (-0.5) 1. 1. >>= Visu.graphics () >>= drop >> pad in
   pad
 
 let () =
