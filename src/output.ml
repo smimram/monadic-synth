@@ -1,5 +1,6 @@
 open Stream
 
+(*
 class pulseaudio ?(channels=2) samplerate =
   let sample =
     { Pulseaudio.
@@ -17,6 +18,7 @@ class pulseaudio ?(channels=2) samplerate =
 
     method close = (* TODO *) ()
   end
+*)
 
 class alsa ?(channels=2) samplerate =
   let open Alsa in

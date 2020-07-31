@@ -29,6 +29,7 @@ let s ~dt =
     let q = knob 2 ~min:0.1 ~max:5. 1. >>= print "lpq" in
     let freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. >>= print "lpf" in
     bind3 lp q freq pad
+    (* (pad >>= lp) <*> freq <*> q *)
   in
   let pad = pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01 in
   (* adsr ~a:0.01 ~d:0.5 ~s:0. ~r:2. ~dt () >>= Visu.graphics () >>= drop >> pad *)

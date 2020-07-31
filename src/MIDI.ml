@@ -1,3 +1,5 @@
+open Stream.Common
+
 type event =
   [ `Note_on of int * float
   | `Note_off of int
@@ -90,7 +92,8 @@ let events ?channel midi =
     Mutex.unlock m;
     ee
 
-let controller midi ?channel (number:int) ?mode ?min ?max init =
+(** The value of a specific controller. *)
+let controller midi ?channel number ?mode ?min ?max init =
   let stretch = Stream.stretch ?mode ?min ?max in
   let m = Mutex.create () in
   let x = ref init in
@@ -105,3 +108,8 @@ let controller midi ?channel (number:int) ?mode ?min ?max init =
   in
   register midi h;
   Stream.stream_ref x
+
+(** The value of a toggle controller. *)
+let toggle midi ?channel ?(init=false) number =
+  controller midi ?channel number (if init then 1. else 0.) >>=
+  (fun x -> return (x <> 0.))

@@ -13,6 +13,9 @@ let return : 'a -> 'a t = fun x () -> x
 let bind : ('a -> 'b t) -> 'a t -> 'b t =
   fun f x () -> f (x ()) ()
 
+let apply : ('a -> 'b) t -> 'a t -> 'b t =
+  fun f x () -> f () (x ())
+
 let bind2 f x y =
   bind (fun x -> bind (f x) y) x
 
@@ -34,16 +37,32 @@ let funct : ('a -> 'b) -> 'a t -> 'b t =
 let funct2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t =
   fun f x y -> bind2 (fun x y -> return (f x y)) x y
 
+let prod : 'a t -> 'b t -> ('a * 'b) t =
+  fun x y () -> (x (), y ())
+
 let seq : (unit -> 'a) -> 'a stream =
   fun f -> f
 
 let get : 'a stream -> 'a =
   fun f -> f ()
 
+(* Nice explanation of monadic syntax at https://jobjo.github.io/2019/04/24/ocaml-has-some-new-shiny-syntax.html *)
 module Common = struct
+  let return = return
+
   let ( >>= ) x f = bind f x
 
   let ( >> ) x f = x >>= (fun () -> f)
+
+  let ( <$> ) = funct
+
+  let ( <*> ) = apply
+
+  let ( let* ) x f = bind f x
+
+  let ( let+ ) x f = funct x f
+
+  let ( and+ ) = prod
 end
 
 include Common
@@ -675,7 +694,8 @@ module Filter = struct
       y' := y
     in
     let w0 = 2. *. pi *. dt in
-    fun kind q freq x () ->
+    fun kind q freq x : sample t ->
+    fun () ->
       assert (q > 0.);
       let w0 = w0 *. freq in
       let cw0 = cos w0 in
