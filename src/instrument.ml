@@ -118,6 +118,8 @@ let emitter ~dt ?(loop=true) f l =
   in
   now >>= aux
 
+(* TODO: use sparse streams for the following. *)
+
 (** Play timed events. *)
 let play ~dt (note:'a Note.t) events =
   let event = Event.create () in
