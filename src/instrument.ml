@@ -33,6 +33,7 @@ let create ~dt ~event ?portamento (note:'a Note.t) =
       let alive = ref true in
       let on_die () = alive := false in
       let freq = Note.freq n in
+      (* let stream = note ~dt ~event ~on_die () freq v in *)
       let freq =
         match portamento with
         | None -> return freq
@@ -51,7 +52,7 @@ let create ~dt ~event ?portamento (note:'a Note.t) =
               ramp a b p
           )
       in
-      let note = note ~dt ~event ~on_die in
+      let note = note ~dt ~event ~on_die () in
       let stream =
         let* freq = freq in
         note freq v

@@ -7,7 +7,12 @@ let s ~dt =
   (* let synth = Pattern.merge synth (Pattern.transpose 24 (Pattern.amplify 1.5 (Pattern.arpeggiate tempo ~note:(1./.8.) `Up_down synth))) in *)
   (* let synth = Pattern.arpeggiate tempo ~note:(1./.8.) `Up_down synth in *)
   let synth = Pattern.transpose (-12) synth in
-  let sound ~dt freq = cmul 0.5 (add (square ~dt (freq *. 1.007)) (saw ~dt freq)) in
+  let sound ~dt =
+    let square = square ~dt in
+    let saw = saw ~dt in
+    fun freq ->
+    cmul 0.5 (add (square (freq *. 1.007)) (saw freq))
+  in
   let synth = Instrument.play ~dt (Note.simple sound) (Pattern.midi tempo synth) in
   let lp_q = OSC.float "/1/fader1" ~min:0.1 ~max:5. 1. in
   let lp_freq = OSC.float ~mode:`Logarithmic "/1/fader2" ~max:10000. 1500. in

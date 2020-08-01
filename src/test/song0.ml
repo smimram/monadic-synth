@@ -2,14 +2,16 @@ open Extlib
 open Stream
 
 let s ~dt =
-  let note f ~dt ~event ~on_die freq vol =
-    let s = f ~dt freq in
+  let note f ~dt ~event ~on_die () =
+    let s = f ~dt in
     let env = adsr ~event ~on_die ~s:0.5 ~r:0.1 ~dt () in
     let denv, env = dup () env in
-    let s = mul env s in
-    let s = denv >> bind2 (Filter.first_order ~dt `Low_pass) (cmul 10000. env) s in
-    let s = s >>= amp vol in
-    s
+    fun freq vol ->
+      let s = s freq in
+      let s = mul env s in
+      let s = denv >> bind2 (Filter.first_order ~dt `Low_pass) (cmul 10000. env) s in
+      let s = s >>= amp vol in
+      s
   in
   let vm = 1. in
   let melody = [

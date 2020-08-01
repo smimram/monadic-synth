@@ -12,15 +12,17 @@ let s ~dt =
   let pad = Pattern.merge pad [0.,32.,`Note(40,2.5)] in
   let pad = Instrument.play ~dt (Note.simple sine) (Pattern.midi tempo pad) in
   let pad = pad >>= amp 0.07 >>= Stereo.schroeder ~dt >>= Stereo.dephase ~dt (-0.01) in
-  let bass_note ~dt ~event ~on_die freq vol =
+  let bass_note ~dt ~event ~on_die () =
     let adsr = adsr ~dt ~event ~on_die () ~a:0.01 ~d:0.1 ~r:0.001 in
     let dup_adsr, adsr = dup () adsr in
     let fm = fm ~dt ~carrier:`Saw ~modulator:`Triangle () in
-    let s = dup_adsr >> cmul 500. adsr >>= (fun depth -> fm ~ratio:1. depth freq) in
-    let r = exponential_hl ~dt (vol *. 0.04) in
-    let r = cadd 500. (cmul (10000.*.vol**4.) r) in
-    (* let s = bind2 (Filter.biquad ~dt `Low_pass 4.) r s in *)
-    mul s adsr
+    let exp = exponential_hl ~dt in
+    fun freq vol ->
+      let s = dup_adsr >> cmul 500. adsr >>= (fun depth -> fm ~ratio:1. depth freq) in
+      let r = exp (vol *. 0.04) in
+      let r = cadd 500. (cmul (10000.*.vol**4.) r) in
+      (* let s = bind2 (Filter.biquad ~dt `Low_pass 4.) r s in *)
+      mul s adsr
   in
   let bass v = [0.,4.,`Nop; 0.,0.5,`Note (64,v); 0.75,0.5,`Note (64,v); 1.5,0.5,`Note (64,v); 2.5,0.5,`Note (64,v); 3.,0.5,`Note (65,v)] in
   let bass = Pattern.concat (List.map bass [0.6;0.7;0.8;1.]) in

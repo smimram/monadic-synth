@@ -593,6 +593,7 @@ let random_zero ~dt =
       ans
 
 let karplus_strong ~dt ?(f=return) freq =
+  failwith "TODO: allow freq not to be constant";
   let n = samples ~dt (1. /. freq) in
   let buflen = n+1 in
   let buf = Array.init buflen (fun i -> if i = 0 then 0. else noise ()) in
@@ -864,7 +865,7 @@ end
 
 (** Notes. *)
 module Note = struct
-  type 'event t = dt:float -> event:('event Event.t) -> on_die:(unit -> unit) -> sample -> float -> sample stream
+  type 'event t = dt:float -> event:('event Event.t) -> on_die:(unit -> unit) -> unit -> sample -> float -> sample stream
 
   let freq ?(detune=0.) n = 440. *. (2. ** ((float n +. detune -. 69.) /. 12.))
 
@@ -872,7 +873,7 @@ module Note = struct
     60. /. tempo *. d
 
   let simple f : 'a t =
-    fun ~dt ~event ~on_die ->
+    fun ~dt ~event ~on_die () ->
       let alive = ref true in
       let handler = function
         | `Release -> alive := false; on_die ()
@@ -883,9 +884,9 @@ module Note = struct
        bmul (stream_ref alive) (cmul vol (f freq))
 
   let detune ?(cents=return 7.) ?(wet=return 0.5) (note : 'a t) : 'a t =
-    fun ~dt ~event ~on_die ->
-      let n = note ~dt ~event ~on_die in
-      let nd = note ~dt ~event ~on_die in
+    fun ~dt ~event ~on_die () ->
+      let n = note ~dt ~event ~on_die () in
+      let nd = note ~dt ~event ~on_die () in
       fun freq vol ->
         let cents = get cents in
         let wet = get wet in
@@ -893,7 +894,7 @@ module Note = struct
         cmul (1.-.wet/.2.) (add (n freq vol) (cmul wet (nd freqd vol)))
 
   let add n1 n2 : 'a t =
-    fun ~dt ~event ~on_die ->
+    fun ~dt ~event ~on_die () ->
       let n1 = n1 ~dt ~event ~on_die in
       let n2 = n2 ~dt ~event ~on_die in
       fun freq vol ->
@@ -926,7 +927,8 @@ module Note = struct
   end
 
   (** Simple note with adsr envelope and volume. *)
-  let adsr ~dt ~event ~on_die ?a ?d ?s ?r osc =
+  let adsr ?a ?d ?s ?r osc : 'a t =
+    fun ~dt ~event ~on_die () ->
     let g = function
       | Some x -> Some (get x)
       | None -> None
