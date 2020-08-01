@@ -3,13 +3,16 @@ open Stream
 let tempo = 130.
 
 let s ~dt =
-  let note ?(detune=false) ?(r=0.1) ?(s=0.5) f ~dt ~event ~on_die freq vol =
+  let note ?(detune=false) ?(r=0.1) ?(s=0.5) f ~dt ~event ~on_die () =
     let env = adsr ~dt ~event ~on_die ~a:0.01 ~d:0.1 ~s ~r () in
-    let s = f ~dt freq in
-    let sd = f ~dt (freq *. 1.007) in
-    let s = if detune then cmul 0.8 (add s sd) else s in
-    let s = mul env s in
-    cmul vol s
+    let s = f ~dt in
+    let sd = f ~dt in
+    fun freq vol ->
+      let s = s freq in
+      let sd = sd (freq *. 1.007) in
+      let s = if detune then cmul 0.8 (add s sd) else s in
+      let s = mul env s in
+      cmul vol s
   in
   let vm = 1. in
   let melody =
@@ -33,8 +36,8 @@ let s ~dt =
   let synth2 = Pattern.repeat 16 [0., 0.25, `Chord ([64;69;72],vs); 0.25, 0.25, `Nop] in
   let synth = Pattern.append synth1 synth2 in
   let synth = Instrument.play ~dt (note (karplus_strong ~f:return)) (Pattern.midi tempo synth) in
-  (* let disto = add (cst (-1.)) (cmul 2. (OSC.float "/1/fader4" 0.5)) in *)
-  (* let synth = bind2 disto synth (distortion ~dt) in *)
+  (* (\* let disto = add (cst (-1.)) (cmul 2. (OSC.float "/1/fader4" 0.5)) in *\) *)
+  (* (\* let synth = bind2 disto synth (distortion ~dt) in *\) *)
   let synth = mul (OSC.float "/1/fader1" 0.5) synth in
   let synth = synth >>= flanger ~wet:0.8 ~dt 0.001 (Note.duration tempo 1.) in
   let vb = 1.1 in
@@ -45,11 +48,11 @@ let s ~dt =
   let snare = Pattern.repeat 16 [1.,0.25,`Note(69,0.8);0.,2.,`Nop] in
   let snare = Instrument.play_drum ~dt (fun ~on_die freq vol -> cmul vol (Note.Drum.snare ~dt ~on_die ())) (Pattern.midi tempo snare) in
   let s = synth in
-  (* let s = bind2 (integrate ~dt 100.) s (Filter.first_order ~dt `Low_pass) in *)
-  (* let s = s >>= slicer ~dt 0.01 in *)
+  (* (\* let s = bind2 (integrate ~dt 100.) s (Filter.first_order ~dt `Low_pass) in *\) *)
+  (* (\* let s = s >>= slicer ~dt 0.01 in *\) *)
   let s = s >>= Stereo.of_mono in
-  (* let deph = let deph = Stereo.dephase ~dt 0.1 in fun d x -> deph ~delay:d x in *)
-  (* let s = bind2 (sub (cmul 0.1 (OSC.float "/1/fader5" 0.51)) (cst 0.05)) s deph in *)
+  (* (\* let deph = let deph = Stereo.dephase ~dt 0.1 in fun d x -> deph ~delay:d x in *\) *)
+  (* (\* let s = bind2 (sub (cmul 0.1 (OSC.float "/1/fader5" 0.51)) (cst 0.05)) s deph in *\) *)
   let s = Stereo.add s (bass >>= Stereo.of_mono >>= Stereo.dephase ~dt (-0.02)) in
   let s = Stereo.add s (snare >>= Stereo.of_mono >>= Stereo.dephase ~dt (-0.01)) in
   let s = Stereo.add s (kick >>= Stereo.of_mono) in

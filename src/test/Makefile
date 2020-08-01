@@ -12,6 +12,9 @@ lib:
 test: lib midi
 	./midi
 
+debug: lib bug
+	./bug
+
 clean:
 	rm -f $(wildcard *.cmi *.cmx *.o) $(PROG)
 
