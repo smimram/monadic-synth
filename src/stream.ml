@@ -233,7 +233,6 @@ module Sample = struct
       }
 
     let create () =
-      assert false;
       {
         buffer = [||];
         pos = 0;
@@ -1083,11 +1082,11 @@ module Stereo = struct
   (* TODO: values are for 25 kHz sampling rate... *)
   let schroeder ~dt =
     let fbcf d g = comb ~dt d (-.g) in
-    let ap = schroeder_allpass ~dt in
+    let ap () = schroeder_allpass ~dt in
     (* Original values are given for a 25 kHz sampling rate .*)
-    let ap1 = ap (347./.25000.) 0.7 in
-    let ap2 = ap (113./.25000.) 0.7 in
-    let ap3 = ap (37./.25000.) 0.7 in
+    let ap1 = ap () (347./.25000.) 0.7 in
+    let ap2 = ap () (113./.25000.) 0.7 in
+    let ap3 = ap () (37./.25000.) 0.7 in
     let fbcf1 = fbcf (1687./.25000.) 0.773 in
     let fbcf2 = fbcf (1601./.25000.) 0.802 in
     let fbcf3 = fbcf (2053./.25000.) 0.753 in
@@ -1117,14 +1116,14 @@ module Stereo = struct
 
   let schroeder2 ~dt =
     let fbcf d g = comb ~dt d (-.g) in
-    let ap = schroeder_allpass ~dt in
+    let ap () = schroeder_allpass ~dt in
     let fbcf1 = fbcf (901./.25000.) 0.805 in
     let fbcf2 = fbcf (778./.25000.) 0.827 in
     let fbcf3 = fbcf (1011./.25000.) 0.783 in
     let fbcf4 = fbcf (1123./.25000.) 0.764 in
-    let ap1 = ap (125./.25000.) 0.7 in
-    let ap2 = ap (42./.25000.) 0.7 in
-    let ap3 = ap (12./.25000.) 0.7 in
+    let ap1 = ap () (125./.25000.) 0.7 in
+    let ap2 = ap () (42./.25000.) 0.7 in
+    let ap3 = ap () (12./.25000.) 0.7 in
     let add4 x1 x2 x3 x4 = return (x1+.x2+.x3+.x4) in
     fun x ->
       bind4 add4 (fbcf1 x) (fbcf2 x) (fbcf3 x) (fbcf4 x) >>= ap1 >>= ap2 >>= ap3 >>= (fun x -> return (x, -.x))
