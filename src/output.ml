@@ -137,18 +137,17 @@ let play ?(infinite=true) ?(samplerate=44100) s =
   let buflen = out#buflen in
   let buf = Array.init 2 (fun _ -> Array.make buflen 0.) in
   let wavout = new wav samplerate "output.wav" in
-  let s = s ~dt in
   let s =
     if infinite then
       s
     else
       let dup_s, s = dup () s in
-      dup_s >> s >>= Stereo.to_mono >>= is_blank ~dt 2. 0.001 >>= activated () >>= on (fun () -> raise End_of_stream) >> s
+      dup_s >> s >>= Stereo.to_mono >>= is_blank 2. 0.001 >>= activated () >>= on (fun () -> raise End_of_stream) >> s
   in
   try
     while true do
       for i = 0 to buflen - 1 do
-        let l, r = s () in
+        let l, r = s dt in
         buf.(0).(i) <- l;
         buf.(1).(i) <- r
       done;

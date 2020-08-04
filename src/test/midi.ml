@@ -1,6 +1,6 @@
 open Stream
 
-let s ~dt =
+let s =
   (* let tempo = 138. in *)
   (* let pad = Pattern.concat [ *)
     (* [0.,8.,`Chord([64;69;72],0.8);6.,1.,`Note(76,0.6);7.,1.,`Note(74,0.6)]; *)
@@ -19,7 +19,7 @@ let s ~dt =
       (fun c e ->
          match e with
          | `Controller (n, v) ->
-           let n = if t () then n + 8 else n in
+           let n = if get t then n + 8 else n in
            c, `Controller (n, v)
          | e -> c, e
       )
@@ -37,11 +37,11 @@ let s ~dt =
     let wet = knob 9 0.5 in
     Note.detune ~cents ~wet note
   in
-  let pad = MIDI.events ~channel:0 midi >>= Instrument.play_stream ~dt (* ~portamento:(return 0.1) *) note >>= clip in
+  let pad = MIDI.events ~channel:0 midi >>= Instrument.play_stream (* ~portamento:(return 0.1) *) note >>= clip in
   (* let pad = mul pad (knob 0 1.) in *)
   (* let pad = pad >>= amp 0.07 >>= Stereo.schroeder ~dt >>= Stereo.dephase ~dt (-0.01) in *)
   let pad =
-    let lp = Filter.biquad ~dt `Low_pass in
+    let lp = Filter.biquad () `Low_pass in
     let* q = knob 2 ~min:0.1 ~max:5. 1. >>= print "lpq"
     and* freq = knob 3  ~mode:`Logarithmic ~max:10000. 1500. >>= print "lpf"
     and* pad = pad in
@@ -50,9 +50,9 @@ let s ~dt =
   let pad =
     (* TODO: un commenting this makes the sound mono on right channel... *)
     (* let* delay = knob 67 ~max:0.1 0.01 in *)
-    pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase ~dt 0.01
+    pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase () 0.01
   in
-  let pad = exp_ramp ~dt (-0.5) 1. 1. >>= Visu.graphics () >>= drop >> pad in
+  let pad = exp_ramp () (-0.5) 1. 1. >>= Visu.graphics () >>= drop >> pad in
   pad
 
 let () =

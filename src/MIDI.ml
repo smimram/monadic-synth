@@ -98,12 +98,14 @@ let events ?channel midi =
       )
   in
   register midi h;
-  fun () ->
+  let s () =
     Mutex.lock m;
     let ee = !nn in
     nn := [];
     Mutex.unlock m;
     ee
+  in
+  Stream.seq s
 
 (** The value of a specific controller. *)
 let controller midi ?channel number ?mode ?min ?max init =
