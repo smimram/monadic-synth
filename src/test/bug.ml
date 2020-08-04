@@ -1,14 +1,23 @@
 open Stream
 
 let tempo = 130.
+(* let tempo = 40. *)
 
 let s ~dt =
   let synth = Pattern.concat [[0.,8.,`Chord([69;71;72;76],1.)];[0.,8.,`Chord([68;71;74;76],1.)]] in
   let synth = Pattern.arpeggiate tempo `Up synth in
   let synth = Pattern.transpose (-12) synth in
 
-  let sound ~dt freq = saw ~dt freq in
-  let synth = Instrument.play ~dt (Note.adsr ~r:(return 0.01) sound) (Pattern.midi tempo synth) in
+  let sound ~dt =
+    let s = saw ~dt in
+    Printf.printf "sound!\n%!";
+    fun freq ->
+      s freq
+  in
+  let synth = Instrument.play ~dt
+      (Note.adsr ~r:(return 0.01) sound)
+      (Pattern.midi tempo synth)
+  in
   let lp = Filter.biquad ~dt `Low_pass in
   let synth =
     let lp_freq = OSC.float ~mode:`Logarithmic "/oscControl/slider1" ~max:10000. 1500. in
@@ -17,7 +26,7 @@ let s ~dt =
   in
   let synth = synth >>= stereo in
   let synth = synth >>= Stereo.dephase ~dt 0.01 in
-  let s = Stereo.add_list [synth] in
+  let s = synth in
   Stereo.cmul 0.6 s
 
 let () =

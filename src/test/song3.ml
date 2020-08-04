@@ -7,7 +7,7 @@ let s ~dt =
   let synth = Pattern.arpeggiate tempo `Up synth in
   let synth = Pattern.transpose (-12) synth in
 
-  let sound ~dt freq = saw ~dt freq in
+  let sound ~dt = saw ~dt in
   let synth = Instrument.play ~dt (Note.adsr ~r:(return 0.01) sound) (Pattern.midi tempo synth) in
   let lp = Filter.biquad ~dt `Low_pass in
   let synth =
