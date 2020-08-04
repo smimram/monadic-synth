@@ -34,14 +34,12 @@ let graphics () =
       );
     return v
 
-let bands ~dt ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) () =
+let bands ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) () =
   Graphics.open_graph "";
   let fg = Graphics.red in
   let buflen = 2 * bands in
   let buf = Array.make buflen Complex.zero in
   let bufpos = ref 0 in
-  let every = int_of_float (0.5/.dt) in
-  let e = ref (every-1) in
   let scale sx =
     match scale with
     | `Linear ->
@@ -53,6 +51,9 @@ let bands ~dt ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) () =
       (fun i -> int_of_float (log10 (float i/.bands*.9.+.1.) *. sx))
   in
   fun x ->
+    let* dt = dt in
+    let every = int_of_float (0.5/.dt) in
+    let e = ref (every-1) in
     buf.(!bufpos) <- Complex.real x;
     incr bufpos;
     if !bufpos = buflen then
@@ -89,7 +90,7 @@ let bands ~dt ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) () =
 module Stereo = struct
   let bands =
     let b = bands in
-    fun ~dt ?bands ?amp () ->
-      let bands = b ~dt ?bands ?amp () in
+    fun ?bands ?amp () ->
+      let bands = b ?bands ?amp () in
       fun x -> Stereo.to_mono x >>= bands >>= drop >> return x
 end
