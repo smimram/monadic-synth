@@ -118,8 +118,7 @@ let dup () =
     (fun dt -> try Option.get !x with _ -> failwith "Invalid evaluation order in dup.")
 
 let stream_ref x =
-  let* _ = dt in
-  return !x
+  seq (fun () -> !x)
 
 let samples : float -> int t =
   fun t ->
@@ -443,7 +442,6 @@ let square () =
 let noise () =
   seq (fun () -> Random.float 2. -. 1.)
 
-(*
 let sampler ?(interpolation=`Closest) ?(freq=1.) buf =
   let p = periodic () in
   let buflen = Array.length buf in
@@ -451,14 +449,14 @@ let sampler ?(interpolation=`Closest) ?(freq=1.) buf =
   let f =
     match interpolation with
     | `Closest ->
-      (* TODO: this is actually not the closest but the one below *)
       (fun t ->
-        let n = int_of_float (fbuflen *. t) in
+        let n = int_of_float (fbuflen *. t +. 0.5) in
         return buf.(n))
   in
   fun freq' ->
-    p (freq'/.(freq*.dt*.fbuflen)) >>= f
-*)
+    let* dt = dt in
+    let* t = p (freq' /. (freq *. dt *. fbuflen)) in
+    f t
 
 module Spectral = struct
   module Window = struct
@@ -468,15 +466,13 @@ module Spectral = struct
       Array.mapi (fun k x -> Complex.cmul (f k) x) buf
   end
 
-  (*
-  let sampler ~dt ?freq ?interpolation buf =
+  let sampler ?freq ?interpolation buf =
     let buf = Array.map Complex.re (Sample.ifft buf) in
-    sampler ~dt ?interpolation ?freq buf
-  *)
+    sampler ?interpolation ?freq buf
 
-  (* See http://zynaddsubfx.sourceforge.net/doc/PADsynth/PADsynth.htm *)
   (*
-  let pad ~dt ?(bandwidth=40.) ?(harmonics=Array.init 64 (fun i -> 1./.(float i)*.(if i mod 2 = 0 then 2. else 1.))) () =
+  (* See http://zynaddsubfx.sourceforge.net/doc/PADsynth/PADsynth.htm *)
+  let pad ?(bandwidth=40.) ?(harmonics=Array.init 64 (fun i -> 1./.(float i)*.(if i mod 2 = 0 then 2. else 1.))) () =
     let buflen = 1 lsl 17 in
     let f0 = 512. in
     let nharmonics = Array.length harmonics in
@@ -501,10 +497,8 @@ module Spectral = struct
     let spectrum = Array.map (fun x -> Complex.polar x (Random.float 1.)) spectrum in
     (* We want a symmetric spectrum. *)
     let spectrum = Array.append spectrum (Array.init (buflen/2) (fun k -> if k = 0 then spectrum.(0) else spectrum.(buflen/2-k))) in
-    sampler ~dt ~freq:f0 spectrum
-  *)
+    sampler ~freq:f0 spectrum
 
-  (*
   let harmonics ~dt ?(harmonics=8) ?(shape=`Gaussian) ?(width=0.01) ?(decay=`Exponential 100.) () =
     (* Frequency to synthesize. *)
     let f0 = 500. in
@@ -547,8 +541,8 @@ module Spectral = struct
     )
     in
     let buf = Array.append buf (Array.init (buflen/2) (fun k -> if k = 0 then buf.(0) else buf.(buflen/2-k))) in
-    sampler ~dt ~freq:f0 buf
-  *)
+    sampler ~freq:f0 buf
+   *)
 end
 
 (** {2 Control} *)
@@ -1145,7 +1139,6 @@ module Stereo = struct
 
   (** Schroeder reverberation. *)
   (* See https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html *)
-  (* TODO: values are for 25 kHz sampling rate... *)
   let schroeder () =
     let fbcf d g = comb () d (-.g) in
     let ap () = schroeder_allpass () in
@@ -1272,12 +1265,11 @@ module Stereo = struct
       let combr = List.map (fun c -> c i) combr in
       let outl = List.fold_left (funct2 (+.)) (return 0.) combl in
       let outr = List.fold_left (funct2 (+.)) (return 0.) combr in
-      let outl = apl outl in
-      let outr = apr outr in
-      bind2 (fun outl outr ->
-        let x = outl *. wet1 +. outr *. wet2 +. x *. dry in
-        let y = outr *. wet1 +. outl *. wet2 +. y *. dry in
-        return (x,y)) outl outr
+      let* outl = apl outl in
+      let* outr = apr outr in
+      let x = outl *. wet1 +. outr *. wet2 +. x *. dry in
+      let y = outr *. wet1 +. outl *. wet2 +. y *. dry in
+      return (x,y)
 end
 
 let stereo = Stereo.of_mono
