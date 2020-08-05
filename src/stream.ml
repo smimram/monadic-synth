@@ -75,6 +75,41 @@ let seq f =
   let* _ = dt in
   return (f ())
 
+let stream_ref x =
+  seq (fun () -> !x)
+
+module Sparse = struct
+  type 'a t = ('a -> unit) -> unit
+
+  module Monad = struct
+    let return : 'a -> 'a t =
+      fun x k -> k x
+
+    let bind : ('a -> 'b t) -> 'a t -> 'b t =
+      fun f x k -> x (fun x -> f x k)
+  end
+
+  let nop : 'a t =
+    fun k -> ()
+
+  let run : ('a -> unit) -> 'a t -> unit =
+    fun f s -> s f
+
+  (** Handle a sparse stream. *)
+  let handle f s =
+    seq (fun () -> Sparse.run f s)
+
+  (** Stream of a sparse stream. *)
+  let stream ?(hold=false) d s =
+    let x = ref d in
+    let* () = if not hold then seq (fun () -> x := d) else return () in
+    let* () = handle (fun v -> x := v) s in
+    stream_ref x
+
+  let emit s e =
+    return (s e)
+end
+
 module Ref = struct
   type 'a t = 'a ref
 
@@ -116,9 +151,6 @@ let dup () =
   fun s ->
     (let* y = s in return (x := Some y)),
     (fun dt -> try Option.get !x with _ -> failwith "Invalid evaluation order in dup.")
-
-let stream_ref x =
-  seq (fun () -> !x)
 
 let samples : float -> int t =
   fun t ->
@@ -194,6 +226,7 @@ let unstretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
       let x = (x -. min) /. d in
       log10 (x *. 9. +. 1.)
 
+(*
 (** Event hubs. *)
 module Event = struct
   type 'a t = ('a -> unit) list ref
@@ -221,6 +254,7 @@ module Event = struct
     in
     register h f'
 end
+*)
 
 (** Operations with samples as unit time. *)
 module Sample = struct
@@ -360,14 +394,14 @@ end
 (** {2 Oscillators} *)
 
 (** Integrate a stream. *)
-let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
+let integrate ?(event=Sparse.nop) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
   let y = ref init in
   let handler = function
     | `Reset -> y := init; on_reset ()
     | `Set x -> y := x
   in
-  Event.register event handler;
   fun x ->
+    let* () = handle handler event in
     let* dt = dt in
     let ans = !y in
     y := !y +. x *. dt;
@@ -664,7 +698,7 @@ let karplus_strong () ?(f=return) freq =
   *)
 
 (** ADSR envelope *)
-let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
+let adsr ?(event=Sparse.nop) ?(on_die=ignore) () =
   let state = ref `Attack in
   let log2 = log 2. in
   let amp = ref 0. in
@@ -679,7 +713,12 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
     (* Printf.printf "new state: %s\n%!" (match s with `Attack -> "a" | `Decay -> "d" | `Sustain -> "s" | `Release -> "r" | `Dead -> "x"); *)
     state := s
   in
+  let handler = function
+    | `Release -> set `Release
+    | `Reset -> amp := 0.; set `Attack
+  in
   let rec stream ?(a=0.01) ?(d=0.05) ?(s=0.8) ?(r=0.5) ?(sustain=true) ?(release=`Linear) () =
+    let* () = handle handler event in
     let* st = Ref.get state in
     match st with
     | `Dead -> return 0.
@@ -698,11 +737,6 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
     | `Attack ->
       if !amp >= 1. || a <= 0.0001 then (set `Decay; stream ()) else integ (1. /. a)
   in
-  let handler = function
-    | `Release -> set `Release
-    | `Reset -> amp := 0.; set `Attack
-  in
-  Event.register event handler;
   stream
 
 (** Affine from a value to a value in a given time. *)
@@ -886,7 +920,7 @@ module Slicer = struct
       if y <= width then return x else return 0.
 
   let staccato ?a ?d ?s ?(lp=true) () =
-    let event = Event.create () in
+    let event = Sparse.nop in
     let adsr = adsr ~event () ?a ?d ?s () in
     let with_lp = lp in
     let lp = Filter.biquad () `Low_pass in
