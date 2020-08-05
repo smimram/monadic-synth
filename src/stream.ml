@@ -167,7 +167,9 @@ let cmul a s =
   s >>= f
 
 let bmul b s =
-  bind2 (fun b x -> if b then return x else return 0.) b s
+  let* b = b in
+  let* x = s in
+  if b then return x else return 0.
 
 let cadd a s =
   let f x = return (a +. x) in
@@ -902,24 +904,19 @@ module Slicer = struct
       let* y = p (1. /. duration) in
       if y <= width then return x else return 0.
 
-  let staccato ?a ?d ?s ?(lp=true) () =
+  let staccato () =
     let event = Event.create () in
-    let adsr = adsr ~event () ?a ?d ?s () in
-    let with_lp = lp in
-    let lp = Filter.biquad () `Low_pass in
+    let adsr = adsr ~event () in
+    let lpf = Filter.biquad () `Low_pass in
     let reset () = Event.emit event `Reset in
     let every = every () in
-    let dup = dup () in
-    let f =
-      if with_lp then
-        fun ~lp_freq ~lp_q x ->
-          let dup, adsr = dup adsr in
-          dup >> bind2 (lp lp_q) (cmul lp_freq adsr) (cmul x adsr)
+    fun ?a ?d ?s ?(lp=true) ?(lp_q=1.) ?(lp_freq=10000.) time x ->
+      let* () = every time >>= on reset in
+      let* a = adsr ?a ?d ?s () in
+      if lp then
+        lpf lp_q (lp_freq *. a) (x *. a)
       else
-        fun ~lp_freq ~lp_q x -> cmul x adsr
-    in
-    fun ?(lp_q=1.) ?(lp_freq=10000.) time x ->
-      every time >>= on reset >> f ~lp_freq ~lp_q x
+        return (x *. a)
 
   let eurotrance () =
     let p = periodic () in
@@ -1086,10 +1083,9 @@ module Stereo = struct
     return (x, y)
 
   let add s1 s2 =
-    let f (x1,y1) (x2,y2) =
-      return (x1 +. x2, y1 +. y2)
-    in
-    bind2 f s1 s2
+    let* x1,y1 = s1 in
+    let* x2,y2 = s2 in
+    return (x1 +. x2, y1 +. y2)
 
   let delay ?ping_pong () =
     let delay_l = delay () in
@@ -1106,7 +1102,7 @@ module Stereo = struct
       add (return c) (merge (cmul feedback x) (cmul feedback y))
 
   let add_list ss =
-    List.fold_left (bind2 (fun (xs,ys) (x,y) -> return (xs+.x,ys+.y))) blank ss
+    List.fold_left add blank ss
 
   let amp a (x,y) = return (a *. x, a *. y)
 
