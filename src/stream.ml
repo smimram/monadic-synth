@@ -75,6 +75,14 @@ let seq f =
   let* _ = dt in
   return (f ())
 
+module Ref = struct
+  type 'a t = 'a ref
+
+  let make x = ref x
+
+  let get x = seq (fun () -> !x)
+end
+
 (** {2 Pure operations} *)
 
 let print ?(every=1) name =
@@ -136,6 +144,12 @@ module Sparse = struct
 end
 
 module StreamList = struct
+  let rec iter f = function
+    | [] -> return ()
+    | s::l ->
+      let* x = s in
+      f x; iter f l
+
   let rec fold_left f x0 = function
     | [] -> return x0
     | s::l ->
@@ -633,7 +647,8 @@ let fm ?(carrier=`Sine) ?(modulator=`Sine) () =
   let carrier = osc carrier in
   let modulator = osc modulator in
   fun ?(ratio=1.) depth freq ->
-    modulator (ratio *. freq) >>= (fun m -> carrier (freq +. depth *. m))
+    let* m = modulator (ratio *. freq) in
+    carrier (freq +. depth *. m)
 
 let random_zero () =
   let x = ref 0. in
@@ -677,13 +692,19 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
   let log2 = log 2. in
   let amp = ref 0. in
   let die () = state := `Dead; on_die (); amp := 0.; return 0. in
-  let integ = integrate () in
+  let integ amp' =
+    let* dt = dt in
+    let ans = !amp in
+    amp := !amp +. amp' *. dt;
+    return ans
+  in
   let set s =
     (* Printf.printf "new state: %s\n%!" (match s with `Attack -> "a" | `Decay -> "d" | `Sustain -> "s" | `Release -> "r" | `Dead -> "x"); *)
     state := s
   in
   let rec stream ?(a=0.01) ?(d=0.05) ?(s=0.8) ?(r=0.5) ?(sustain=true) ?(release=`Linear) () =
-    match !state with
+    let* st = Ref.get state in
+    match st with
     | `Dead -> return 0.
     | `Sustain -> return s
     | `Release ->
@@ -841,9 +862,9 @@ let schroeder_allpass () =
 (** A simple delay with no dry or feedback. *)
 let simple_delay () =
   let d = Sample.delay () in
-  fun delay ->
+  fun delay x ->
     let* delay = samples delay in
-    d delay
+    d delay x
 
 (** Auto gain control. *)
 let agc ?(period=0.1) ?(up=0.5) ?(down=15.) ?(blank=0.01) ?(target=0.8) ?(clipping=true) () =
@@ -1118,9 +1139,9 @@ module Stereo = struct
     let delay_r = simple_delay () in
     fun delay (x,y) ->
       let dl, dr = if delay < 0. then 0., -.delay else delay, 0. in
-      let x = delay_l dl x in
-      let y = delay_r dr y in
-      merge x y
+      let* x = delay_l dl x in
+      let* y = delay_r dr y in
+      return (x, y)
 
   (** Schroeder reverberation. *)
   (* See https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html *)

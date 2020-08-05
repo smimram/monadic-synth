@@ -16,7 +16,9 @@ let create ~event ?portamento (note:'a Note.t) =
   let playing = ref [] in
   let n = ref 0 in
   let stream =
-    let* x = StreamList.fold_left (+.) 0. (List.map (fun n -> n.stream) !playing) in
+    let* _ = dt in
+    let ss = List.map (fun n -> n.stream) !playing in
+    let* x = StreamList.fold_left (+.) 0. ss in
     incr n;
     (* Regularly remove non-alive notes. *)
     if !n = 50000 then
