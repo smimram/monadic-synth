@@ -19,9 +19,8 @@ clean:
 	rm -f $(wildcard *.cmi *.cmx *.o) $(PROG)
 
 %: %.ml ../msynth.cmxa
-	ocamlopt -thread \
-	-I +../alsa -I +../lo -I +../graphics -I .. \
-	unix.cmxa threads.cmxa str.cmxa graphics.cmxa bigarray.cmxa alsa.cmxa lo.cmxa msynth.cmxa \
+	ocamlfind ocamlopt -package alsa,lo,graphics,threads -thread -I .. \
+	graphics.cmxa str.cmxa alsa.cmxa unix.cmxa threads.cmxa lo.cmxa msynth.cmxa \
 	-o $@ $<
 
 .gitignore: $(PROG)
