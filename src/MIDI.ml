@@ -14,19 +14,21 @@ type t =
     thread : Thread.t;
     map : int -> event -> (int * event);
     handlers : (int -> event -> unit) list ref;
+    send : int -> event -> unit
   }
 
 let create ?(synchronous=false) () =
   let mutex = Mutex.create () in
   let handlers = ref [] in
+  let seq = Alsa.Sequencer.create "default" `Duplex in
   let thread =
     Thread.create
       (fun () ->
          let open Alsa in
-         let seq = Sequencer.create "default" `Input in
          Sequencer.set_client_name seq "Monadic synth";
          let port = Sequencer.create_port seq "Input" [Port_cap_write; Port_cap_subs_write] [Port_type_MIDI_generic] in
          Sequencer.subscribe_read_all seq port;
+         Sequencer.subscribe_write_all seq port;
          Printf.printf "synth started\n%!";
          let add c e =
            Mutex.lock mutex;
@@ -62,11 +64,23 @@ let create ?(synchronous=false) () =
          done
       ) ()
   in
+  let send chan e =
+    let open Alsa in
+    let e = match e with
+      | `Note_on (n, v) ->
+        let v = int_of_float (v *. 127.) in
+        (* Printf.printf "note on: %d at %d\n%!" n v; *)
+        Sequencer.Event.Note_on {Sequencer.Event. note_channel = chan; note_note = n; note_velocity = v; note_off_velocity = v; note_duration = 1000}
+      | _ -> failwith "TODO"
+    in
+    Sequencer.output_event seq e
+  in
   {
     mutex;
     thread;
     map = (fun c e -> (c,e));
     handlers;
+    send;
   }
 
 (** Register a handler of midi events. *)
@@ -106,6 +120,8 @@ let events ?channel midi =
     ee
   in
   Stream.seq s
+
+let send midi = midi.send
 
 (** The value of a specific controller. *)
 let controller midi ?channel number ?mode ?min ?max init =

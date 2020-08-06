@@ -550,14 +550,14 @@ end
 (** {2 Control} *)
 
 (** When a stream becomes true. *)
-let activated () =
+let activates () =
   let prev = ref false in
   fun b ->
     let p = !prev in
     prev := b;
     return (not p && b)
 
-let changed () =
+let changes () =
   let first = ref true in
   let prev = ref false in
   fun b ->
@@ -576,15 +576,17 @@ let changed () =
 
 (** Zero-crossing: is true when the stream was negative and becomes positive. *)
 let zc () =
-  let activated = activated () in
+  let activates = activates () in
   fun s ->
-    s >>= (fun x -> return (x >= 0.)) >>= activated
+    s >>= (fun x -> return (x >= 0.)) >>= activates
 
 (** Check whether we are at a particular instant. *)
 let at () =
   let now = now () in
-  let activated = activated () in
-  fun time -> now >>= (fun t -> return (t >= time)) >>= activated
+  let activates = activates () in
+  fun time ->
+    let* t = now in
+    activates (t >= time)
 
 (** Generate an event every period of time. *)
 let every () =
@@ -599,6 +601,19 @@ let every () =
 (** Execute an action when a stream is true. *)
 let on f b =
   if b then return (f ()) else return ()
+
+(** Blink a led on tempo. *)
+let blink_tempo on off =
+  let p = periodic () in
+  let au = activates () in
+  let ad = activates () in
+  fun ?(duration=0.25) tempo ->
+    let* t = p (tempo /. 60.) in
+    let* up = au (t < duration) in
+    let* down = ad (t >= duration) in
+    if up then return (on ())
+    else if down then return (off ())
+    else return ()
 
 (** Execute a function when a stream change its value. *)
 let on_change f =
@@ -778,7 +793,6 @@ module Filter = struct
       y'' := !y';
       y' := y
     in
-
     fun kind q freq x ->
       assert (q > 0.);
       let* dt = dt in
@@ -932,13 +946,13 @@ let chorus () =
     let* x' = d delay x in
     return (x +. wet *. x')
 
+(* TODO: add optional feedback *)
 let flanger () =
   let chorus = chorus () in
-  let sine = sine () in
+  let lfo = triangle () in
   fun delay ?(wet=1.) freq x ->
-    let* t = sine freq in
-    let a = delay/.2. in
-    let delay = a +. a *. t in
+    let* t = lfo freq in
+    let delay = delay /. 2. *. (1. +. t) in
     chorus ~wet delay x
 
 module Distortion = struct
@@ -1132,6 +1146,21 @@ module Stereo = struct
       let* x = delay_l dl x in
       let* y = delay_r dr y in
       return (x, y)
+
+  let pan ?(law=`Mixed) () =
+    fun a ->
+    let l, r =
+      match law with
+      | `Linear -> 1. -. a, a
+      | `Circular -> (* Equal power *)
+        cos (a *. pi /. 2.),
+        sin (a *. pi /. 2.)
+      | `Mixed ->
+        (* The -4.5dB pan law *)
+        sqrt ((1. -. a) *. cos (a *. pi /. 2.)),
+        sqrt ((1. -. a) *. sin (a *. pi /. 2.))
+    in
+    fun x -> return (l *. x, r *. x)
 
   (** Schroeder reverberation. *)
   (* See https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html *)

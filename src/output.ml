@@ -142,7 +142,7 @@ let play ?(infinite=true) ?(samplerate=44100) s =
       s
     else
       let dup_s, s = dup () s in
-      dup_s >> s >>= Stereo.to_mono >>= is_blank 2. 0.001 >>= activated () >>= on (fun () -> raise End_of_stream) >> s
+      dup_s >> s >>= Stereo.to_mono >>= is_blank 2. 0.001 >>= activates () >>= on (fun () -> raise End_of_stream) >> s
   in
   try
     while true do

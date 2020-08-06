@@ -52,7 +52,8 @@ let s =
     (* let* delay = knob 67 ~max:0.1 0.01 in *)
     pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase () 0.01
   in
-  let pad = exp_ramp () (-0.5) 1. 1. >>= Visu.graphics () >>= drop >> pad in
+  (* let pad = exp_ramp () (-0.5) 1. 1. >>= Visu.graphics () >>= drop >> pad in *)
+  let pad = blink_tempo (fun () -> MIDI.send midi 0 (`Note_on (4, 1.))) (fun () -> MIDI.send midi 0 (`Note_on (4, 0.))) 120. >> pad in
   pad
 
 let () =
