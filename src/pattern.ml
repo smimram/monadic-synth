@@ -1,5 +1,4 @@
 open Extlib
-module Note = Stream.Note
 
 (** Musical patterns. Events in patterns are (time,duration,event). All time
     units are bpm here. *)
