@@ -26,15 +26,15 @@ let s =
   in
   let knob n ?mode ?min ?max default = MIDI.controller midi ~channel:0 n ?mode ?min ?max default in
   let note =
-    let a = knob 4 ~max:0.1 0.01 >>= print "a" in
-    let d = knob 5 ~max:0.5 0.05 >>= print "d" in
-    let s = knob 6 0.8 >>= print "s" in
-    let r = knob 7 ~max:2. 0.1 >>= print "r" in
+    let a = knob 8 ~max:0.1 0.01 >>= print "a" in
+    let d = knob 9 ~max:0.5 0.05 >>= print "d" in
+    let s = knob 10 0.8 >>= print "s" in
+    let r = knob 11 ~max:2. 0.1 >>= print "r" in
     Note.adsr ~a ~d ~s ~r saw
   in
   let note =
-    let cents = knob 10 ~max:50. 7. in
-    let wet = knob 9 0.5 in
+    let cents = knob 6 ~max:50. 7. in
+    let wet = knob 7 0.5 in
     Note.detune ~cents ~wet note
   in
   let pad = MIDI.events ~channel:0 midi >>= Instrument.play_stream (* ~portamento:(return 0.1) *) note >>= clip in
@@ -48,9 +48,19 @@ let s =
     lp q freq pad
   in
   let pad =
+    let dephase = Stereo.dephase () in
+    let smooth = smooth ~init:0.1 () 0.1 in
+    let* delay =
+      knob 4 0.01 ~min:(-0.01) ~max:0.01
+      >>= smooth
+      >>= print ~first:true "delay"
+    in
     (* TODO: un commenting this makes the sound mono on right channel... *)
     (* let* delay = knob 67 ~max:0.1 0.01 in *)
-    pad >>= amp 0.1 >>= Stereo.of_mono >>= Stereo.dephase () 0.01
+    pad >>= amp 0.1
+    >>= stereo
+    (* >>= Stereo.schroeder () *)
+    >>= dephase delay
   in
   (* let pad = exp_ramp () (-0.5) 1. 1. >>= Visu.graphics () >>= drop >> pad in *)
   let pad = blink_tempo (fun () -> MIDI.send midi 0 (`Note_on (4, 1.))) (fun () -> MIDI.send midi 0 (`Note_on (4, 0.))) 120. >> pad in

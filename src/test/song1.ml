@@ -35,7 +35,7 @@ let s =
   let synth1 = Pattern.repeat 16 [0., 0.25, `Chord ([65;69;72],vs); 0.25, 0.25, `Nop] in
   let synth2 = Pattern.repeat 16 [0., 0.25, `Chord ([64;69;72],vs); 0.25, 0.25, `Nop] in
   let synth = Pattern.append synth1 synth2 in
-  let synth = Instrument.play (note (karplus_strong ~f:return)) (Pattern.midi tempo synth) in
+  let synth = Instrument.play (note karplus_strong) (Pattern.midi tempo synth) in
   (* (\* let disto = add (cst (-1.)) (cmul 2. (OSC.float "/1/fader4" 0.5)) in *\) *)
   (* (\* let synth = bind2 disto synth (distortion ~dt) in *\) *)
   let synth = mul (OSC.float "/1/fader1" 0.5) synth in
@@ -57,7 +57,7 @@ let s =
   let s = Stereo.add s (snare >>= Stereo.of_mono >>= Stereo.dephase () (-0.01)) in
   let s = Stereo.add s (kick >>= Stereo.of_mono) in
   let s = Stereo.add s melody in
-  let s = Stereo.cmul 0.4 s in
+  let s = Stereo.cmul 0.2 s in
   s
 
 let () =

@@ -107,6 +107,14 @@ let prev (x0:'a) =
     prev := x;
     return ans
 
+(** Set the first value of a stream. This is in particular useful to allocate
+    the buffers in operators which have some. *)
+let initialize x0 =
+  let first = ref true in
+  fun x ->
+    if !first then return (first := false; x0)
+    else return x
+
 (** Stream duplication. Once the left part has been evaluated, the right part
     can be used as many times as wanted. This has to be used if you need to use a
     stream more than once, in order to avoid each copy asking for a different
@@ -271,11 +279,16 @@ module Sample = struct
       }
 
     (** Ensure that the buffer can hold this amount of data. *)
-    let prepare r size =
-      if Array.length r.buffer < size + 1 then
+    let prepare ?init r size =
+      let l0 = Array.length r.buffer in
+      let l = size + 1 in
+      if l0 < l then
         let buf = r.buffer in
-        r.buffer <- Array.make (size + 1) 0.;
-        Array.blit buf 0 r.buffer 0 (Array.length buf)
+        r.buffer <- Array.make l 0.;
+        Array.blit buf 0 r.buffer 0 l0;
+        match init with
+        | None -> ()
+        | Some f -> for i = l0 to l - 1 do r.buffer.(i) <- f () done
 
     (** Number of sample that the buffer can hold. *)
     let size r =
@@ -296,6 +309,7 @@ module Sample = struct
       advance r
   end
 
+  (** Delay the signal by given amount of samples. *)
   let delay () =
     let r = Ringbuffer.create () in
     fun delay x ->
@@ -414,6 +428,15 @@ let exponential_hl ?init () =
   let ln2 = log 2. in
   let e = exponential ?init () in
   fun h -> e (-. ln2 /. h)
+
+(** Smoothen the stream. This is useful to avoid big jumps in controllers. The
+    parmeter is roughly the time taken to reach the desired value. *)
+let smooth ?(init=0.) () =
+  let x = ref init in
+  fun a target ->
+    let* dt = dt in
+    x := !x +. (dt /. a) *. (target -. !x);
+    return !x
 
 let saw () : float -> sample t =
   let p = periodic () in
@@ -557,6 +580,7 @@ let activates () =
     prev := b;
     return (not p && b)
 
+(** When a stream changes value. *)
 let changes () =
   let first = ref true in
   let prev = ref false in
@@ -598,6 +622,14 @@ let every () =
     let freq = 1. /. time in
     p freq >>= drop >> ans ()
 
+(** Whether this is the first sample of the stream. *)
+let is_first () =
+  let first = ref true in
+  fun () ->
+    let ans = !first in
+    first := false;
+    return ans
+
 (** Execute an action when a stream is true. *)
 let on f b =
   if b then return (f ()) else return ()
@@ -616,17 +648,17 @@ let blink_tempo on off =
     else return ()
 
 (** Execute a function when a stream change its value. *)
-let on_change f =
+let on_change ?(first=false) f =
   let old = ref None in
   fun x ->
     match !old with
     | Some x0 when x0 = x -> return x
     | Some _ -> old := Some x; f x; return x
-    | None -> old := Some x; return x
+    | None -> old := Some x; if first then f x; return x
 
 (** Print value of stream when it changes. *)
-let print name =
-  on_change (fun x -> Printf.printf "%s: %f\n%!" name x)
+let print ?first name =
+  on_change ?first (fun x -> Printf.printf "%s: %f\n%!" name x)
 
 let fallback (x:'a t) (y:'a t) b : 'a t =
   if b then x else y
@@ -674,9 +706,8 @@ let random_zero () =
     x := ans +. d;
     return ans
 
-let karplus_strong () ?(f=return) freq =
-  failwith "TODO: allow freq not to be constant"
-  (*
+(*
+let karplus_strong () ?(filter=return) freq =
   let n = samples ~dt (1. /. freq) in
   let buflen = n+1 in
   let buf = Array.init buflen (fun i -> if i = 0 then 0. else noise ()) in
@@ -694,8 +725,25 @@ let karplus_strong () ?(f=return) freq =
     if !pos = buflen then pos := 0;
     return x
   in
-  ks >>= f >>= write
+  ks >>= filter >>= write
   *)
+
+let karplus_strong ?filter () =
+  let r = Sample.Ringbuffer.create () in
+  let prev = prev 0. in
+  let average x =
+    let* y = prev x in
+    return ((x +. y) /. 2.)
+  in
+  let filter = Option.default average filter in
+  fun freq ->
+    let* n = samples (1. /. freq) in
+    let init () = get (noise ()) in
+    Sample.Ringbuffer.prepare r ~init n;
+    let ans = Sample.Ringbuffer.past r n in
+    let* x = filter ans in
+    Sample.Ringbuffer.write r x;
+    return ans
 
 (** ADSR envelope *)
 let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
@@ -841,7 +889,7 @@ module Ringbuffer = struct
 
   let write r x = Sample.Ringbuffer.write r x
 
-  let prepare r len =
+  let prepare ?init r len =
     let* len = samples len in
     return (Sample.Ringbuffer.prepare r len)
 
@@ -957,7 +1005,7 @@ let flanger () =
 
 module Distortion = struct
   (* amount in [-1,1] *)
-  let waveshapper () =
+  let waveshaper () =
   fun amount x ->
     let k = 2. *. amount /. (1. -. amount) in
     return ((1. +. k) /. (1. +. k *. abs_float x))
@@ -998,7 +1046,7 @@ module Note = struct
         let freqd = freq *. (2. ** (cents /. 1200.)) in
         let* d = n freq vol in
         let* w = nd freqd vol in
-        return ((1.-.wet) *. d +. wet *. w)
+        return (d +. wet *. w)
 
   let add n1 n2 : 'a t =
     fun ~event ~on_die () ->
@@ -1141,11 +1189,12 @@ module Stereo = struct
   let dephase () =
     let delay_l = simple_delay () in
     let delay_r = simple_delay () in
-    fun delay (x,y) ->
-      let dl, dr = if delay < 0. then 0., -.delay else delay, 0. in
-      let* x = delay_l dl x in
-      let* y = delay_r dr y in
-      return (x, y)
+    fun delay ->
+      let dl, dr = if delay < 0. then -.delay, 0. else 0., delay in
+      fun (x,y) ->
+        let* x = delay_l dl x in
+        let* y = delay_r dr y in
+        return (x, y)
 
   let pan ?(law=`Mixed) () =
     fun a ->

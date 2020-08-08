@@ -6,3 +6,4 @@ General resources
 - https://www.soundonsound.com/series/synth-secrets
 - https://www.reasonstudios.com/blog/discovering-reason
 - https://learningsynths.ableton.com/
+- http://www.music.mcgill.ca/~gary/
