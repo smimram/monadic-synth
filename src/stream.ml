@@ -252,6 +252,15 @@ end
 
 (** Operations with samples as unit time. *)
 module Sample = struct
+  let every () =
+    let t = ref 0 in
+    fun n ->
+      let* _ = dt in
+      incr t;
+      let b = !t >= n in
+      if b then t := !t - n;
+      return b
+
   let convolve a =
     let len = Array.length a in
     let prev = Array.make len 0. in
@@ -448,10 +457,10 @@ let saw () : float -> sample t =
 
 let triangle () =
   let p = periodic ~init:0.25 () in
-  fun freq ->
+  fun ?(width=0.5) freq ->
     let* t = p freq in
-    if t <= 0.5 then return (4. *. t -. 1.)
-    else return (3. -. 4. *. t)
+    if t <= width then return (2. /. width *. t -. 1.)
+    else return (1. -. 2. /. (1. -. width) *. (t -. width))
 
 let sine () : float -> sample t =
   let p = periodic () in
@@ -619,10 +628,11 @@ let every () =
   let b = ref false in
   let on_reset () = b := true in
   let p = periodic ~on_reset () in
-  let ans () = if !b then (b := false; return true) else return false in
   fun time ->
     let freq = 1. /. time in
-    p freq >>= drop >> ans ()
+    p freq >>= drop >>
+    if !b then (b := false; return true)
+    else return false
 
 (** Whether this is the first sample of the stream. *)
 let is_first () =
@@ -635,6 +645,14 @@ let is_first () =
 (** Execute an action when a stream is true. *)
 let on f b =
   if b then return (f ()) else return ()
+
+(** Sample when a condition is true and hold the sample the rest of the time. *)
+let sample_and_hold () =
+  let r = ref None in
+  fun b x ->
+    let* _ = dt in
+    if b || !r = None then r := Some x;
+    return (Option.get !r)
 
 (** Blink a led on tempo. *)
 let blink_tempo on off =
@@ -682,7 +700,7 @@ let osc kind =
   | `Sine -> sine ()
   | `Square -> square ?width:None ()
   | `Saw -> saw ()
-  | `Triangle -> triangle ()
+  | `Triangle -> triangle ?width:None ()
   | `Noise ->
     let noise = noise () in (fun freq -> noise)
   | `Random -> random () ~min:(-1.) ~max:(1.)

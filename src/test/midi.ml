@@ -48,6 +48,7 @@ let s =
     lp q freq pad
   in
   let pad = pad >>= amp 0.1 in
+  (* let pad = bind2 (sample_and_hold ()) (Sample.every () 10) pad in *)
   let pad =
     let dephase = Stereo.dephase () in
     let smooth = smooth () 0.1 in
