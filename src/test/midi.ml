@@ -3,10 +3,10 @@ open Stream
 let s =
   (* let tempo = 138. in *)
   (* let pad = Pattern.concat [ *)
-    (* [0.,8.,`Chord([64;69;72],0.8);6.,1.,`Note(76,0.6);7.,1.,`Note(74,0.6)]; *)
-    (* [0.,8.,`Chord([64;68;71],0.8);6.,1.,`Note(74,0.6);7.,1.,`Note(72,0.6)]; *)
-    (* [0.,8.,`Chord([64;65;69],0.8);6.,1.,`Note(71,0.6);7.,1.,`Note(72,0.6)]; *)
-    (* [0.,8.,`Chord([64;68;71],0.8)]; *)
+  (* [0.,8.,`Chord([64;69;72],0.8);6.,1.,`Note(76,0.6);7.,1.,`Note(74,0.6)]; *)
+  (* [0.,8.,`Chord([64;68;71],0.8);6.,1.,`Note(74,0.6);7.,1.,`Note(72,0.6)]; *)
+  (* [0.,8.,`Chord([64;65;69],0.8);6.,1.,`Note(71,0.6);7.,1.,`Note(72,0.6)]; *)
+  (* [0.,8.,`Chord([64;68;71],0.8)]; *)
   (* ] *)
   (* in *)
   (* let pad = Pattern.merge pad [0.,32.,`Note(40,2.5)] in *)
@@ -47,21 +47,24 @@ let s =
     and* pad = pad in
     lp q freq pad
   in
+  let pad = pad >>= amp 0.1 in
   let pad =
     let dephase = Stereo.dephase () in
-    let smooth = smooth ~init:0.1 () 0.1 in
+    let smooth = smooth () 0.1 in
     let* delay =
-      knob 4 0.01 ~min:(-0.01) ~max:0.01
+      knob 4 0.01 ~min:(-0.1) ~max:0.1
       >>= smooth
+      >>= initialize [-1.;1.]
       >>= print ~first:true "delay"
     in
     (* TODO: un commenting this makes the sound mono on right channel... *)
     (* let* delay = knob 67 ~max:0.1 0.01 in *)
-    pad >>= amp 0.1
+    pad
     >>= stereo
     (* >>= Stereo.schroeder () *)
     >>= dephase delay
   in
+  let pad = pad in
   (* let pad = exp_ramp () (-0.5) 1. 1. >>= Visu.graphics () >>= drop >> pad in *)
   let pad = blink_tempo (fun () -> MIDI.send midi 0 (`Note_on (4, 1.))) (fun () -> MIDI.send midi 0 (`Note_on (4, 0.))) 120. >> pad in
   pad

@@ -107,13 +107,14 @@ let prev (x0:'a) =
     prev := x;
     return ans
 
-(** Set the first value of a stream. This is in particular useful to allocate
-    the buffers in operators which have some. *)
-let initialize x0 =
-  let first = ref true in
+(** Set the first values of a stream. This is useful to allocate the buffers in
+    operators which have some. *)
+let initialize l =
+  let l = ref l in
   fun x ->
-    if !first then return (first := false; x0)
-    else return x
+    match !l with
+    | [] -> return x
+    | x::l' -> l := l'; return x
 
 (** Stream duplication. Once the left part has been evaluated, the right part
     can be used as many times as wanted. This has to be used if you need to use a
@@ -281,7 +282,7 @@ module Sample = struct
     (** Ensure that the buffer can hold this amount of data. *)
     let prepare ?init r size =
       let l0 = Array.length r.buffer in
-      let l = size + 1 in
+      let l = size + 2 in
       if l0 < l then
         let buf = r.buffer in
         r.buffer <- Array.make l 0.;
@@ -299,6 +300,7 @@ module Sample = struct
       if r.pos >= Array.length r.buffer then r.pos <- 0
 
     let past r delay =
+      let delay = delay + 1 in
       assert (0 <= delay && delay <= size r);
       let prev = r.pos - delay in
       let prev = if prev < 0 then prev + Array.length r.buffer else prev in
@@ -991,6 +993,7 @@ end
 let chorus () =
   let d = simple_delay () in
   fun ?(wet=1.) delay x ->
+    let delay = max 0. delay in
     let* x' = d delay x in
     return (x +. wet *. x')
 
