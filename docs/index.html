@@ -1,0 +1,21 @@
+<h1 id="monadic-synthesizers">Monadic synthesizers</h1>
+<p>This library called <code>msynth</code> is my own take at organizing the various classical functions for performing audio synthesis.</p>
+<p>It is mainly based on the idea that audio streams can be represented as functions <code>float -&gt; float</code>: such a function takes as argument the time <em>dt</em> elapsed since the last sample and returns the current value for the sample. Typically, when the sampling rate is 44100, <em>dt</em> will be 1/44100 (but fancy effects might vary its value). The operation which to the type <code>'a</code> associates <code>float -&gt; 'a</code> can be equipped with the structure of a <a href="https://en.wikipedia.org/wiki/Monad_(functional_programming)">monad</a> which can be used to easily compose operations on streams, especially since the recent introduction of the dedicated <a href="https://caml.inria.fr/pub/docs/manual-ocaml/bindingops.html">syntax for monads</a> in OCaml.</p>
+<h2 id="installing">Installing</h2>
+<p>The easiest way to install the library is to clone the <a href="https://github.com/smimram/monadic-synth">github repository</a> and type</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" title="1"><span class="ex">opam</span> pin add .</a></code></pre></div>
+<p>which will use opam to install the library and its dependencies.</p>
+<h2 id="getting-started">Getting started</h2>
+<p>When creating synthesizers, you typically want to open the <code>Stream</code> module:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">open</span> <span class="dt">Stream</span></a></code></pre></div>
+<p>Our first example consists in playing a sine at 440Hz, which can be obtained with</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">let</span> () =</a>
+<a class="sourceLine" id="cb3-2" title="2">  <span class="kw">let</span> s = sine () <span class="dv">440</span>. &gt;&gt;= stereo <span class="kw">in</span></a>
+<a class="sourceLine" id="cb3-3" title="3">  Output.play s</a></code></pre></div>
+<p>We use the function <code>sine</code> to create the oscillator, then use <code>&gt;&gt;=</code> to pipe it to the <code>stereo</code> operator which converts a stream into a stereo one, and finally use <code>Output.play</code> to stream the result. Another equivalent way to write this would be</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">let</span> () =</a>
+<a class="sourceLine" id="cb4-2" title="2">  <span class="kw">let</span> s =</a>
+<a class="sourceLine" id="cb4-3" title="3">    <span class="kw">let</span>* x = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
+<a class="sourceLine" id="cb4-4" title="4">    stereo x</a>
+<a class="sourceLine" id="cb4-5" title="5">  <span class="kw">in</span></a>
+<a class="sourceLine" id="cb4-6" title="6">  Output.play s</a></code></pre></div>

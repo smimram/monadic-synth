@@ -1,4 +1,7 @@
-all: ocamldoc
+all: index.html ocamldoc
+
+index.html: ../README.md
+	pandoc $< -o $@
 
 ocamldoc:
 	@rm -rf ../src/doc
@@ -9,3 +12,4 @@ ocamldoc:
 ci: all
 	git add ocamldoc
 	git ci . -m "Update website."
+	git push
