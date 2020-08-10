@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Stream.StreamList.html">
+<link rel="next" href="Stream.Sample.html">
+<link rel="Up" href="Stream.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Stream" rel="Chapter" href="Stream.html">
+<link title="Visu" rel="Chapter" href="Visu.html">
+<link title="Note" rel="Chapter" href="Note.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
+<link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Instrument" rel="Chapter" href="Instrument.html">
+<link title="OSC" rel="Chapter" href="OSC.html"><title>Stream.Event</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Stream.StreamList.html" title="Stream.StreamList">Previous</a>
+&nbsp;<a class="up" href="Stream.html" title="Stream">Up</a>
+&nbsp;<a class="post" href="Stream.Sample.html" title="Stream.Sample">Next</a>
+</div>
+<h1>Module <a href="type_Stream.Event.html">Stream.Event</a></h1>
+
+<pre><span id="MODULEEvent"><span class="keyword">module</span> Event</span>: <code class="code">sig</code> <a href="Stream.Event.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Event hubs.</p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> = <code class="type">('a -> unit) list Stdlib.ref</code> </pre>
+
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">unit -> 'a <a href="Stream.Event.html#TYPEt">t</a></code></pre>
+<pre><span id="VALregister"><span class="keyword">val</span> register</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> ('a -> unit) -> unit</code></pre>
+<pre><span id="VALemit"><span class="keyword">val</span> emit</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> 'a -> unit</code></pre>
+<pre><span id="VALmerge"><span class="keyword">val</span> merge</span> : <code class="type">'a list Stdlib.ref -> 'a list Stdlib.ref -> 'a list Stdlib.ref</code></pre>
+<pre><span id="VALforward"><span class="keyword">val</span> forward</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> 'a <a href="Stream.Event.html#TYPEt">t</a> -> unit</code></pre>
+<pre><span id="VALmay_map"><span class="keyword">val</span> may_map</span> : <code class="type">('a -> 'b option) -> 'a <a href="Stream.Event.html#TYPEt">t</a> -> unit</code></pre></body></html>

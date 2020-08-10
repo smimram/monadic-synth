@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Pattern.html">
+<link rel="next" href="Instrument.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Stream" rel="Chapter" href="Stream.html">
+<link title="Visu" rel="Chapter" href="Visu.html">
+<link title="Note" rel="Chapter" href="Note.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
+<link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Instrument" rel="Chapter" href="Instrument.html">
+<link title="OSC" rel="Chapter" href="OSC.html"><title>MIDI</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Pattern.html" title="Pattern">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Instrument.html" title="Instrument">Next</a>
+</div>
+<h1>Module <a href="type_MIDI.html">MIDI</a></h1>
+
+<pre><span id="MODULEMIDI"><span class="keyword">module</span> MIDI</span>: <code class="code">sig</code> <a href="MIDI.html">..</a> <code class="code">end</code></pre><hr width="100%">
+
+<pre><span id="TYPEevent"><span class="keyword">type</span> <code class="type"></code>event</span> = <code class="type">[ `Controller of int * float<br>       | `Note_off of int<br>       | `Note_on of int * float<br>       | `Pitch_bend of int * float<br>       | `Program_change of int * int ]</code> </pre>
+
+
+<pre><code><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.mutex">mutex</span>&nbsp;: <code class="type">Mutex.t</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.thread">thread</span>&nbsp;: <code class="type">Thread.t</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.map">map</span>&nbsp;: <code class="type">int -> <a href="MIDI.html#TYPEevent">event</a> -> int * <a href="MIDI.html#TYPEevent">event</a></code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.handlers">handlers</span>&nbsp;: <code class="type">(int -> <a href="MIDI.html#TYPEevent">event</a> -> unit) list Stdlib.ref</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.send">send</span>&nbsp;: <code class="type">int -> <a href="MIDI.html#TYPEevent">event</a> -> unit</code>;</code></td>
+
+</tr></table>
+<code>}</code>
+
+
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?synchronous:bool -> unit -> <a href="MIDI.html#TYPEt">t</a></code></pre>
+<pre><span id="VALregister"><span class="keyword">val</span> register</span> : <code class="type"><a href="MIDI.html#TYPEt">t</a> -> (int -> <a href="MIDI.html#TYPEevent">event</a> -> unit) -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Register a handler of midi events.</p>
+</div>
+</div>
+
+<pre><span id="VALmap"><span class="keyword">val</span> map</span> : <code class="type"><a href="MIDI.html#TYPEt">t</a> -> (int -> <a href="MIDI.html#TYPEevent">event</a> -> int * <a href="MIDI.html#TYPEevent">event</a>) -> <a href="MIDI.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Map a function on all events.</p>
+</div>
+</div>
+
+<pre><span id="VALevents"><span class="keyword">val</span> events</span> : <code class="type">?channel:int -> <a href="MIDI.html#TYPEt">t</a> -> <a href="MIDI.html#TYPEevent">event</a> list <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Create a stream of midi events.</p>
+</div>
+</div>
+
+<pre><span id="VALsend"><span class="keyword">val</span> send</span> : <code class="type"><a href="MIDI.html#TYPEt">t</a> -> int -> <a href="MIDI.html#TYPEevent">event</a> -> unit</code></pre>
+<pre><span id="VALcontroller"><span class="keyword">val</span> controller</span> : <code class="type"><a href="MIDI.html#TYPEt">t</a> -><br>       ?channel:int -><br>       int -><br>       ?mode:[< `Linear | `Logarithmic > `Linear ] -><br>       ?min:float -> ?max:float -> float -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>The value of a specific controller.</p>
+</div>
+</div>
+
+<pre><span id="VALtoggle"><span class="keyword">val</span> toggle</span> : <code class="type"><a href="MIDI.html#TYPEt">t</a> -> ?channel:int -> ?init:bool -> int -> bool <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>The value of a toggle controller.</p>
+</div>
+</div>
+</body></html>

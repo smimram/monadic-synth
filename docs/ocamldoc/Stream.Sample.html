@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Stream.Event.html">
+<link rel="next" href="Stream.Spectral.html">
+<link rel="Up" href="Stream.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Stream" rel="Chapter" href="Stream.html">
+<link title="Visu" rel="Chapter" href="Visu.html">
+<link title="Note" rel="Chapter" href="Note.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
+<link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Instrument" rel="Chapter" href="Instrument.html">
+<link title="OSC" rel="Chapter" href="OSC.html"><title>Stream.Sample</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Stream.Event.html" title="Stream.Event">Previous</a>
+&nbsp;<a class="up" href="Stream.html" title="Stream">Up</a>
+&nbsp;<a class="post" href="Stream.Spectral.html" title="Stream.Spectral">Next</a>
+</div>
+<h1>Module <a href="type_Stream.Sample.html">Stream.Sample</a></h1>
+
+<pre><span id="MODULESample"><span class="keyword">module</span> Sample</span>: <code class="code">sig</code> <a href="Stream.Sample.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Operations with samples as unit time.</p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="VALevery"><span class="keyword">val</span> every</span> : <code class="type">unit -> int -> bool <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
+<pre><span id="VALconvolve"><span class="keyword">val</span> convolve</span> : <code class="type">float array -> float -> unit -> float</code></pre>
+<pre><span id="MODULERingbuffer"><span class="keyword">module</span> <a href="Stream.Sample.Ringbuffer.html">Ringbuffer</a></span>: <code class="code">sig</code> <a href="Stream.Sample.Ringbuffer.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALdelay"><span class="keyword">val</span> delay</span> : <code class="type">unit -> int -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Delay the signal by given amount of samples.</p>
+</div>
+</div>
+
+<pre><span id="VALrec_delay"><span class="keyword">val</span> rec_delay</span> : <code class="type">unit -><br>       int -> (<a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>A fixed delay which inputs the sample at t-delay, passes it to a function,
+      and writes the result. Useful for implementing the recursive part of
+      filters.</p>
+</div>
+</div>
+
+<pre><span id="VALcomb"><span class="keyword">val</span> comb</span> : <code class="type">unit -> int -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Feedback comb filter.</p>
+</div>
+</div>
+
+<pre><span id="VALschroeder_allpass"><span class="keyword">val</span> schroeder_allpass</span> : <code class="type">unit -> int -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>All-pass filter.</p>
+</div>
+</div>
+
+<pre><span id="VALfft"><span class="keyword">val</span> fft</span> : <code class="type">Extlib.Complex.t array -> int -> int -> Extlib.Complex.t array</code></pre><div class="info ">
+<div class="info-desc">
+<p>Fast Fourrier transform.</p>
+</div>
+</div>
+
+<pre><span id="VALifft"><span class="keyword">val</span> ifft</span> : <code class="type">Extlib.Complex.t array -> Extlib.Complex.t array</code></pre></body></html>
