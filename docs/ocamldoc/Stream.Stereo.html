@@ -33,28 +33,51 @@
 </div>
 <hr width="100%">
 
-<pre><span id="VALof_mono"><span class="keyword">val</span> of_mono</span> : <code class="type">'a -> ('a * 'a) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALblank"><span class="keyword">val</span> blank</span> : <code class="type">(float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALmerge"><span class="keyword">val</span> merge</span> : <code class="type">'a <a href="Stream.html#TYPEt">Stream.t</a> -> 'b <a href="Stream.html#TYPEt">Stream.t</a> -> ('a * 'b) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type">(float * float) <a href="Stream.html#TYPEt">Stream.t</a> -><br>       (float * float) <a href="Stream.html#TYPEt">Stream.t</a> -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALdelay"><span class="keyword">val</span> delay</span> : <code class="type">?ping_pong:float -><br>       unit -><br>       ?dry:float -><br>       ?wet:float -><br>       ?feedback:float -> float -> float * <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALadd_list"><span class="keyword">val</span> add_list</span> : <code class="type">(float * float) <a href="Stream.html#TYPEt">Stream.t</a> list -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALamp"><span class="keyword">val</span> amp</span> : <code class="type">float -> float * float -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALcmul"><span class="keyword">val</span> cmul</span> : <code class="type">float -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a> -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALbmul"><span class="keyword">val</span> bmul</span> : <code class="type">bool <a href="Stream.html#TYPEt">Stream.t</a> -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a> -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALmap"><span class="keyword">val</span> map</span> : <code class="type">('a -> 'b <a href="Stream.html#TYPEt">Stream.t</a>) -> ('c -> 'd <a href="Stream.html#TYPEt">Stream.t</a>) -> 'a * 'a -> ('b * 'b) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALto_mono"><span class="keyword">val</span> to_mono</span> : <code class="type">float * float -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALleft"><span class="keyword">val</span> left</span> : <code class="type">'a * 'b -> 'a <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALright"><span class="keyword">val</span> right</span> : <code class="type">'a * 'b -> 'b <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALdephase"><span class="keyword">val</span> dephase</span> : <code class="type">unit -><br>       float -><br>       <a href="Stream.html#TYPEsample">Stream.sample</a> * <a href="Stream.html#TYPEsample">Stream.sample</a> -> (<a href="Stream.html#TYPEsample">Stream.sample</a> * <a href="Stream.html#TYPEsample">Stream.sample</a>) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALpan"><span class="keyword">val</span> pan</span> : <code class="type">?law:[< `Circular | `Linear | `Mixed > `Mixed ] -><br>       unit -> float -> float -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALschroeder"><span class="keyword">val</span> schroeder</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> = <code class="type">('a * 'a) <a href="Stream.html#TYPEstream">Stream.stream</a></code> </pre>
+
+
+<pre><span id="VALof_mono"><span class="keyword">val</span> of_mono</span> : <code class="type">'a -> 'a <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALblank"><span class="keyword">val</span> blank</span> : <code class="type">float <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
-<p>Schroeder reverberation.</p>
+<p>Blank stereo stream.</p>
 </div>
 </div>
 
-<pre><span id="VALschroeder_random"><span class="keyword">val</span> schroeder_random</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALschroeder2"><span class="keyword">val</span> schroeder2</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (<a href="Stream.html#TYPEsample">Stream.sample</a> * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALagc"><span class="keyword">val</span> agc</span> : <code class="type">unit -> float * float -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre><h3 id="2_Effects">Effects</h3>
-<pre><span id="VALfreeverb"><span class="keyword">val</span> freeverb</span> : <code class="type">unit -><br>       ?roomsize:float -><br>       ?damp:float -><br>       ?width:float -><br>       ?wet:float -> ?dry:float -> float * float -> (float * float) <a href="Stream.html#TYPEt">Stream.t</a></code></pre></body></html>
+<pre><span id="VALmerge"><span class="keyword">val</span> merge</span> : <code class="type">'a <a href="Stream.Stereo.html#TYPEt">t</a> -> 'b <a href="Stream.Stereo.html#TYPEt">t</a> -> ('a * 'b) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Construct a stereo stream from two mono streams.</p>
+</div>
+</div>
+
+<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type">(float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -><br>       (float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Add two stereo streams.</p>
+</div>
+</div>
+
+<pre><span id="VALdelay"><span class="keyword">val</span> delay</span> : <code class="type">?ping_pong:float -><br>       unit -><br>       ?dry:float -><br>       ?wet:float -><br>       ?feedback:float -><br>       float -> float * <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Delay.</p>
+</div>
+</div>
+
+<pre><span id="VALadd_list"><span class="keyword">val</span> add_list</span> : <code class="type">(float * float) <a href="Stream.Stereo.html#TYPEt">t</a> list -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALamp"><span class="keyword">val</span> amp</span> : <code class="type">float -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALcmul"><span class="keyword">val</span> cmul</span> : <code class="type">float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALbmul"><span class="keyword">val</span> bmul</span> : <code class="type">bool <a href="Stream.Stereo.html#TYPEt">t</a> -><br>       (float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALmap"><span class="keyword">val</span> map</span> : <code class="type">('a -> 'b <a href="Stream.html#TYPEstream">Stream.stream</a>) -><br>       ('c -> 'd <a href="Stream.html#TYPEstream">Stream.stream</a>) -> 'a * 'a -> ('b * 'b) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALto_mono"><span class="keyword">val</span> to_mono</span> : <code class="type">float * float -> float <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALleft"><span class="keyword">val</span> left</span> : <code class="type">'a * 'b -> 'a <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALright"><span class="keyword">val</span> right</span> : <code class="type">'a * 'b -> 'b <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALdephase"><span class="keyword">val</span> dephase</span> : <code class="type">unit -><br>       float -><br>       <a href="Stream.html#TYPEsample">Stream.sample</a> * <a href="Stream.html#TYPEsample">Stream.sample</a> -><br>       (<a href="Stream.html#TYPEsample">Stream.sample</a> * <a href="Stream.html#TYPEsample">Stream.sample</a>) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALpan"><span class="keyword">val</span> pan</span> : <code class="type">?law:[< `Circular | `Linear | `Mixed > `Mixed ] -><br>       unit -> float -> float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALschroeder"><span class="keyword">val</span> schroeder</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><a href=" https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html"> Schroeder reverberation</a>.</p>
+</div>
+</div>
+
+<pre><span id="VALschroeder_random"><span class="keyword">val</span> schroeder_random</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALschroeder2"><span class="keyword">val</span> schroeder2</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (<a href="Stream.html#TYPEsample">Stream.sample</a> * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALagc"><span class="keyword">val</span> agc</span> : <code class="type">unit -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><h3 id="2_Effects">Effects</h3>
+<pre><span id="VALfreeverb"><span class="keyword">val</span> freeverb</span> : <code class="type">unit -><br>       ?roomsize:float -><br>       ?damp:float -><br>       ?width:float -><br>       ?wet:float -> ?dry:float -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre></body></html>

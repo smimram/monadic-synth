@@ -3,6 +3,7 @@
 open Extlib
 open Stream
 
+(** Plot a stream. *)
 let graphics () =
   Graphics.open_graph "";
   let x = ref 0 in
@@ -34,6 +35,7 @@ let graphics () =
       );
     return v
 
+(** Plot a spectral analysis of the stream. *)
 let bands ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) () =
   Graphics.open_graph "";
   let fg = Graphics.red in
@@ -87,6 +89,7 @@ let bands ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) () =
       );
     return x
 
+(** Operations on stereo streams. *)
 module Stereo = struct
   let bands =
     let b = bands in

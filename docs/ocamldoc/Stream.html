@@ -472,7 +472,11 @@
 </div>
 </div>
 
-<pre><span id="MODULEDistortion"><span class="keyword">module</span> <a href="Stream.Distortion.html">Distortion</a></span>: <code class="code">sig</code> <a href="Stream.Distortion.html">..</a> <code class="code">end</code></pre><h3 id="2_Analysis">Analysis</h3>
+<pre><span id="MODULEDistortion"><span class="keyword">module</span> <a href="Stream.Distortion.html">Distortion</a></span>: <code class="code">sig</code> <a href="Stream.Distortion.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Distortion effects.</p>
+
+</div>
+<h3 id="2_Analysis">Analysis</h3>
 <pre><span id="VALprint"><span class="keyword">val</span> print</span> : <code class="type">?first:bool -> string -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Print value of stream when it changes.</p>
@@ -502,7 +506,7 @@
 
 </div>
 
-<pre><span id="VALstereo"><span class="keyword">val</span> stereo</span> : <code class="type">'a -> ('a * 'a) <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALstereo"><span class="keyword">val</span> stereo</span> : <code class="type">'a -> 'a <a href="Stream.Stereo.html#TYPEt">Stereo.t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Duplicate a mono stream to become a stereo stream.</p>
 </div>

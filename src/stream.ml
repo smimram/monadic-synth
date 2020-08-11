@@ -1184,7 +1184,7 @@ module Stereo = struct
     in
     fun x -> return (l *. x, r *. x)
 
-  (** {: https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html} Schroeder reverberation}. *)
+  (** {{: https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html} Schroeder reverberation}. *)
   let schroeder () =
     let fbcf d g = comb () d (-.g) in
     let ap () = schroeder_allpass () in
