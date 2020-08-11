@@ -1,4 +1,4 @@
-(** Operations on notes. *)
+(** Notes. *)
 
 open Stream
 

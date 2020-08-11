@@ -1,6 +1,7 @@
+(** Instruments. *)
+
 open Extlib
 open Stream
-open Stream.Common
 
 type 'event note =
   {
@@ -146,7 +147,7 @@ let play_drums ?kick ?snare ?closed_hat events =
   let streams = ref [] in
   let create d note =
     let dnote ~on_die freq vol = cmul vol (d ~on_die) in
-    let note = Option.default dnote note in
+    let note = Option.value ~default:dnote note in
     let event = Event.create () in
     let s = create_drum ~event note in
     streams := s :: !streams;

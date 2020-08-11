@@ -1,3 +1,5 @@
+(** OSC controllers. *)
+
 open Stream
 
 let m = Mutex.create ()

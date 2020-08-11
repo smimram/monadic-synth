@@ -1,4 +1,4 @@
-(** Function for visualizing stream. *)
+(** Visualization of streams. *)
 
 open Extlib
 open Stream

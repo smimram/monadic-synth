@@ -1,4 +1,6 @@
-open Stream.Common
+(** Interfacing with MIDI keyboards and controllers. *)
+
+open Stream.Operations
 
 type event =
   [ `Note_on of int * float

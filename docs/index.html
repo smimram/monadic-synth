@@ -26,3 +26,9 @@
 <a class="sourceLine" id="cb4-4" title="4">    stereo x</a>
 <a class="sourceLine" id="cb4-5" title="5">  <span class="kw">in</span></a>
 <a class="sourceLine" id="cb4-6" title="6">  Output.play s</a></code></pre></div>
+<h2 id="using-a-stream-multiple-times">Using a stream multiple times</h2>
+<p>TODO: the problem, dup</p>
+<h2 id="general-principles-behind-the-library">General principles behind the library</h2>
+<ul>
+<li>The infinitesimal variations are supposed to be varying slowly, i.e. be “locally constant”. In particular, this means that small buffers can assume that the <em>dt</em> is the same for the whole buffer.</li>
+</ul>

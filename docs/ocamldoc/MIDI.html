@@ -27,7 +27,12 @@
 </div>
 <h1>Module <a href="type_MIDI.html">MIDI</a></h1>
 
-<pre><span id="MODULEMIDI"><span class="keyword">module</span> MIDI</span>: <code class="code">sig</code> <a href="MIDI.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULEMIDI"><span class="keyword">module</span> MIDI</span>: <code class="code">sig</code> <a href="MIDI.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Interfacing with MIDI keyboards and controllers.</p>
+</div>
+</div>
+<hr width="100%">
 
 <pre><span id="TYPEevent"><span class="keyword">type</span> <code class="type"></code>event</span> = <code class="type">[ `Controller of int * float<br>       | `Note_off of int<br>       | `Note_on of int * float<br>       | `Pitch_bend of int * float<br>       | `Program_change of int * int ]</code> </pre>
 

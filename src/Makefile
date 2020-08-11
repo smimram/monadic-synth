@@ -7,7 +7,7 @@ OCAMLOPTFLAGS = -inline 10000 -nodynlink #-unsafe
 
 # the name output.ml apparently messes up ocamldoc
 DOC_FILES = $(filter-out output.ml,$(SOURCES))
-OCAMLDOCFLAGS = -I +threads -I .
+OCAMLDOCFLAGS = -I +threads
 
 
 all: dncl

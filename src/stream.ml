@@ -1,105 +1,109 @@
+(** Streams. *)
+
 open Extlib
 
+(** Type for samples. *)
 type sample = float
 
-(** {2 Stream monad} *)
+(** {2 The stream monad} *)
 
+(** Type for time differences. *)
 type dt = float
 
+(** The stream monad. *)
 type 'a t = dt -> 'a
 
+(** Alias for the stream monad. *)
 type 'a stream = 'a t
 
+(** Return operation of the stream monad. *)
 let return : 'a -> 'a t = fun x dt -> x
 
+(** Bind operation of the stream monad. *)
 let bind : ('a -> 'b t) -> 'a t -> 'b t =
   fun f x dt -> f (x dt) dt
 
+(** The stream monad is applicative. *)
 let apply : ('a -> 'b) t -> 'a t -> 'b t =
   fun f x dt -> f dt (x dt)
 
+(** Bind two arguments. *)
 let bind2 f x y =
   bind (fun x -> bind (f x) y) x
 
+(** Bind three arguments. *)
 let bind3 f x y z =
   bind (fun x -> bind (fun y -> bind (f x y) z) y) x
 
+(** Bind four arguments. *)
 let bind4 f x y z t =
   bind (fun x -> bind (fun y -> bind (fun z -> bind (f x y z) t) z) y) x
 
-let bind5 f x y z t u =
-  bind (fun x -> bind (fun y -> bind (fun z -> bind (fun t -> bind (f x y z t) u) t) z) y) x
-
-let bind6 f x y z t u v =
-  bind (fun x -> bind (fun y -> bind (fun z -> bind (fun t -> bind (fun u -> bind (f x y z t u) v) u) t) z) y) x
-
+(** Functoriality of the stream monad. *)
 let funct : ('a -> 'b) -> 'a t -> 'b t =
   fun f x -> bind (fun x -> return (f x)) x
 
+(** Functoriality in two arguments of the stream monad. *)
 let funct2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t =
   fun f x y -> bind2 (fun x y -> return (f x y)) x y
 
+(** Strength of the stream monad. *)
 let prod : 'a t -> 'b t -> ('a * 'b) t =
   fun x y dt -> (x dt, y dt)
 
-let get : 'a stream -> 'a =
-  fun f -> f 0.
-
+(** Current infinitesimal variation of a stream. *)
 let dt : float stream =
   fun dt -> dt
 
+(** Current value of a stream (this function might be removed in the future). *)
+let get : 'a stream -> 'a =
+  fun f -> f 0.
+
+(** Notations for usual operations of the stream monad. You usually want to open
+    this module when dealing with streams. *)
 (* Nice explanation of monadic syntax at https://jobjo.github.io/2019/04/24/ocaml-has-some-new-shiny-syntax.html *)
-module Common = struct
+module Operations = struct
+  (** Return. *)
   let return = return
 
+  (** Bind. *)
   let ( >>= ) x f = bind f x
 
+  (** Bind with unit result. *)
   let ( >> ) x f = x >>= (fun () -> f)
 
+  (** Functoriality. *)
   let ( <$> ) = funct
 
+  (** Applicativity. *)
   let ( <*> ) = apply
 
+  (** Bind. *)
   let ( let* ) x f = bind f x
 
+  (** Strength. *)
   let ( and* ) = prod
 
+  (** Functoriality. *)
   let ( let+ ) x f = funct x f
 
+  (** Strength. *)
   let ( and+ ) = prod
 end
 
-include Common
+include Operations
 
+(** {2 Pure operations} *)
+
+(** Forget the result of the stream (this is [ignore] for streams). *)
+let drop _ = return ()
+
+(** Create a stream from a function indicating its value at each call. *)
 let seq f =
   let* _ = dt in
   return (f ())
 
-module Ref = struct
-  type 'a t = 'a ref
-
-  let make x = ref x
-
-  let get x = seq (fun () -> !x)
-end
-
-(** {2 Pure operations} *)
-
-let print ?(every=1) name =
-  let n = ref 0 in
-  fun x ->
-    incr n;
-    if !n >= every then
-      (
-        Printf.printf "%s: %f\n%!" name x;
-        n := 0;
-      );
-    return x
-
-(** Forget the result of the stream. *)
-let drop _ = return ()
-
-(** Previous value of the stream. *)
+(** Value of the stream at previous instant. *)
 let prev (x0:'a) =
   let prev = ref x0 in
   fun x ->
@@ -126,31 +130,20 @@ let dup () =
     (let* y = s in return (x := Some y)),
     (fun dt -> try Option.get !x with _ -> failwith "Invalid evaluation order in dup.")
 
-let stream_ref x =
-  seq (fun () -> !x)
+(** Streams of references. *)
+module Ref = struct
+  type 'a t = 'a ref
 
-let samples : float -> int t =
-  fun t ->
-  let* dt = dt in
-  return (round (t /. dt))
+  let make x = ref x
 
-(** Sparse stream monad *)
-module Sparse = struct
-  type 'a t = ('a -> unit) -> unit
-
-  let return : 'a -> 'a t =
-    fun x k -> k x
-
-  let bind : ('a -> 'b t) -> 'a t -> 'b t =
-    fun f x k -> x (fun x -> f x k)
-
-  let to_stream init (s : 'a t) =
-    let x = ref init in
-    let f x' = x := x' in
-    s f;
-    stream_ref x
+  (** Stream the current value of a reference. *)
+  let get x = seq (fun () -> !x)
 end
 
+(** Stream the current value of a reference. *)
+let stream_ref = Ref.get
+
+(** Operations on lists of streams. *)
 module StreamList = struct
   let rec iter f = function
     | [] -> return ()
@@ -165,36 +158,82 @@ module StreamList = struct
       fold_left f (f x0 x) l
 end
 
+(** Event hubs. On those handlers can be registered and will be called each time
+    a new event is emitted. *)
+module Event = struct
+  (** An event hub. *)
+  type 'a t = ('a -> unit) list ref
+
+  (** Create an event hub. *)
+  let create () : 'a t = ref []
+
+  (** Register a handler on the hub. *)
+  let register (h:'a t) f =
+    h := f :: !h
+
+  (** Emit an event. *)
+  let emit (h:'a t) e =
+    List.iter (fun f -> f e) !h
+
+  (** Merge two hubs. *)
+  let merge h1 h2 = ref (!h1 @ !h2)
+
+  (** Forwrad the events of a hub to a second one. *)
+  let forward src dst =
+    let f e = emit dst e in
+    register src f
+
+  let may_map f h =
+    let ans = create () in
+    let f' e =
+      match f e with
+      | Some e -> emit ans e
+      | None -> ()
+    in
+    register h f'
+end
+
 (** {2 Arithmetic} *)
 
+(** Create a constant stream. *)
 let cst x : sample t = return x
 
+(** The constantly zero stream. *)
 let blank = cst 0.
 
+(** Multiply a stream by a constant. *)
 let cmul a s =
   let f x = return (a *. x) in
   s >>= f
 
+(** Multiply a stream by a boolean (interpreted as 0 / 1 for false / true). *)
 let bmul b s =
   let* b = b in
   let* x = s in
   if b then return x else return 0.
 
+(** Add a constant to a stream. *)
 let cadd a s =
   let f x = return (a +. x) in
   s >>= f
 
+(** Multiply two streams. *)
 let mul = funct2 ( *. )
 
+(** Amplify a stream. *)
 let amp x y = return (x *. y)
 
+(** Add two streams. *)
 let add = funct2 ( +. )
 
+(** Add a list of streams. *)
 let rec add_list ss =
   List.fold_left (funct2 (+.)) blank ss
 
+(** Subtract streams. *)
 let sub = funct2 ( -. )
 
+(** Clip a stream in the interval [-1., 1.]. *)
 let clip x = return (max (-1.) (min 1. x))
 
 let soft_clip x =
@@ -222,33 +261,124 @@ let unstretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
       let x = (x -. min) /. d in
       log10 (x *. 9. +. 1.)
 
-(** Event hubs. *)
-module Event = struct
-  type 'a t = ('a -> unit) list ref
+(** Number of samples in a given amount of time. *)
+let samples : float -> int t =
+  fun t ->
+  let* dt = dt in
+  return (round (t /. dt))
 
-  let create () : 'a t = ref []
+(** {2 Time} *)
 
-  let register (h:'a t) f =
-    h := f :: !h
+(** Integrate a stream. *)
+let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
+  let y = ref init in
+  let handler = function
+    | `Reset -> y := init; on_reset ()
+    | `Set x -> y := x
+  in
+  Event.register event handler;
+  fun x ->
+    let* dt = dt in
+    let ans = !y in
+    y := !y +. x *. dt;
+    if periodic && !y >= 1. then (y := !y -. 1.; on_reset ());
+    return ans
 
-  let emit (h:'a t) e =
-    List.iter (fun f -> f e) !h
+(** Current time. *)
+let now ?event () : sample t =
+  integrate ?event () 1.
 
-  let merge h1 h2 = ref (!h1 @ !h2)
+(** Current time for a periodic function. *)
+(* TODO: implement periodic with events *)
+let periodic ?(init=0.) ?on_reset () =
+  integrate ~periodic:true ~init ?on_reset ()
 
-  let forward src dst =
-    let f e = emit dst e in
-    register src f
+(** {2 Control} *)
 
-  let may_map f h =
-    let ans = create () in
-    let f' e =
-      match f e with
-      | Some e -> emit ans e
-      | None -> ()
-    in
-    register h f'
-end
+(** When a stream becomes true. *)
+let activates () =
+  let prev = ref false in
+  fun b ->
+    let p = !prev in
+    prev := b;
+    return (not p && b)
+
+(** When a stream changes value. *)
+let changes () =
+  let first = ref true in
+  let prev = ref false in
+  fun b ->
+    if !first then
+      (
+        first := false;
+        prev := b;
+        return false
+      )
+    else
+      (
+        let p = !prev in
+        prev := b;
+        return ((not p && b) || (p && not b))
+      )
+
+(** Zero-crossing: is true when the stream was negative and becomes positive. *)
+let zc () =
+  let activates = activates () in
+  fun s ->
+    s >>= (fun x -> return (x >= 0.)) >>= activates
+
+(** Check whether we are at a particular instant. *)
+let at () =
+  let now = now () in
+  let activates = activates () in
+  fun (time:float) ->
+    let* t = now in
+    activates (t >= time)
+
+(** Generate an event every period of time. *)
+let every () =
+  let b = ref false in
+  let on_reset () = b := true in
+  let p = periodic ~on_reset () in
+  fun time ->
+    let freq = 1. /. time in
+    p freq >>= drop >>
+    if !b then (b := false; return true)
+    else return false
+
+(** Whether this is the first sample of the stream. *)
+let is_first () =
+  let first = ref true in
+  fun () ->
+    let ans = !first in
+    first := false;
+    return ans
+
+(** Execute an action when a stream is true. *)
+let on f b =
+  if b then return (f ()) else return ()
+
+(** Sample when a condition is true and hold the sample the rest of the time. *)
+let sample_and_hold () =
+  let r = ref None in
+  fun b x ->
+    let* _ = dt in
+    if b || !r = None then r := Some x;
+    return (Option.get !r)
+
+(** Execute a function when a stream change its value. *)
+let on_change ?(first=false) f =
+  let old = ref None in
+  fun x ->
+    match !old with
+    | Some x0 when x0 = x -> return x
+    | Some _ -> old := Some x; f x; return x
+    | None -> old := Some x; if first then f x; return x
+
+let fallback (x:'a t) (y:'a t) b : 'a t =
+  if b then x else y
+
+let fallblank x b = fallback x blank b
 
 (** Operations with samples as unit time. *)
 module Sample = struct
@@ -377,7 +507,7 @@ module Sample = struct
     (* Ensure that n is a power of 2. *)
     assert (n = 1 lsl p);
     let exp k n =
-      let theta = (-2.) *. pi *. float k /. float n in
+      let theta = (-2.) *. Float.pi *. float k /. float n in
       Complex.polar 1. theta
     in
     (* TODO: optimize *)
@@ -403,52 +533,6 @@ end
 
 (** {2 Oscillators} *)
 
-(** Integrate a stream. *)
-let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
-  let y = ref init in
-  let handler = function
-    | `Reset -> y := init; on_reset ()
-    | `Set x -> y := x
-  in
-  Event.register event handler;
-  fun x ->
-    let* dt = dt in
-    let ans = !y in
-    y := !y +. x *. dt;
-    if periodic && !y >= 1. then (y := !y -. 1.; on_reset ());
-    return ans
-
-let now ?event () : sample t =
-  integrate ?event () 1.
-
-(* TODO: implement periodic with events *)
-let periodic ?(init=0.) ?on_reset () =
-  integrate ~periodic:true ~init ?on_reset ()
-
-(** Exponential decay with given parameter. *)
-let exponential ?(init=1.) () =
-  let y = ref 1. in
-  fun k ->
-    let* dt = dt in
-    let ans = !y in
-    y := !y *. (1. +. k *. dt);
-    return ans
-
-(** Same as above but taking half-life as parameter. *)
-let exponential_hl ?init () =
-  let ln2 = log 2. in
-  let e = exponential ?init () in
-  fun h -> e (-. ln2 /. h)
-
-(** Smoothen the stream. This is useful to avoid big jumps in controllers. The
-    parmeter is roughly the time taken to reach the desired value. *)
-let smooth ?(init=0.) () =
-  let x = ref init in
-  fun a target ->
-    let* dt = dt in
-    x := !x +. (dt /. a) *. (target -. !x);
-    return !x
-
 let saw () : float -> sample t =
   let p = periodic () in
   fun freq ->
@@ -464,7 +548,7 @@ let triangle () =
 
 let sine () : float -> sample t =
   let p = periodic () in
-  let a = 2. *. pi in
+  let a = 2. *. Float.pi in
   fun freq ->
     let* t = p freq in
     return (sin (a *. t))
@@ -498,7 +582,7 @@ module Spectral = struct
   module Window = struct
     let hamming buf =
       let n = float (Array.length buf) in
-      let f k = 0.54 -. 0.46 *. cos (2.*.pi*.float k/.(n-.1.)) in
+      let f k = 0.54 -. 0.46 *. cos (2.*.Float.pi*.float k/.(n-.1.)) in
       Array.mapi (fun k x -> Complex.cmul (f k) x) buf
   end
 
@@ -581,112 +665,6 @@ module Spectral = struct
    *)
 end
 
-(** {2 Control} *)
-
-(** When a stream becomes true. *)
-let activates () =
-  let prev = ref false in
-  fun b ->
-    let p = !prev in
-    prev := b;
-    return (not p && b)
-
-(** When a stream changes value. *)
-let changes () =
-  let first = ref true in
-  let prev = ref false in
-  fun b ->
-    if !first then
-      (
-        first := false;
-        prev := b;
-        return false
-      )
-    else
-      (
-        let p = !prev in
-        prev := b;
-        return ((not p && b) || (p && not b))
-      )
-
-(** Zero-crossing: is true when the stream was negative and becomes positive. *)
-let zc () =
-  let activates = activates () in
-  fun s ->
-    s >>= (fun x -> return (x >= 0.)) >>= activates
-
-(** Check whether we are at a particular instant. *)
-let at () =
-  let now = now () in
-  let activates = activates () in
-  fun time ->
-    let* t = now in
-    activates (t >= time)
-
-(** Generate an event every period of time. *)
-let every () =
-  let b = ref false in
-  let on_reset () = b := true in
-  let p = periodic ~on_reset () in
-  fun time ->
-    let freq = 1. /. time in
-    p freq >>= drop >>
-    if !b then (b := false; return true)
-    else return false
-
-(** Whether this is the first sample of the stream. *)
-let is_first () =
-  let first = ref true in
-  fun () ->
-    let ans = !first in
-    first := false;
-    return ans
-
-(** Execute an action when a stream is true. *)
-let on f b =
-  if b then return (f ()) else return ()
-
-(** Sample when a condition is true and hold the sample the rest of the time. *)
-let sample_and_hold () =
-  let r = ref None in
-  fun b x ->
-    let* _ = dt in
-    if b || !r = None then r := Some x;
-    return (Option.get !r)
-
-(** Blink a led on tempo. *)
-let blink_tempo on off =
-  let p = periodic () in
-  let au = activates () in
-  let ad = activates () in
-  fun ?(duration=0.25) tempo ->
-    let* t = p (tempo /. 60.) in
-    let* up = au (t < duration) in
-    let* down = ad (t >= duration) in
-    if up then return (on ())
-    else if down then return (off ())
-    else return ()
-
-(** Execute a function when a stream change its value. *)
-let on_change ?(first=false) f =
-  let old = ref None in
-  fun x ->
-    match !old with
-    | Some x0 when x0 = x -> return x
-    | Some _ -> old := Some x; f x; return x
-    | None -> old := Some x; if first then f x; return x
-
-(** Print value of stream when it changes. *)
-let print ?first name =
-  on_change ?first (fun x -> Printf.printf "%s: %f\n%!" name x)
-
-let fallback (x:'a t) (y:'a t) b : 'a t =
-  if b then x else y
-
-let fallblank x b = fallback x blank b
-
-(** {2 Oscillators} *)
-
 (** Generate a random value at given frequency. *)
 let random () =
   let x = ref 0. in
@@ -755,7 +733,7 @@ let karplus_strong ?filter () =
     let* y = prev x in
     return ((x +. y) /. 2.)
   in
-  let filter = Option.default average filter in
+  let filter = Option.value ~default:average filter in
   fun freq ->
     let* n = samples (1. /. freq) in
     let init () = get (noise ()) in
@@ -765,7 +743,9 @@ let karplus_strong ?filter () =
     Sample.Ringbuffer.write r x;
     return ans
 
-(** ADSR envelope *)
+(** {2 Envelopes} *)
+
+(** ADSR (Attack / Decay / Sustain / Release) envelope. *)
 let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
   let state = ref `Attack in
   let log2 = log 2. in
@@ -807,6 +787,30 @@ let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
   Event.register event handler;
   stream
 
+(** Exponential decay with given parameter. *)
+let exponential ?(init=1.) () =
+  let y = ref 1. in
+  fun k ->
+    let* dt = dt in
+    let ans = !y in
+    y := !y *. (1. +. k *. dt);
+    return ans
+
+(** Same as above but taking half-life as parameter. *)
+let exponential_hl ?init () =
+  let ln2 = log 2. in
+  let e = exponential ?init () in
+  fun h -> e (-. ln2 /. h)
+
+(** Smoothen the stream. This is useful to avoid big jumps in controllers. The
+    parmeter is roughly the time taken to reach the desired value. *)
+let smooth ?(init=0.) () =
+  let x = ref init in
+  fun a target ->
+    let* dt = dt in
+    x := !x +. (dt /. a) *. (target -. !x);
+    return !x
+
 (** Affine from a value to a value in a given time. *)
 let ramp () =
   let arrived = ref false in
@@ -832,7 +836,7 @@ module Filter = struct
     let x' = ref 0. in
     let y' = ref 0. in
     fun kind freq ->
-      let rc = 1. /. (2. *. pi *. freq) in
+      let rc = 1. /. (2. *. Float.pi *. freq) in
       fun x ->
         match kind with
         | `Low_pass ->
@@ -864,7 +868,7 @@ module Filter = struct
     fun kind q freq x ->
       assert (q > 0.);
       let* dt = dt in
-      let w0 = 2. *. pi *. dt *. freq in
+      let w0 = 2. *. Float.pi *. dt *. freq in
       let cw0 = cos w0 in
       let alpha = sin w0 /. (2. *. q) in
       let a0, a1, a2, b0, b1, b2 =
@@ -925,12 +929,15 @@ let delay () =
     Ringbuffer.write r (x +. feedback *. ans);
     return ans
 
+(** A {{: https://en.wikipedia.org/wiki/Comb_filter} comb filter}. *)
 let comb () =
   let comb = Sample.comb () in
   fun delay a x ->
     let* delay = samples delay in
     comb delay a x
 
+(** A {{: https://ccrma.stanford.edu/~jos/Delay/Schroeder_Allpass_Filters.html }
+   Schroeder allpass filter}. *)
 let schroeder_allpass () =
   let sa = Sample.schroeder_allpass () in
   fun delay ->
@@ -979,6 +986,7 @@ let agc ?(period=0.1) ?(up=0.5) ?(down=15.) ?(blank=0.01) ?(target=0.8) ?(clippi
       );
     return ans
 
+(** Slicers: those regularly mute the stream according to various patterns. *)
 module Slicer = struct
   let hachoir () =
     let p = periodic () in
@@ -1003,11 +1011,12 @@ module Slicer = struct
   let eurotrance () =
     let p = periodic () in
     fun duration x ->
-      p (1./.duration) >>= (fun t ->
-        let d = int_of_float (t *. 8.) in
-        if d = 0 || d = 4 || d = 6 then return x else return 0.)
+      let* t = p (1. /. duration) in
+      let d = int_of_float (t *. 8.) in
+      if d = 0 || d = 4 || d = 6 then return x else return 0.
 end
 
+(** Chorus effect. *)
 let chorus () =
   let d = simple_delay () in
   fun ?(wet=1.) delay x ->
@@ -1015,6 +1024,7 @@ let chorus () =
     let* x' = d delay x in
     return (x +. wet *. x')
 
+(** Flanger effect. *)
 (* TODO: add optional feedback *)
 let flanger () =
   let chorus = chorus () in
@@ -1024,6 +1034,7 @@ let flanger () =
     let delay = delay /. 2. *. (1. +. t) in
     chorus ~wet delay x
 
+(** Distortion effects. *)
 module Distortion = struct
   (* amount in [-1,1] *)
   let waveshaper () =
@@ -1039,6 +1050,24 @@ end
 
 (** {2 Analysis} *)
 
+(** Print value of stream when it changes. *)
+let print ?first name =
+  on_change ?first (fun x -> Printf.printf "%s: %f\n%!" name x)
+
+(** Blink a led on tempo. *)
+let blink_tempo on off =
+  let p = periodic () in
+  let au = activates () in
+  let ad = activates () in
+  fun ?(duration=0.25) tempo ->
+    let* t = p (tempo /. 60.) in
+    let* up = au (t < duration) in
+    let* down = ad (t >= duration) in
+    if up then return (on ())
+    else if down then return (off ())
+    else return ()
+
+(** Power (mean square) of a stream. *)
 let ms duration cb =
   let sq = ref 0. in
   let n = ref 0 in
@@ -1068,23 +1097,31 @@ let is_blank duration =
     t := threshold;
     fun x -> ms x >> stream_ref ans
 
+(** {2 Stereo streams} *)
+
 (** Operations on stereo streams. *)
 module Stereo = struct
-  let of_mono : 'a -> ('a * 'a) t =
-    fun x -> return (x, x)
+  type 'a t = ('a * 'a) stream
 
+  let of_mono x : 'a t =
+    return (x, x)
+
+  (** Blank stereo stream. *)
   let blank = of_mono 0.
 
+  (** Construct a stereo stream from two mono streams. *)
   let merge s1 s2 =
     let* x = s1 in
     let* y = s2 in
     return (x, y)
 
+  (** Add two stereo streams. *)
   let add s1 s2 =
     let* x1,y1 = s1 in
     let* x2,y2 = s2 in
     return (x1 +. x2, y1 +. y2)
 
+  (** Delay. *)
   let delay ?ping_pong () =
     let delay_l = delay () in
     let delay_r = delay () in
@@ -1110,7 +1147,7 @@ module Stereo = struct
   let bmul b s =
     bind2 (fun b c -> if b then return c else return (0.,0.)) b s
 
-  let map (fl:'a -> 'b t) (fr:'c -> 'd t) (x,y) =
+  let map (fl:'a -> 'b stream) (fr:'c -> 'd stream) (x,y) =
     let* x = fl x in
     let* y = fl y in
     return (x, y)
@@ -1138,17 +1175,16 @@ module Stereo = struct
       match law with
       | `Linear -> 1. -. a, a
       | `Circular -> (* Equal power *)
-        cos (a *. pi /. 2.),
-        sin (a *. pi /. 2.)
+        cos (a *. Float.pi /. 2.),
+        sin (a *. Float.pi /. 2.)
       | `Mixed ->
         (* The -4.5dB pan law *)
-        sqrt ((1. -. a) *. cos (a *. pi /. 2.)),
-        sqrt ((1. -. a) *. sin (a *. pi /. 2.))
+        sqrt ((1. -. a) *. cos (a *. Float.pi /. 2.)),
+        sqrt ((1. -. a) *. sin (a *. Float.pi /. 2.))
     in
     fun x -> return (l *. x, r *. x)
 
-  (** Schroeder reverberation. *)
-  (* See https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html *)
+  (** {: https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html} Schroeder reverberation}. *)
   let schroeder () =
     let fbcf d g = comb () d (-.g) in
     let ap () = schroeder_allpass () in
@@ -1282,4 +1318,5 @@ module Stereo = struct
       return (x,y)
 end
 
+(** Duplicate a mono stream to become a stereo stream. *)
 let stereo = Stereo.of_mono

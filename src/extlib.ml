@@ -1,9 +1,11 @@
-let pi = atan 1. *. 4.
+(** Extensions to standard library. *)
 
+(** Identity function. *)
 let id x = x
 
 let nop () = ()
 
+(** Round to the nearest integer. *)
 let round x = int_of_float (x +. 0.5)
 
 module List = struct
@@ -15,14 +17,6 @@ module List = struct
       | [] -> []
     in
     aux 0 l
-
-  let init n f =
-    let rec aux k =
-      if k = n then []
-      else
-        (f k)::(aux (k+1))
-    in
-    aux 0
 
   let make n x = init n (fun _ -> x)
 
@@ -51,16 +45,6 @@ module List = struct
     let x = ref x in
     List.iter (fun f -> x := f !x) l;
     !x
-end
-
-module Option = struct
-  let get = function
-    | Some x -> x
-    | None -> assert false
-
-  let default d = function
-    | Some x -> x
-    | None -> d
 end
 
 module File = struct

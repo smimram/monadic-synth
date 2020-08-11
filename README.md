@@ -66,4 +66,12 @@ let () =
   Output.play s
 ```
 
+## Using a stream multiple times
 
+TODO: the problem, dup
+
+## General principles behind the library
+
+- The infinitesimal variations are supposed to be varying slowly, i.e. be
+  "locally constant". In particular, this means that small buffers can assume
+  that the _dt_ is the same for the whole buffer.

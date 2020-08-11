@@ -29,17 +29,48 @@
 
 <pre><span id="MODULEEvent"><span class="keyword">module</span> Event</span>: <code class="code">sig</code> <a href="Stream.Event.html">..</a> <code class="code">end</code></pre><div class="info module top">
 <div class="info-desc">
-<p>Event hubs.</p>
+<p>Event hubs. On those handlers can be registered and will be called each time
+    a new event is emitted.</p>
 </div>
 </div>
 <hr width="100%">
 
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> = <code class="type">('a -> unit) list Stdlib.ref</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>An event hub.</p>
+</div>
+</div>
 
 
-<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">unit -> 'a <a href="Stream.Event.html#TYPEt">t</a></code></pre>
-<pre><span id="VALregister"><span class="keyword">val</span> register</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> ('a -> unit) -> unit</code></pre>
-<pre><span id="VALemit"><span class="keyword">val</span> emit</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> 'a -> unit</code></pre>
-<pre><span id="VALmerge"><span class="keyword">val</span> merge</span> : <code class="type">'a list Stdlib.ref -> 'a list Stdlib.ref -> 'a list Stdlib.ref</code></pre>
-<pre><span id="VALforward"><span class="keyword">val</span> forward</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> 'a <a href="Stream.Event.html#TYPEt">t</a> -> unit</code></pre>
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">unit -> 'a <a href="Stream.Event.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Create an event hub.</p>
+</div>
+</div>
+
+<pre><span id="VALregister"><span class="keyword">val</span> register</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> ('a -> unit) -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Register a handler on the hub.</p>
+</div>
+</div>
+
+<pre><span id="VALemit"><span class="keyword">val</span> emit</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> 'a -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Emit an event.</p>
+</div>
+</div>
+
+<pre><span id="VALmerge"><span class="keyword">val</span> merge</span> : <code class="type">'a list Stdlib.ref -> 'a list Stdlib.ref -> 'a list Stdlib.ref</code></pre><div class="info ">
+<div class="info-desc">
+<p>Merge two hubs.</p>
+</div>
+</div>
+
+<pre><span id="VALforward"><span class="keyword">val</span> forward</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> 'a <a href="Stream.Event.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Forwrad the events of a hub to a second one.</p>
+</div>
+</div>
+
 <pre><span id="VALmay_map"><span class="keyword">val</span> may_map</span> : <code class="type">('a -> 'b option) -> 'a <a href="Stream.Event.html#TYPEt">t</a> -> unit</code></pre></body></html>

@@ -13,3 +13,5 @@ ci: all
 	git add ocamldoc
 	git ci . -m "Update website."
 	git push
+
+.PHONY: ocamldoc
