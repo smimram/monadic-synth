@@ -10,9 +10,8 @@ ocamldoc:
 	@cp -r ../src/doc/msynth/html ocamldoc
 
 ci: all
-	-git add ../README.md
 	git add ocamldoc
-	git ci . -m "Update website."
+	git ci ../README.md . -m "Update website."
 	git push
 
 .PHONY: ocamldoc

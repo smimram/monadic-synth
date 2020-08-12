@@ -1,5 +1,5 @@
-Monadic synthesizers
-====================
+Monadic synthesizers in OCaml
+=============================
 
 This library called `msynth` is my own take at organizing the various classical
 functions for performing audio synthesis.
@@ -57,10 +57,11 @@ let () =
   Output.play s
 ```
 
-We use the function `sine` to create the oscillator, then use `>>=` to pipe it
-to the `stereo` operator which converts a stream into a stereo one (a _stereo
-stream_ is a stream of pairs of floats), and finally use `Output.play` to stream
-the result. Another equivalent way to write this is
+We use the function `sine` to create the oscillator (which oscillates 440 times
+per second between -1 and 1), then use `>>=` to pipe it to the `stereo` operator
+which converts a stream into a stereo one (a _stereo stream_ is a stream of
+pairs of floats), and finally use `Output.play` to stream the result. Another
+equivalent way to write this is
 
 ```ocaml
 let () =
@@ -86,6 +87,49 @@ arguments.
 
 One of the main advantage of using the monadic syntax is that all arguments can
 vary over time. For instance, we can achieve a vibrato as follows:
+
+```ocaml
+let () =
+  let lfo = sine () in
+  let vco = sine () in
+  let s =
+    let* f = lfo 5. in
+    vco (440. +. 10. *. f)
+  in
+  Output.play (s >>= stereo)
+```
+
+Here, we begin by creating two oscillators respectively called `lfo` and `vco`
+(the names come from the
+[LFO](https://en.wikipedia.org/wiki/Low-frequency_oscillation) and
+[VCO](https://en.wikipedia.org/wiki/Voltage-controlled_oscillator) electric
+circuits) and state that the source `s` is the vco oscillator whose frequency is
+around 440 Hz, varying by ±10 Hz at the rate of 5 Hz (the rate of the lfo). Note
+that since the frequency is exponential with respect to notes, a vibrato of half
+a semitone should rather be achieved by replacing the last line in the
+definition of `s` by
+
+```ocaml
+    vco (440. *. 2. ** (0.5 *. f /. 12.))
+```
+
+we leave this kind of details to you. Another way to write the same program as
+above, with the `>>=` operator, would be
+
+```ocaml
+let () =
+  let s = cadd 440. (cmul 10. (sine () 5.)) >>= sine () >>= stereo in
+  Output.play s
+```
+
+
+
+
+
+
+
+
+
 
 We can create constant streams with the `return` function, which creates a
 stream whose value is always the one given in the argument. For instance, we can
@@ -135,6 +179,8 @@ TODO: the problem, dup
 
 - Clean code is more important than efficient code (although we want to remain
   reasonably efficient).
+- The infinitesimal _dt_ is supposed to be very small. In particular, the stream
+  at instant _t_ or _t+dt_ should be roughly the same.
 - The infinitesimal variations are supposed to be varying slowly, i.e. be
   "locally constant". In particular, this means that small buffers can assume
   that the _dt_ is the same for the whole buffer.
