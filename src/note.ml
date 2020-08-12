@@ -5,14 +5,18 @@ open Stream
 (** A function for creating notes. It takes as arugment the events it can
     recieve, as well as an [on_die] function, which it should call when the note
     has finished playing (we cannot determine this externally in case there is
-    some release). *)
+    some release), and returns a function which plays a note at given frequency
+    and volume. *)
 type 'event t = event:('event Event.t) -> on_die:(unit -> unit) -> unit -> sample -> float -> sample stream
 
+(** Convert note height into frequency. *)
 let freq ?(detune=0.) n = 440. *. (2. ** ((float n +. detune -. 69.) /. 12.))
 
+(** Duration of a note at given tempo. *)
 let duration tempo d =
   60. /. tempo *. d
 
+(** Note from an oscillator. *)
 let simple f : 'a t =
   fun ~event ~on_die () ->
   let alive = ref true in
@@ -36,6 +40,7 @@ let detune ?(cents=return 7.) ?(wet=return 0.5) (note : 'a t) : 'a t =
     let* w = nd freqd vol in
     return (d +. wet *. w)
 
+(** Add two notes. *)
 let add n1 n2 : 'a t =
   fun ~event ~on_die () ->
   let n1 = n1 ~dt ~event ~on_die in
@@ -43,6 +48,7 @@ let add n1 n2 : 'a t =
   fun freq vol ->
     add (n1 freq vol) (n2 freq vol)
 
+(** Basic (TR-808 type) drum notes. *)
 module Drum = struct
   let kick ?on_die () =
     let s = cmul 150. (exponential () (-9.)) >>= sine () in
@@ -76,11 +82,6 @@ let adsr ?a ?d ?s ?r osc : 'a t =
     | Some x -> Some (get x)
     | None -> None
   in
-  (
-    match g a with
-    | Some a -> Printf.printf "a : %f\n%!" a
-    | None -> Printf.printf "a : none\n%!"
-  );
   let env = adsr ~event ~on_die () ?a:(g a) ?d:(g d) ?s:(g s) ?r:(g r) () in
   let osc = osc () in
   fun freq vol ->

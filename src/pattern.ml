@@ -1,3 +1,5 @@
+(** Patterns are small musical phrases or chords. *)
+
 open Extlib
 
 (** Musical patterns. Events in patterns are (time,duration,event). All time
@@ -46,6 +48,7 @@ let amplify a (p : 'a t) : 'a t =
       | `Nop -> `Nop)
     p
 
+(** Arpeggiator. *)
 let arpeggiate tempo ?(note=0.25) mode (p : 'a t) : 'a t =
   let ans =
     List.map
@@ -85,33 +88,40 @@ let arpeggiate tempo ?(note=0.25) mode (p : 'a t) : 'a t =
   in
   List.flatten ans
 
-(** Convert a pattern to timed MIDI events. *)
-let midi bpm (p:'a t) =
-  let duration = Note.duration bpm in
-  let ans = ref [] in
-  let emit t e = ans := (t,e) :: !ans in
-  let rec aux = function
-    | t,d,`Note (n,v) ->
-      emit (duration t) (`Note_on (n,v));
-      emit (duration t +. duration d) (`Note_off n)
-    | t,d,`Chord (l,v) ->
-      let l = List.map (fun n -> t,d,`Note (n,v)) l in
-      List.iter aux l
-    | t,d,`Nop -> emit (duration t +. duration d) `Nop
+(** Convert a pattern to a stream of MIDI events. *)
+let stream ?loop bpm p : MIDI.stream =
+  (* Timed midi events. *)
+  let events =
+    let duration = Note.duration bpm in
+    let ans = ref [] in
+    let emit t e = ans := (t,e) :: !ans in
+    let rec aux = function
+      | t,d,`Note (n,v) ->
+        emit (duration t) (`Note_on (n,v));
+        emit (duration t +. duration d) (`Note_off n)
+      | t,d,`Chord (l,v) ->
+        let l = List.map (fun n -> t,d,`Note (n,v)) l in
+        List.iter aux l
+      | t,d,`Nop -> emit (duration t +. duration d) `Nop
+    in
+    List.iter aux p;
+    List.sort (fun (t1,_) (t2,_) -> compare t1 t2) !ans
   in
-  List.iter aux p;
-  List.sort (fun (t1,_) (t2,_) -> compare t1 t2) !ans
+  Stream.timed ?loop events
 
-let midi_drums bpm (p:'a t) =
-  let duration = Note.duration bpm in
-  let ans = ref [] in
-  let emit t e = ans := (t,e) :: !ans in
-  let aux (t,d,e) =
-    let t = if e = `Nop then duration (t+.d) else duration t in
-    emit t e
+let midi_drums ?loop bpm (p:'a t) =
+  let events =
+    let duration = Note.duration bpm in
+    let ans = ref [] in
+    let emit t e = ans := (t,e) :: !ans in
+    let aux (t,d,e) =
+      let t = if e = `Nop then duration (t+.d) else duration t in
+      emit t e
+    in
+    List.iter aux p;
+    List.sort (fun (t1,_) (t2,_) -> compare t1 t2) !ans
   in
-  List.iter aux p;
-  List.sort (fun (t1,_) (t2,_) -> compare t1 t2) !ans
+  Stream.timed ?loop events
 
 let load_drums fname : 'a t =
   let lines = Str.split (Str.regexp "\n") (File.to_string fname) in

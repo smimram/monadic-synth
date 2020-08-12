@@ -37,7 +37,7 @@ let s =
     let wet = knob 7 0.5 in
     Note.detune ~cents ~wet note
   in
-  let pad = MIDI.events ~channel:0 midi >>= Instrument.play_stream (* ~portamento:(return 0.1) *) note >>= clip in
+  let pad = Instrument.play (* ~portamento:(return 0.1) *) note (MIDI.events ~channel:0 midi) >>= clip in
   (* let pad = mul pad (knob 0 1.) in *)
   (* let pad = pad >>= amp 0.07 >>= Stereo.schroeder ~dt >>= Stereo.dephase ~dt (-0.01) in *)
   let pad =

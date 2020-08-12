@@ -10,7 +10,7 @@ let s =
   ]
   in
   let pad = Pattern.merge pad [0.,32.,`Note(40,2.5)] in
-  let pad = Instrument.play (Note.simple sine) (Pattern.midi tempo pad) in
+  let pad = Instrument.play (Note.simple sine) (Pattern.stream ~loop:true tempo pad) in
   let pad = pad >>= amp 0.07 >>= Stereo.schroeder () >>= Stereo.dephase () (-0.01) in
   let bass_note ~event ~on_die () =
     let adsr = adsr ~event ~on_die () ~a:0.01 ~d:0.1 ~r:0.001 () in
@@ -27,7 +27,7 @@ let s =
   let bass v = [0.,4.,`Nop; 0.,0.5,`Note (64,v); 0.75,0.5,`Note (64,v); 1.5,0.5,`Note (64,v); 2.5,0.5,`Note (64,v); 3.,0.5,`Note (65,v)] in
   let bass = Pattern.concat (List.map bass [0.6;0.7;0.8;1.]) in
   let bass = Pattern.transpose (-24) bass in
-  let bass = Instrument.play bass_note (Pattern.midi tempo bass) in
+  let bass = Instrument.play bass_note (Pattern.stream ~loop:true tempo bass) in
   let bass = cmul 0.08 bass in
   (* let bass = bind3 (Filter.biquad ~dt `Low_pass) (OSC.float "/1/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/1/fader4" ~min:1. ~max:5000. 5000.) bass in *)
   (* let bass = bass >>= stereo >>= Stereo.dephase ~dt 0.01 in *)
@@ -41,7 +41,7 @@ let s =
   (* let slice = slice >>= Slicer.eurotrance ~dt (Note.duration tempo 1.) in *)
   (* let slice = slice >>= amp 0.4 >>= stereo in *)
   let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> cmul vol (Note.Drum.snare ~on_die ~lp:2400. ())) in
-  let drums = pd (Pattern.midi_drums tempo (Pattern.load_drums "basic.drums")) >>= amp 1. >>= stereo in
+  let drums = pd (Pattern.midi_drums ~loop:true tempo (Pattern.load_drums "basic.drums")) >>= amp 1. >>= stereo in
   (* let drums = *)
     (* let fv = Stereo.freeverb () in *)
     (* bind6 *)

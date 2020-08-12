@@ -13,7 +13,7 @@ let s =
     fun freq ->
     cmul 0.5 (add (square (freq *. 1.007)) (saw freq))
   in
-  let synth = Instrument.play (Note.simple sound) (Pattern.midi tempo synth) in
+  let synth = Instrument.play (Note.simple sound) (Pattern.stream ~loop:true tempo synth) in
   let lp_q = OSC.float "/1/fader1" ~min:0.1 ~max:5. 1. in
   let lp_freq = OSC.float ~mode:`Logarithmic "/1/fader2" ~max:10000. 1500. in
   (* let lp_freq = lp_freq >>= print ~every:22000 "freq" in *)
@@ -35,12 +35,12 @@ let s =
   let bass = List.map (fun n -> Pattern.repeat 4 [0.,2.,`Nop; 0.,0.5,`Note (n,1.); 0.5,0.5,`Note (n,1.)]) bass in
   let bass = Pattern.concat bass in
   let bass = Pattern.transpose (-24) bass in
-  let bass = Instrument.play (Note.adsr ~r:(return 0.1) sine) (Pattern.midi tempo bass) in
+  let bass = Instrument.play (Note.adsr ~r:(return 0.1) sine) (Pattern.stream ~loop:true tempo bass) in
   let bass = cmul 0.5 bass in
   let bass = bass >>= stereo >>= Stereo.dephase () (-0.02) in
   (* let kick = Instrument.kick ~dt ~vol:1. tempo >>= stereo in *)
   let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> cmul vol (Note.Drum.snare ~on_die ~lp:2000. ())) in
-  let drums = pd (Pattern.midi_drums tempo (Pattern.load_drums "c1.drums")) >>= stereo in
+  let drums = pd (Pattern.midi_drums ~loop:true tempo (Pattern.load_drums "c1.drums")) >>= stereo in
   let drums = Stereo.bmul (OSC.bool "/1/toggle2" true) drums in
   let s = Stereo.add_list [synth;drums;bass] in
   (* let s = s >>= Stereo.map (agc ~dt ()) (agc ~dt ()) in *)

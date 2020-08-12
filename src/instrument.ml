@@ -3,15 +3,17 @@
 open Extlib
 open Stream
 
+(** A note of an instrument. *)
 type 'event note =
   {
     note : int;
     stream : sample stream;
     event : 'event Event.t;
     mutable released : bool;
-    alive : bool ref;
+    alive : bool ref; (** is the note still playing? *)
   }
 
+(** Create an instrument. *)
 let create ~event ?portamento (note:'a Note.t) =
   (* Currently playing notes. *)
   let playing = ref [] in
@@ -84,6 +86,8 @@ let create ~event ?portamento (note:'a Note.t) =
   Event.register event handler;
   stream
 
+(** Create a drum instrument. *)
+(* TODO: extend to polyphonic *)
 let create_drum ~event note =
   let stream = ref blank in
   let on_die () = stream := blank in
@@ -92,12 +96,13 @@ let create_drum ~event note =
       let freq = Note.freq n in
       stream := note ~on_die freq v
     | `Note_off _ -> ()
-    | `Nop -> ()
+    | _ -> ()
   in
   Event.register event handler;
-  let stream dt = !stream dt in
-  stream
+  let* dt = dt in
+  return (!stream dt)
 
+(*
 let emitter ?(loop=true) f l =
   let l0 = l in
   let l = ref l in
@@ -121,29 +126,20 @@ let emitter ?(loop=true) f l =
     | _ -> return ()
   in
   now >>= aux
-
-(* TODO: use sparse streams for the following. *)
-
-(** Play timed events. *)
-let play (note:'a Note.t) events =
-  let event = Event.create () in
-  let s = create ~event note in
-  emitter (Event.emit event) events >> s
+*)
 
 (** Play a stream of lists events. *)
-let play_stream ?portamento (note:'a Note.t) =
+let play ?portamento (note:'a Note.t) midi =
   let event = Event.create () in
   let s = create ?portamento ~event note in
-  fun l ->
-    List.iter (Event.emit event) l;
-    s
+  midi >>= Event.emitter event >> s
 
-let play_drum note events =
+let play_drum note midi =
   let event = Event.create () in
   let s = create_drum ~event note in
-  emitter (Event.emit event) events >> s
+  midi >>= Event.emitter event >> s
 
-let play_drums ?kick ?snare ?closed_hat events =
+let play_drums ?kick ?snare ?closed_hat midi =
   let streams = ref [] in
   let create d note =
     let dnote ~on_die freq vol = cmul vol (d ~on_die) in
@@ -162,7 +158,13 @@ let play_drums ?kick ?snare ?closed_hat events =
     | `Closed_hat v -> Event.emit closed_hat (`Note_on (0,v))
     | `Nop -> ()
   in
-  emitter emit events >> add_list !streams
+  midi >>= (fun l -> return (List.iter emit l)) >> add_list !streams
 
-let kick ?(vol=1.) tempo =
-  play_drum (fun ~on_die freq vol -> cmul vol (Note.Drum.kick ~on_die ())) (Pattern.midi tempo [0.,1.,`Nop;0.,0.25,`Note(69,vol)])
+let kick tempo =
+  let event = Event.create () in
+  let note ~on_die freq vol = Note.Drum.kick ~on_die () in
+  let instr = create_drum ~event note in
+  let midi = Pattern.stream ~loop:true tempo [0.,1.,`Nop;0.,0.25,`Note(69,1.)] in
+  let* l = midi in
+  List.iter (Event.emit event) l;
+  instr

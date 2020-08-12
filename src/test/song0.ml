@@ -26,6 +26,7 @@ let s =
   ]
   in
   let melody = List.mapi (fun n e -> 0.2 *. float n, e) melody in
+  let melody = Stream.timed ~loop:true melody in
   let melody = Instrument.play (note sine) melody in
   let melody = bind2 (Filter.first_order () `Low_pass) (add (cst 1000.) (cmul 300. (sine () 10.))) melody in
   let vb = 0.8 in
@@ -33,6 +34,7 @@ let s =
   let bass2 = [`Note_on (41,vb); `Note_off 41] in
   let bass = (List.repeat 8 bass1)@(List.repeat 8 bass2)@[`Nop] in
   let bass = List.mapi (fun n e -> 0.2 *. float n, e) bass in
+  let bass = Stream.timed ~loop:true bass in
   let bass = Instrument.play (note saw) bass in
   let bass = bass >>= amp 0.5 in
   let bass = bass >>= Slicer.hachoir () 0.1 in

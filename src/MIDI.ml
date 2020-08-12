@@ -8,7 +8,11 @@ type event =
   | `Controller of int * float
   | `Pitch_bend of int * float
   | `Program_change of int * int
+  | `Nop (** Do not do anything. This is useful to extend repeated patterns. *)
   ]
+
+(** A stream of MIDI events. *)
+type stream = event list Stream.t
 
 type t =
   {
@@ -102,7 +106,7 @@ let map midi f =
   { midi with map }
 
 (** Create a stream of midi events. *)
-let events ?channel midi =
+let events ?channel midi : stream =
   let m = Mutex.create () in
   let nn = ref [] in
   let h c e =

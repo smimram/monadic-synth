@@ -19,7 +19,7 @@ let s =
       let s = dup_adsr >> mul d adsr >>= (fun depth -> fm ~ratio:0.5 depth freq) in
       mul s adsr
   in
-  let s = Instrument.play note (Pattern.midi tempo s) >>= amp 0.1 in
+  let s = Instrument.play note (Pattern.stream ~loop:true tempo s) >>= amp 0.1 in
   let s =
     let* q = knob 0 ~min:0.1 ~max:20. 0.5 in
     let* f = knob 1 ~max:10000. 10000. in

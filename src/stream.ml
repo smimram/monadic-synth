@@ -175,6 +175,10 @@ module Event = struct
   let emit (h:'a t) e =
     List.iter (fun f -> f e) !h
 
+  (** Stream which emits lists of events. *)
+  let emitter h e =
+    return (List.iter (emit h) e)
+
   (** Merge two hubs. *)
   let merge h1 h2 = ref (!h1 @ !h2)
 
@@ -292,6 +296,32 @@ let now ?event () : sample t =
 (* TODO: implement periodic with events *)
 let periodic ?(init=0.) ?on_reset () =
   integrate ~periodic:true ~init ?on_reset ()
+
+(** Create a stream from timed events, supposed to be sorted. *)
+let timed ?(loop=false) l =
+  let l0 = l in
+  let l = ref l in
+  let toff = ref 0. in
+  let now = now () in
+  let* time = now in
+  let rec aux ans =
+    match !l with
+    | (t,e) :: tl when t +. !toff <= time ->
+      let ans = e::ans in
+      l := tl;
+      aux ans
+    | [] ->
+      if loop then
+        (
+          toff := time;
+          l := l0;
+          return ans
+        )
+      else
+        return ans
+    | _ -> return ans
+  in
+  aux []
 
 (** {2 Control} *)
 
