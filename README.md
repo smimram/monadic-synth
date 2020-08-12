@@ -125,8 +125,9 @@ let () =
   Output.play (s >>= stereo)
 ```
 
-we do not hear any sound: this is because we create a _new_ oscillator at _each_
-sample, and thus always hear the first sample of the oscillator which is 0.
+we do not hear any sound: this is because we create a new oscillator at each
+sample, and thus always hear the first sample of the oscillator which is 0,
+which is not what we want.
 
 Another way to write the same program as above, with the `>>=` operator, would
 be
