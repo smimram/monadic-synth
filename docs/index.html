@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>README</title>
+  <title>Monadic synthesizers in OCaml – README</title>
   <style type="text/css">
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -100,7 +100,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb4"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">let</span> () =</a>
 <a class="sourceLine" id="cb4-2" title="2">  <span class="kw">let</span> s = sine () <span class="dv">440</span>. &gt;&gt;= stereo <span class="kw">in</span></a>
 <a class="sourceLine" id="cb4-3" title="3">  Output.play s</a></code></pre></div>
-<p>We use the function <code>sine</code> to create the oscillator, then use <code>&gt;&gt;=</code> to pipe it to the <code>stereo</code> operator which converts a stream into a stereo one (a <em>stereo stream</em> is a stream of pairs of floats), and finally use <code>Output.play</code> to stream the result. Another equivalent way to write this is</p>
+<p>We use the function <code>sine</code> to create the oscillator (which oscillates 440 times per second between -1 and 1), then use <code>&gt;&gt;=</code> to pipe it to the <code>stereo</code> operator which converts a stream into a stereo one (a <em>stereo stream</em> is a stream of pairs of floats), and finally use <code>Output.play</code> to stream the result. Another equivalent way to write this is</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">let</span> () =</a>
 <a class="sourceLine" id="cb5-2" title="2">  <span class="kw">let</span> s =</a>
 <a class="sourceLine" id="cb5-3" title="3">    <span class="kw">let</span>* x = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
@@ -121,27 +121,32 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb7-6" title="6">    vco (<span class="dv">440</span>. +. <span class="dv">10</span>. *. f)</a>
 <a class="sourceLine" id="cb7-7" title="7">  <span class="kw">in</span></a>
 <a class="sourceLine" id="cb7-8" title="8">  Output.play (s &gt;&gt;= stereo)</a></code></pre></div>
-<p>Here, we begin by creating two oscillators respectively called <a href="https://en.wikipedia.org/wiki/Low-frequency_oscillation"><code>lfo</code></a> and <code>vco</code> and state that the source <code>s</code> is the vco oscillator whose frequency is 440 Hz to which we add ten times the current value of the lfo.</p>
-<p>We can create constant streams with the <code>return</code> function, which creates a stream whose value is always the one given in the argument. For instance, we can define the pairing function with</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">let</span> pair x y = return (x, y)</a></code></pre></div>
-<p>Given two values <code>x</code> and <code>y</code>, it creates the stream whose value is always the pair <code>(x, y)</code>. We can then use it to play a sine at different frequency over each channel with</p>
+<p>Here, we begin by creating two oscillators respectively called <code>lfo</code> and <code>vco</code> (the names come from the <a href="https://en.wikipedia.org/wiki/Low-frequency_oscillation">LFO</a> and <a href="https://en.wikipedia.org/wiki/Voltage-controlled_oscillator">VCO</a> electric circuits) and state that the source <code>s</code> is the vco oscillator whose frequency is around 440 Hz, varying by ±10 Hz at the rate of 5 Hz (the rate of the lfo). Note that since the frequency is exponential with respect to notes, a vibrato of half a semitone should rather be achieved by replacing the last line in the definition of <code>s</code> by</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb8-1" title="1">    vco (<span class="dv">440</span>. *. <span class="dv">2</span>. ** (<span class="fl">0.5</span> *. f /. <span class="dv">12</span>.))</a></code></pre></div>
+<p>we leave this kind of details to you. Another way to write the same program as above, with the <code>&gt;&gt;=</code> operator, would be</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb9-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb9-2" title="2">  <span class="kw">let</span> left = sine () <span class="kw">in</span></a>
-<a class="sourceLine" id="cb9-3" title="3">  <span class="kw">let</span> right = sine () <span class="kw">in</span></a>
-<a class="sourceLine" id="cb9-4" title="4">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb9-5" title="5">    <span class="kw">let</span>* x = left <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb9-6" title="6">    <span class="kw">let</span>* y = right <span class="dv">880</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb9-7" title="7">    pair x y</a>
-<a class="sourceLine" id="cb9-8" title="8">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb9-9" title="9">  Output.play s</a></code></pre></div>
+<a class="sourceLine" id="cb9-2" title="2">  <span class="kw">let</span> s = cadd <span class="dv">440</span>. (cmul <span class="dv">10</span>. (sine () <span class="dv">5</span>.)) &gt;&gt;= sine () &gt;&gt;= stereo <span class="kw">in</span></a>
+<a class="sourceLine" id="cb9-3" title="3">  Output.play s</a></code></pre></div>
+<p>We can create constant streams with the <code>return</code> function, which creates a stream whose value is always the one given in the argument. For instance, we can define the pairing function with</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">let</span> pair x y = return (x, y)</a></code></pre></div>
+<p>Given two values <code>x</code> and <code>y</code>, it creates the stream whose value is always the pair <code>(x, y)</code>. We can then use it to play a sine at different frequency over each channel with</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">let</span> () =</a>
+<a class="sourceLine" id="cb11-2" title="2">  <span class="kw">let</span> left = sine () <span class="kw">in</span></a>
+<a class="sourceLine" id="cb11-3" title="3">  <span class="kw">let</span> right = sine () <span class="kw">in</span></a>
+<a class="sourceLine" id="cb11-4" title="4">  <span class="kw">let</span> s =</a>
+<a class="sourceLine" id="cb11-5" title="5">    <span class="kw">let</span>* x = left <span class="dv">440</span>. <span class="kw">in</span></a>
+<a class="sourceLine" id="cb11-6" title="6">    <span class="kw">let</span>* y = right <span class="dv">880</span>. <span class="kw">in</span></a>
+<a class="sourceLine" id="cb11-7" title="7">    pair x y</a>
+<a class="sourceLine" id="cb11-8" title="8">  <span class="kw">in</span></a>
+<a class="sourceLine" id="cb11-9" title="9">  Output.play s</a></code></pre></div>
 <p>Here, we define the oscillators for the two channels (respectively called <code>left</code> and <code>right</code>) and then define the stream <code>s</code> as the pair consisting of the current value of the oscillators at respective frequencies 440 and 880 Hz. Note that it is important that we create the oscillators beforehand: if we had written</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb10-2" title="2">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb10-3" title="3">    <span class="kw">let</span>* x = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb10-4" title="4">    <span class="kw">let</span>* y = sine () <span class="dv">880</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb10-5" title="5">    pair x y</a>
-<a class="sourceLine" id="cb10-6" title="6">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb10-7" title="7">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">let</span> () =</a>
+<a class="sourceLine" id="cb12-2" title="2">  <span class="kw">let</span> s =</a>
+<a class="sourceLine" id="cb12-3" title="3">    <span class="kw">let</span>* x = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
+<a class="sourceLine" id="cb12-4" title="4">    <span class="kw">let</span>* y = sine () <span class="dv">880</span>. <span class="kw">in</span></a>
+<a class="sourceLine" id="cb12-5" title="5">    pair x y</a>
+<a class="sourceLine" id="cb12-6" title="6">  <span class="kw">in</span></a>
+<a class="sourceLine" id="cb12-7" title="7">  Output.play s</a></code></pre></div>
 <h2 id="using-a-stream-multiple-times">Using a stream multiple times</h2>
 <p>TODO: the problem, dup</p>
 <h2 id="general-principles-behind-the-library">General principles behind the library</h2>
