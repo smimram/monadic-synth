@@ -42,6 +42,8 @@ The main documentation consists in
 
 ## Our first sines
 
+### Playing a sound
+
 When creating synthesizers, you typically want to open the `Stream` module:
 
 ```ocaml
@@ -82,8 +84,16 @@ let () =
   Output.play s
 ```
 
-The last two syntaxes have the advantage of extending to functions with multiple
-arguments.
+Here, the `bind` operator has type
+
+```ocaml
+('a -> 'b t) -> ('a t -> 'b 't)
+```
+
+i.e. it transforms a function returning a stream so that it can take a stream as
+argument.
+
+### Modulating parameters
 
 One of the main advantage of using the monadic syntax is that all arguments can
 vary over time. For instance, we can achieve a vibrato as follows:
@@ -127,7 +137,7 @@ let () =
 
 we do not hear any sound: this is because we create a new oscillator at each
 sample, and thus always hear the first sample of the oscillator which is 0,
-which is not what we want.
+and this is not what we want.
 
 Another way to write the same program as above, with the `>>=` operator, would
 be
@@ -138,14 +148,10 @@ let () =
   Output.play s
 ```
 
+_Exercise_: play a sine with tremolo, which can be achieved by periodically
+varying its amplitude.
 
-
-
-
-
-
-
-
+### Returning streams
 
 We can create constant streams with the `return` function, which creates a
 stream whose value is always the one given in the argument. For instance, we can
@@ -161,35 +167,73 @@ each channel with
 
 ```ocaml
 let () =
-  let left = sine () in
-  let right = sine () in
+  let left  = sine () 440. in
+  let right = sine () 880. in
   let s =
-    let* x = left 440. in
-    let* y = right 880. in
+    let* x = left  in
+    let* y = right in
     pair x y
   in
   Output.play s
 ```
 
-Here, we define the oscillators for the two channels (respectively called `left`
-and `right`) and then define the stream `s` as the pair consisting of the
-current value of the oscillators at respective frequencies 440 and 880 Hz. Note
-that it is important that we create the oscillators beforehand: if we had
-written
+Another possible way to write this is using the `bind2` operators whose type is
+
+```ocaml
+('a -> 'b -> 'c t) -> ('a t -> 'b t -> 'c t)
+```
+
+i.e. it transforms a function with two arguments which returns a stream, so that
+it accepts streams as arguments:
 
 ```ocaml
 let () =
-  let s =
-    let* x = sine () 440. in
-    let* y = sine () 880. in
-    pair x y
-  in
+  let left  = sine () 440. in
+  let right = sine () 880. in
+  let s = bind2 pair left right in
   Output.play s
 ```
 
 ## Using a stream multiple times
 
-TODO: the problem, dup
+Streams should not be used multiple times. For instance, if we want to play the
+same sine on the left and the right channel, we might be tempted two write
+
+```ocaml
+let () =
+  let osc = sine () 440. in
+  let s = bind2 pair osc osc in
+  Output.play s
+```
+
+but the result is that we hear a sine at 880 Hz. The reason is that each time we
+pull a sample for `s`, we actually pull two samples from `osc`: once for the
+left channel and once for the right channel. One way to avoid this is to
+explicitly extract the value of the stream, and there is no problem in
+duplicated this value:
+
+```ocaml
+let () =
+  let osc = sine () 440. in
+  let s =
+    let* x = osc in
+    pair x x
+  in
+  Output.play s
+```
+
+Another way consists in using the `dup` operator, which returns a pair: the
+first one should be used first to evaluate the stream and the second one is a
+stream which can be used as many times as we want. We can thus rewrite our
+example as follows:
+
+```ocaml
+let () =
+  let osc = sine () 440. in
+  let eval, osc = dup () osc in
+  let s = eval >> bind2 pair osc osc in
+  Output.play s
+```
 
 ## General principles behind the library
 
