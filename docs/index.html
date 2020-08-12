@@ -80,6 +80,27 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <header id="title-block-header">
 <h1 class="title">Monadic synthesizers in OCaml</h1>
 </header>
+<nav id="TOC">
+<ul>
+<li><a href="#monadic-synthesizers-in-ocaml">Monadic synthesizers in OCaml</a><ul>
+<li><a href="#installing">Installing</a></li>
+<li><a href="#documentation">Documentation</a></li>
+</ul></li>
+<li><a href="#tutorial">Tutorial</a><ul>
+<li><a href="#our-first-sines">Our first sines</a><ul>
+<li><a href="#playing-a-sound">Playing a sound</a></li>
+<li><a href="#modulating-parameters">Modulating parameters</a></li>
+<li><a href="#returning-streams">Returning streams</a></li>
+<li><a href="#parameters-from-osc">Parameters from OSC</a></li>
+</ul></li>
+<li><a href="#instruments">Instruments</a></li>
+</ul></li>
+<li><a href="#advanced-topics">Advanced topics</a><ul>
+<li><a href="#using-a-stream-multiple-times">Using a stream multiple times</a></li>
+<li><a href="#general-principles-behind-the-library">General principles behind the library</a></li>
+</ul></li>
+</ul>
+</nav>
 <h1 id="monadic-synthesizers-in-ocaml">Monadic synthesizers in OCaml</h1>
 <p>This library called <code>msynth</code> is my own take at organizing the various classical functions for performing audio synthesis.</p>
 <p>It is mainly based on the idea that audio streams can be represented as functions <code>float -&gt; float</code>: such a function takes as argument the time <em>dt</em> elapsed since the last sample and returns the current value for the sample. Typically, when the sampling rate is 44100, <em>dt</em> will be 1/44100 (but fancy effects might vary its value). The type</p>
@@ -96,6 +117,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>the <a href="http://smimram.github.io/monadic-synth/ocamldoc/">documentation generated from the source code comments</a>,</li>
 <li>the source code</li>
 </ul>
+<h1 id="tutorial">Tutorial</h1>
 <h2 id="our-first-sines">Our first sines</h2>
 <h3 id="playing-a-sound">Playing a sound</h3>
 <p>When creating synthesizers, you typically want to open the <code>Stream</code> module:</p>
@@ -164,6 +186,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb15-3" title="3">  <span class="kw">let</span> right = sine () <span class="dv">880</span>. <span class="kw">in</span></a>
 <a class="sourceLine" id="cb15-4" title="4">  <span class="kw">let</span> s = bind2 pair left right <span class="kw">in</span></a>
 <a class="sourceLine" id="cb15-5" title="5">  Output.play s</a></code></pre></div>
+<h3 id="parameters-from-osc">Parameters from OSC</h3>
+<p>One way to dynamically acquire parameters</p>
+<p><a href="https://en.wikipedia.org/wiki/Open_Sound_Control">OSC</a></p>
+<h2 id="instruments">Instruments</h2>
+<p>….</p>
+<h1 id="advanced-topics">Advanced topics</h1>
 <h2 id="using-a-stream-multiple-times">Using a stream multiple times</h2>
 <p>Streams should not be used multiple times. For instance, if we want to play the same sine on the left and the right channel, we might be tempted two write</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb16-1" title="1"><span class="kw">let</span> () =</a>

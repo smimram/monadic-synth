@@ -40,6 +40,8 @@ The main documentation consists in
   code comments](http://smimram.github.io/monadic-synth/ocamldoc/),
 - the source code
 
+# Tutorial
+
 ## Our first sines
 
 ### Playing a sound
@@ -193,6 +195,18 @@ let () =
   let s = bind2 pair left right in
   Output.play s
 ```
+
+### Parameters from OSC
+
+One way to dynamically acquire parameters
+
+[OSC](https://en.wikipedia.org/wiki/Open_Sound_Control)
+
+## Instruments
+
+....
+
+# Advanced topics
 
 ## Using a stream multiple times
 
