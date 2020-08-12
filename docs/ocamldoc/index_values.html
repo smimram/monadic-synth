@@ -11,8 +11,8 @@
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
-<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
 <link title="OSC" rel="Chapter" href="OSC.html"><title>Index of values</title>
 </head>
@@ -66,7 +66,11 @@
 </div>
 </td></tr>
 <tr><td><a href="Note.html#VALadd">add</a> [<a href="Note.html">Note</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Add two notes.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Stereo.html#VALadd">add</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
 <td><div class="info">
 <p>Add two stereo streams.</p>
@@ -136,7 +140,11 @@
 </div>
 </td></tr>
 <tr><td><a href="Pattern.html#VALarpeggiate">arpeggiate</a> [<a href="Pattern.html">Pattern</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Arpeggiator.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.html#VALat">at</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Check whether we are at a particular instant.</p>
@@ -274,7 +282,11 @@
 <tr><td><a href="Note.Drum.html#VALcrash">crash</a> [<a href="Note.Drum.html">Note.Drum</a>]</td>
 <td></td></tr>
 <tr><td><a href="Instrument.html#VALcreate">create</a> [<a href="Instrument.html">Instrument</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Create an instrument.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="MIDI.html#VALcreate">create</a> [<a href="MIDI.html">MIDI</a>]</td>
 <td></td></tr>
 <tr><td><a href="Stream.Ringbuffer.html#VALcreate">create</a> [<a href="Stream.Ringbuffer.html">Stream.Ringbuffer</a>]</td>
@@ -288,7 +300,11 @@
 </div>
 </td></tr>
 <tr><td><a href="Instrument.html#VALcreate_drum">create_drum</a> [<a href="Instrument.html">Instrument</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Create a drum instrument.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.html#VALcst">cst</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Create a constant stream.</p>
@@ -335,7 +351,11 @@
 <tr><td><a href="Pattern.html#VALduration">duration</a> [<a href="Pattern.html">Pattern</a>]</td>
 <td></td></tr>
 <tr><td><a href="Note.html#VALduration">duration</a> [<a href="Note.html">Note</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Duration of a note at given tempo.</p>
+
+</div>
+</td></tr>
 <tr><td align="left"><div>E</div></td></tr>
 <tr><td><a href="Stream.Event.html#VALemit">emit</a> [<a href="Stream.Event.html">Stream.Event</a>]</td>
 <td><div class="info">
@@ -343,8 +363,12 @@
 
 </div>
 </td></tr>
-<tr><td><a href="Instrument.html#VALemitter">emitter</a> [<a href="Instrument.html">Instrument</a>]</td>
-<td></td></tr>
+<tr><td><a href="Stream.Event.html#VALemitter">emitter</a> [<a href="Stream.Event.html">Stream.Event</a>]</td>
+<td><div class="info">
+<p>Stream which emits lists of events.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Slicer.html#VALeurotrance">eurotrance</a> [<a href="Stream.Slicer.html">Stream.Slicer</a>]</td>
 <td></td></tr>
 <tr><td><a href="MIDI.html#VALevents">events</a> [<a href="MIDI.html">MIDI</a>]</td>
@@ -413,7 +437,11 @@
 <tr><td><a href="Stream.Stereo.html#VALfreeverb">freeverb</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
 <td></td></tr>
 <tr><td><a href="Note.html#VALfreq">freq</a> [<a href="Note.html">Note</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Convert note height into frequency.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.html#VALfunct">funct</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Functoriality of the stream monad.</p>
@@ -548,12 +576,6 @@
 
 </div>
 </td></tr>
-<tr><td><a href="Pattern.html#VALmidi">midi</a> [<a href="Pattern.html">Pattern</a>]</td>
-<td><div class="info">
-<p>Convert a pattern to timed MIDI events.</p>
-
-</div>
-</td></tr>
 <tr><td><a href="Pattern.html#VALmidi_drums">midi_drums</a> [<a href="Pattern.html">Pattern</a>]</td>
 <td></td></tr>
 <tr><td><a href="Stream.html#VALms">ms</a> [<a href="Stream.html">Stream</a>]</td>
@@ -617,7 +639,7 @@
 </td></tr>
 <tr><td><a href="Instrument.html#VALplay">play</a> [<a href="Instrument.html">Instrument</a>]</td>
 <td><div class="info">
-<p>Play timed events.</p>
+<p>Play a stream of lists events.</p>
 
 </div>
 </td></tr>
@@ -625,12 +647,6 @@
 <td></td></tr>
 <tr><td><a href="Instrument.html#VALplay_drums">play_drums</a> [<a href="Instrument.html">Instrument</a>]</td>
 <td></td></tr>
-<tr><td><a href="Instrument.html#VALplay_stream">play_stream</a> [<a href="Instrument.html">Instrument</a>]</td>
-<td><div class="info">
-<p>Play a stream of lists events.</p>
-
-</div>
-</td></tr>
 <tr><td><a href="Stream.Ringbuffer.html#VALprepare">prepare</a> [<a href="Stream.Ringbuffer.html">Stream.Ringbuffer</a>]</td>
 <td></td></tr>
 <tr><td><a href="Stream.Sample.Ringbuffer.html#VALprepare">prepare</a> [<a href="Stream.Sample.Ringbuffer.html">Stream.Sample.Ringbuffer</a>]</td>
@@ -778,7 +794,11 @@
 <tr><td><a href="OSC.html#VALserver">server</a> [<a href="OSC.html">OSC</a>]</td>
 <td></td></tr>
 <tr><td><a href="Note.html#VALsimple">simple</a> [<a href="Note.html">Note</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Note from an oscillator.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.html#VALsimple_delay">simple_delay</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>A simple delay with no dry or feedback.</p>
@@ -813,6 +833,12 @@
 
 </div>
 </td></tr>
+<tr><td><a href="Pattern.html#VALstream">stream</a> [<a href="Pattern.html">Pattern</a>]</td>
+<td><div class="info">
+<p>Convert a pattern to a stream of MIDI events.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.html#VALstream_ref">stream_ref</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Stream the current value of a reference.</p>
@@ -832,6 +858,12 @@
 </div>
 </td></tr>
 <tr><td align="left"><div>T</div></td></tr>
+<tr><td><a href="Stream.html#VALtimed">timed</a> [<a href="Stream.html">Stream</a>]</td>
+<td><div class="info">
+<p>Create a stream from timed events, supposed to be sorted.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Stereo.html#VALto_mono">to_mono</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
 <td></td></tr>
 <tr><td><a href="Extlib.File.html#VALto_string">to_string</a> [<a href="Extlib.File.html">Extlib.File</a>]</td>

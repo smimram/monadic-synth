@@ -15,8 +15,8 @@
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
-<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
 <link title="OSC" rel="Chapter" href="OSC.html"><title>Stream.Event</title>
 </head>
@@ -58,6 +58,12 @@
 <pre><span id="VALemit"><span class="keyword">val</span> emit</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> 'a -> unit</code></pre><div class="info ">
 <div class="info-desc">
 <p>Emit an event.</p>
+</div>
+</div>
+
+<pre><span id="VALemitter"><span class="keyword">val</span> emitter</span> : <code class="type">'a <a href="Stream.Event.html#TYPEt">t</a> -> 'a list -> unit <a href="Stream.Event.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Stream which emits lists of events.</p>
 </div>
 </div>
 

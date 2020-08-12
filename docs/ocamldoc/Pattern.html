@@ -5,8 +5,8 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Note.html">
-<link rel="next" href="MIDI.html">
+<link rel="previous" href="MIDI.html">
+<link rel="next" href="Instrument.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
@@ -15,19 +15,24 @@
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
-<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
 <link title="OSC" rel="Chapter" href="OSC.html"><title>Pattern</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Note.html" title="Note">Previous</a>
+<div class="navbar"><a class="pre" href="MIDI.html" title="MIDI">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
-&nbsp;<a class="post" href="MIDI.html" title="MIDI">Next</a>
+&nbsp;<a class="post" href="Instrument.html" title="Instrument">Next</a>
 </div>
 <h1>Module <a href="type_Pattern.html">Pattern</a></h1>
 
-<pre><span id="MODULEPattern"><span class="keyword">module</span> Pattern</span>: <code class="code">sig</code> <a href="Pattern.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULEPattern"><span class="keyword">module</span> Pattern</span>: <code class="code">sig</code> <a href="Pattern.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Patterns are small musical phrases or chords.</p>
+</div>
+</div>
+<hr width="100%">
 
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'event</code> t</span> = <code class="type">(float * float * 'event) list</code> </pre>
 <div class="info ">
@@ -46,12 +51,17 @@
 <pre><span id="VALrepeat"><span class="keyword">val</span> repeat</span> : <code class="type">int -> 'a <a href="Pattern.html#TYPEt">t</a> -> 'a <a href="Pattern.html#TYPEt">t</a></code></pre>
 <pre><span id="VALtranspose"><span class="keyword">val</span> transpose</span> : <code class="type">int -><br>       [ `Chord of int list * 'a | `Nop | `Note of int * 'b ] <a href="Pattern.html#TYPEt">t</a> -><br>       [ `Chord of int list * 'a | `Nop | `Note of int * 'b ] <a href="Pattern.html#TYPEt">t</a></code></pre>
 <pre><span id="VALamplify"><span class="keyword">val</span> amplify</span> : <code class="type">float -><br>       [ `Chord of 'a * float | `Nop | `Note of 'b * float ] <a href="Pattern.html#TYPEt">t</a> -><br>       [ `Chord of 'a * float | `Nop | `Note of 'b * float ] <a href="Pattern.html#TYPEt">t</a></code></pre>
-<pre><span id="VALarpeggiate"><span class="keyword">val</span> arpeggiate</span> : <code class="type">'a -><br>       ?note:float -><br>       [< `Staccato | `Up | `Up_down ] -><br>       ([> `Chord of int list * 'c | `Note of int * 'c ] as 'b) <a href="Pattern.html#TYPEt">t</a> -><br>       'b <a href="Pattern.html#TYPEt">t</a></code></pre>
-<pre><span id="VALmidi"><span class="keyword">val</span> midi</span> : <code class="type">float -><br>       [< `Chord of 'a list * 'b | `Nop | `Note of 'a * 'b > `Note ] <a href="Pattern.html#TYPEt">t</a> -><br>       (float * [> `Nop | `Note_off of 'a | `Note_on of 'a * 'b ]) list</code></pre><div class="info ">
+<pre><span id="VALarpeggiate"><span class="keyword">val</span> arpeggiate</span> : <code class="type">'a -><br>       ?note:float -><br>       [< `Staccato | `Up | `Up_down ] -><br>       ([> `Chord of int list * 'c | `Note of int * 'c ] as 'b) <a href="Pattern.html#TYPEt">t</a> -><br>       'b <a href="Pattern.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
-<p>Convert a pattern to timed MIDI events.</p>
+<p>Arpeggiator.</p>
 </div>
 </div>
 
-<pre><span id="VALmidi_drums"><span class="keyword">val</span> midi_drums</span> : <code class="type">float -> ([> `Nop ] as 'a) <a href="Pattern.html#TYPEt">t</a> -> (float * 'a) list</code></pre>
+<pre><span id="VALstream"><span class="keyword">val</span> stream</span> : <code class="type">?loop:bool -><br>       float -><br>       (float * float *<br>        [< `Chord of int list * float | `Nop | `Note of int * float > `Note ])<br>       list -> <a href="MIDI.html#TYPEstream">MIDI.stream</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Convert a pattern to a stream of MIDI events.</p>
+</div>
+</div>
+
+<pre><span id="VALmidi_drums"><span class="keyword">val</span> midi_drums</span> : <code class="type">?loop:bool -> float -> ([> `Nop ] as 'a) <a href="Pattern.html#TYPEt">t</a> -> 'a list <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
 <pre><span id="VALload_drums"><span class="keyword">val</span> load_drums</span> : <code class="type">string -><br>       [> `Closed_hat of float | `Kick of float | `Nop | `Snare of float ] <a href="Pattern.html#TYPEt">t</a></code></pre></body></html>

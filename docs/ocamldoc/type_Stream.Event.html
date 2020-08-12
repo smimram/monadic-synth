@@ -10,8 +10,8 @@
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
-<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
 <link title="OSC" rel="Chapter" href="OSC.html"><title>Stream.Event</title>
 </head>
@@ -21,6 +21,7 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;create&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Event</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;register&nbsp;:&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Event</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;emit&nbsp;:&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Event</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;emitter&nbsp;:&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Event</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Event</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;merge&nbsp;:&nbsp;<span class="keywordsign">'</span>a&nbsp;list&nbsp;<span class="constructor">Stdlib</span>.ref&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;list&nbsp;<span class="constructor">Stdlib</span>.ref&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;list&nbsp;<span class="constructor">Stdlib</span>.ref<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;forward&nbsp;:&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Event</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Event</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;may_map&nbsp;:&nbsp;(<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;option)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Event</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>

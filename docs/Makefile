@@ -1,7 +1,7 @@
 all: index.html ocamldoc
 
 index.html: ../README.md
-	pandoc $< -o $@
+	pandoc $< -s -c github.css -o $@
 
 ocamldoc:
 	@rm -rf ../src/doc

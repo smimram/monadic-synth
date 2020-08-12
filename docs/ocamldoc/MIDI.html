@@ -5,8 +5,8 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Pattern.html">
-<link rel="next" href="Instrument.html">
+<link rel="previous" href="Note.html">
+<link rel="next" href="Pattern.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
@@ -15,15 +15,15 @@
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
-<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
 <link title="OSC" rel="Chapter" href="OSC.html"><title>MIDI</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Pattern.html" title="Pattern">Previous</a>
+<div class="navbar"><a class="pre" href="Note.html" title="Note">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
-&nbsp;<a class="post" href="Instrument.html" title="Instrument">Next</a>
+&nbsp;<a class="post" href="Pattern.html" title="Pattern">Next</a>
 </div>
 <h1>Module <a href="type_MIDI.html">MIDI</a></h1>
 
@@ -34,7 +34,15 @@
 </div>
 <hr width="100%">
 
-<pre><span id="TYPEevent"><span class="keyword">type</span> <code class="type"></code>event</span> = <code class="type">[ `Controller of int * float<br>       | `Note_off of int<br>       | `Note_on of int * float<br>       | `Pitch_bend of int * float<br>       | `Program_change of int * int ]</code> </pre>
+<pre><span id="TYPEevent"><span class="keyword">type</span> <code class="type"></code>event</span> = <code class="type">[ `Controller of int * float<br>       | `Nop<br>       | `Note_off of int<br>       | `Note_on of int * float<br>       | `Pitch_bend of int * float<br>       | `Program_change of int * int ]</code> </pre>
+
+
+<pre><span id="TYPEstream"><span class="keyword">type</span> <code class="type"></code>stream</span> = <code class="type"><a href="MIDI.html#TYPEevent">event</a> list <a href="Stream.html#TYPEt">Stream.t</a></code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>A stream of MIDI events.</p>
+</div>
+</div>
 
 
 <pre><code><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = {</code></pre><table class="typetable">
@@ -90,7 +98,7 @@
 </div>
 </div>
 
-<pre><span id="VALevents"><span class="keyword">val</span> events</span> : <code class="type">?channel:int -> <a href="MIDI.html#TYPEt">t</a> -> <a href="MIDI.html#TYPEevent">event</a> list <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<pre><span id="VALevents"><span class="keyword">val</span> events</span> : <code class="type">?channel:int -> <a href="MIDI.html#TYPEt">t</a> -> <a href="MIDI.html#TYPEstream">stream</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Create a stream of midi events.</p>
 </div>

@@ -5,7 +5,7 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
-<link rel="previous" href="MIDI.html">
+<link rel="previous" href="Pattern.html">
 <link rel="next" href="OSC.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
@@ -15,13 +15,13 @@
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
-<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
 <link title="OSC" rel="Chapter" href="OSC.html"><title>Instrument</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="MIDI.html" title="MIDI">Previous</a>
+<div class="navbar"><a class="pre" href="Pattern.html" title="Pattern">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
 &nbsp;<a class="post" href="OSC.html" title="OSC">Next</a>
 </div>
@@ -68,27 +68,40 @@
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
 <code><span id="TYPEELTnote.alive">alive</span>&nbsp;: <code class="type">bool Stdlib.ref</code>;</code></td>
-
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+<div class="info-desc">
+<p>is the note still playing?</p>
+</div>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
 </tr></table>
 <code>}</code>
 
-
-
-<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">event:[> `Note_off of int | `Note_on of int * float ] <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>       ?portamento:float <a href="Stream.html#TYPEt">Stream.t</a> -> [> `Release ] <a href="Note.html#TYPEt">Note.t</a> -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALcreate_drum"><span class="keyword">val</span> create_drum</span> : <code class="type">event:[< `Nop | `Note_off of 'a | `Note_on of int * 'b ] <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>       (on_die:(unit -> unit) -> float -> 'b -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       <a href="Stream.html#TYPEdt">Stream.dt</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a></code></pre>
-<pre><span id="VALemitter"><span class="keyword">val</span> emitter</span> : <code class="type">?loop:bool -> ('a -> 'b) -> (float * 'a) list -> unit <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALplay"><span class="keyword">val</span> play</span> : <code class="type">[> `Release ] <a href="Note.html#TYPEt">Note.t</a> -><br>       (float * [> `Note_off of int | `Note_on of int * float ]) list -><br>       float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info ">
 <div class="info-desc">
-<p>Play timed events.</p>
+<p>A note of an instrument.</p>
 </div>
 </div>
 
-<pre><span id="VALplay_stream"><span class="keyword">val</span> play_stream</span> : <code class="type">?portamento:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>       [> `Release ] <a href="Note.html#TYPEt">Note.t</a> -><br>       [> `Note_off of int | `Note_on of int * float ] list -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">event:[> `Note_off of int | `Note_on of int * float ] <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>       ?portamento:float <a href="Stream.html#TYPEt">Stream.t</a> -> [> `Release ] <a href="Note.html#TYPEt">Note.t</a> -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Create an instrument.</p>
+</div>
+</div>
+
+<pre><span id="VALcreate_drum"><span class="keyword">val</span> create_drum</span> : <code class="type">event:[> `Note_off of 'a | `Note_on of int * 'b ] <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>       (on_die:(unit -> unit) -> float -> 'b -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Create a drum instrument.</p>
+</div>
+</div>
+
+<pre><span id="VALplay"><span class="keyword">val</span> play</span> : <code class="type">?portamento:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>       [> `Release ] <a href="Note.html#TYPEt">Note.t</a> -><br>       [> `Note_off of int | `Note_on of int * float ] list <a href="Stream.html#TYPEt">Stream.t</a> -><br>       float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Play a stream of lists events.</p>
 </div>
 </div>
 
-<pre><span id="VALplay_drum"><span class="keyword">val</span> play_drum</span> : <code class="type">(on_die:(unit -> unit) -> float -> 'a -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       (float * [< `Nop | `Note_off of 'b | `Note_on of int * 'a ]) list -><br>       <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALplay_drums"><span class="keyword">val</span> play_drums</span> : <code class="type">?kick:(on_die:(unit -> unit) -> float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       ?snare:(on_die:(unit -> unit) -> float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       ?closed_hat:(on_die:(unit -> unit) -><br>                    float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       (float * [< `Closed_hat of float | `Kick of float | `Nop | `Snare of float ])<br>       list -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALkick"><span class="keyword">val</span> kick</span> : <code class="type">?vol:float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre></body></html>
+<pre><span id="VALplay_drum"><span class="keyword">val</span> play_drum</span> : <code class="type">(on_die:(unit -> unit) -> float -> 'a -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       [> `Note_off of 'b | `Note_on of int * 'a ] list <a href="Stream.html#TYPEt">Stream.t</a> -><br>       <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
+<pre><span id="VALplay_drums"><span class="keyword">val</span> play_drums</span> : <code class="type">?kick:(on_die:(unit -> unit) -> float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       ?snare:(on_die:(unit -> unit) -> float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       ?closed_hat:(on_die:(unit -> unit) -><br>                    float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       [< `Closed_hat of float | `Kick of float | `Nop | `Snare of float ] list<br>       <a href="Stream.html#TYPEt">Stream.t</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
+<pre><span id="VALkick"><span class="keyword">val</span> kick</span> : <code class="type">float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre></body></html>
