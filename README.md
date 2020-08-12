@@ -113,8 +113,23 @@ definition of `s` by
     vco (440. *. 2. ** (0.5 *. f /. 12.))
 ```
 
-we leave this kind of details to you. Another way to write the same program as
-above, with the `>>=` operator, would be
+but we leave this kind of details to you. Here, it is important that the
+oscillators are created _beforehand_. If we try the code
+
+```ocaml
+let () =
+  let s =
+    let* f = sine () 5. in
+    sine () (440. +. 10. *. f)
+  in
+  Output.play (s >>= stereo)
+```
+
+we do not hear any sound: this is because we create a _new_ oscillator at _each_
+sample, and thus always hear the first sample of the oscillator which is 0.
+
+Another way to write the same program as above, with the `>>=` operator, would
+be
 
 ```ocaml
 let () =
