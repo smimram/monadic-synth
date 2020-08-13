@@ -85,26 +85,20 @@
 </td></tr>
 <tr><td><a href="OSC.html#VALadd_handler">add_handler</a> [<a href="OSC.html">OSC</a>]</td>
 <td></td></tr>
-<tr><td><a href="Stream.Stereo.html#VALadd_list">add_list</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
-<td></td></tr>
-<tr><td><a href="Stream.html#VALadd_list">add_list</a> [<a href="Stream.html">Stream</a>]</td>
-<td><div class="info">
-<p>Add a list of streams.</p>
-
-</div>
-</td></tr>
 <tr><td><a href="Note.html#VALadsr">adsr</a> [<a href="Note.html">Note</a>]</td>
 <td><div class="info">
 <p>Simple note with adsr envelope and volume.</p>
 
 </div>
 </td></tr>
-<tr><td><a href="Stream.html#VALadsr">adsr</a> [<a href="Stream.html">Stream</a>]</td>
+<tr><td><a href="Stream.Envelope.html#VALadsr">adsr</a> [<a href="Stream.Envelope.html">Stream.Envelope</a>]</td>
 <td><div class="info">
 <p>ADSR (Attack / Decay / Sustain / Release) envelope.</p>
 
 </div>
 </td></tr>
+<tr><td><a href="Stream.html#VALadsr">adsr</a> [<a href="Stream.html">Stream</a>]</td>
+<td></td></tr>
 <tr><td><a href="Stream.Sample.Ringbuffer.html#VALadvance">advance</a> [<a href="Stream.Sample.Ringbuffer.html">Stream.Sample.Ringbuffer</a>]</td>
 <td></td></tr>
 <tr><td><a href="Stream.Stereo.html#VALagc">agc</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
@@ -185,7 +179,11 @@
 </div>
 </td></tr>
 <tr><td><a href="Stream.Filter.html#VALbiquad">biquad</a> [<a href="Stream.Filter.html">Stream.Filter</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Biquadratic / second order filter.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Stereo.html#VALblank">blank</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
 <td><div class="info">
 <p>Blank stereo stream.</p>
@@ -325,7 +323,11 @@
 </div>
 </td></tr>
 <tr><td><a href="Stream.html#VALdelay">delay</a> [<a href="Stream.html">Stream</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Delay effect on the stream.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Stereo.html#VALdephase">dephase</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
 <td></td></tr>
 <tr><td><a href="Note.html#VALdetune">detune</a> [<a href="Note.html">Note</a>]</td>
@@ -385,15 +387,15 @@
 
 </div>
 </td></tr>
-<tr><td><a href="Stream.html#VALexp_ramp">exp_ramp</a> [<a href="Stream.html">Stream</a>]</td>
+<tr><td><a href="Stream.Envelope.html#VALexp_ramp">exp_ramp</a> [<a href="Stream.Envelope.html">Stream.Envelope</a>]</td>
 <td></td></tr>
-<tr><td><a href="Stream.html#VALexponential">exponential</a> [<a href="Stream.html">Stream</a>]</td>
+<tr><td><a href="Stream.Envelope.html#VALexponential">exponential</a> [<a href="Stream.Envelope.html">Stream.Envelope</a>]</td>
 <td><div class="info">
 <p>Exponential decay with given parameter.</p>
 
 </div>
 </td></tr>
-<tr><td><a href="Stream.html#VALexponential_hl">exponential_hl</a> [<a href="Stream.html">Stream</a>]</td>
+<tr><td><a href="Stream.Envelope.html#VALexponential_hl">exponential_hl</a> [<a href="Stream.Envelope.html">Stream.Envelope</a>]</td>
 <td><div class="info">
 <p>Same as above but taking half-life as parameter.</p>
 
@@ -411,7 +413,11 @@
 </div>
 </td></tr>
 <tr><td><a href="Stream.Filter.html#VALfirst_order">first_order</a> [<a href="Stream.Filter.html">Stream.Filter</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>First order filter.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.html#VALflanger">flanger</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Flanger effect.</p>
@@ -436,7 +442,7 @@
 </td></tr>
 <tr><td><a href="Stream.Stereo.html#VALfreeverb">freeverb</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
 <td></td></tr>
-<tr><td><a href="Note.html#VALfreq">freq</a> [<a href="Note.html">Note</a>]</td>
+<tr><td><a href="Note.html#VALfrequency">frequency</a> [<a href="Note.html">Note</a>]</td>
 <td><div class="info">
 <p>Convert note height into frequency.</p>
 
@@ -578,6 +584,14 @@
 </td></tr>
 <tr><td><a href="Pattern.html#VALmidi_drums">midi_drums</a> [<a href="Pattern.html">Pattern</a>]</td>
 <td></td></tr>
+<tr><td><a href="Stream.Stereo.html#VALmix">mix</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
+<td></td></tr>
+<tr><td><a href="Stream.html#VALmix">mix</a> [<a href="Stream.html">Stream</a>]</td>
+<td><div class="info">
+<p>Add a list of streams.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.html#VALms">ms</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Power (mean square) of a stream.</p>
@@ -632,7 +646,12 @@
 </td></tr>
 <tr><td align="left"><div>P</div></td></tr>
 <tr><td><a href="Stream.Stereo.html#VALpan">pan</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<p>Pan the sound according to a number between -1 (full left) and 1 (full
+     right).</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Ringbuffer.html#VALpast">past</a> [<a href="Stream.Ringbuffer.html">Stream.Ringbuffer</a>]</td>
 <td></td></tr>
 <tr><td><a href="Stream.Sample.Ringbuffer.html#VALpast">past</a> [<a href="Stream.Sample.Ringbuffer.html">Stream.Sample.Ringbuffer</a>]</td>
@@ -680,7 +699,7 @@
 </div>
 </td></tr>
 <tr><td align="left"><div>R</div></td></tr>
-<tr><td><a href="Stream.html#VALramp">ramp</a> [<a href="Stream.html">Stream</a>]</td>
+<tr><td><a href="Stream.Envelope.html#VALramp">ramp</a> [<a href="Stream.Envelope.html">Stream.Envelope</a>]</td>
 <td><div class="info">
 <p>Affine from a value to a value in a given time.</p>
 

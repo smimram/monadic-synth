@@ -2,13 +2,15 @@ Monadic synthesizers in OCaml
 =============================
 
 This library called `msynth` is my own take at organizing the various classical
-functions for performing audio synthesis.
+functions for performing audio synthesis. Our aim is to provide a clean
+programming environment in which one can easily try new ideas for synthesizers
+(performance is not a priority, although it is of course taken into account).
 
 It is mainly based on the idea that audio streams can be represented as
 functions `float -> float`: such a function takes as argument the time _dt_
 elapsed since the last sample and returns the current value for the
-sample. Typically, when the sampling rate is 44100, _dt_ will be 1/44100 (but
-fancy effects might vary its value). The type
+sample. Typically, when the sampling rate is 44100, _dt_ will be 1/44100, but
+fancy effects might vary its value. The type
 
 ```ocaml
 type 'a stream = float -> 'a
@@ -138,8 +140,9 @@ let () =
 ```
 
 we do not hear any sound: this is because we create a new oscillator at each
-sample, and thus always hear the first sample of the oscillator which is 0,
-and this is not what we want.
+sample, and thus always hear the first sample of the oscillator which is 0, and
+this is not what we want. The general rule is: declare all operators before the
+first `let*`.
 
 Another way to write the same program as above, with the `>>=` operator, would
 be
@@ -198,13 +201,15 @@ let () =
 
 ### Parameters from OSC
 
-One way to dynamically acquire parameters
-
-[OSC](https://en.wikipedia.org/wiki/Open_Sound_Control)
+One way to dynamically acquire parameters is to use the
+[OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) which is supported by
+many software and hardware controllers.
 
 ## Instruments
 
 ....
+
+TODO: ADSR on the envelope
 
 # Advanced topics
 
@@ -215,6 +220,7 @@ same sine on the left and the right channel, we might be tempted two write
 
 ```ocaml
 let () =
+  let pair x y = return (x, y) in
   let osc = sine () 440. in
   let s = bind2 pair osc osc in
   Output.play s
@@ -228,6 +234,7 @@ duplicated this value:
 
 ```ocaml
 let () =
+  let pair x y = return (x, y) in
   let osc = sine () 440. in
   let s =
     let* x = osc in
@@ -243,6 +250,7 @@ example as follows:
 
 ```ocaml
 let () =
+  let pair x y = return (x, y) in
   let osc = sine () 440. in
   let eval, osc = dup () osc in
   let s = eval >> bind2 pair osc osc in
@@ -258,3 +266,8 @@ let () =
 - The infinitesimal variations are supposed to be varying slowly, i.e. be
   "locally constant". In particular, this means that small buffers can assume
   that the _dt_ is the same for the whole buffer.
+
+## Ideas for the future
+
+- Make a compiler (into, say, C) for our synthesizers, possibly by simply
+  changing the monad.

@@ -61,7 +61,7 @@
 </div>
 </div>
 
-<pre><span id="VALadd_list"><span class="keyword">val</span> add_list</span> : <code class="type">(float * float) <a href="Stream.Stereo.html#TYPEt">t</a> list -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALmix"><span class="keyword">val</span> mix</span> : <code class="type">(float * float) <a href="Stream.Stereo.html#TYPEt">t</a> list -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALamp"><span class="keyword">val</span> amp</span> : <code class="type">float -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALcmul"><span class="keyword">val</span> cmul</span> : <code class="type">float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALbmul"><span class="keyword">val</span> bmul</span> : <code class="type">bool <a href="Stream.Stereo.html#TYPEt">t</a> -><br>       (float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
@@ -70,7 +70,15 @@
 <pre><span id="VALleft"><span class="keyword">val</span> left</span> : <code class="type">'a * 'b -> 'a <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALright"><span class="keyword">val</span> right</span> : <code class="type">'a * 'b -> 'b <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALdephase"><span class="keyword">val</span> dephase</span> : <code class="type">unit -><br>       float -><br>       <a href="Stream.html#TYPEsample">Stream.sample</a> * <a href="Stream.html#TYPEsample">Stream.sample</a> -><br>       (<a href="Stream.html#TYPEsample">Stream.sample</a> * <a href="Stream.html#TYPEsample">Stream.sample</a>) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
-<pre><span id="VALpan"><span class="keyword">val</span> pan</span> : <code class="type">?law:[< `Circular | `Linear | `Mixed > `Mixed ] -><br>       unit -> float -> float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALpan"><span class="keyword">val</span> pan</span> : <code class="type">?law:[< `Circular | `Linear | `Mixed > `Linear ] -><br>       unit -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Pan the sound according to a number between -1 (full left) and 1 (full
+     right). Various <a href="
+     http://www.cs.cmu.edu/~music/icm-online/readings/panlaws/"> pan laws</a> can be
+     used.</p>
+</div>
+</div>
+
 <pre><span id="VALschroeder"><span class="keyword">val</span> schroeder</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p><a href=" https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html"> Schroeder reverberation</a>.</p>

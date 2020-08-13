@@ -98,12 +98,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><a href="#advanced-topics">Advanced topics</a><ul>
 <li><a href="#using-a-stream-multiple-times">Using a stream multiple times</a></li>
 <li><a href="#general-principles-behind-the-library">General principles behind the library</a></li>
+<li><a href="#ideas-for-the-future">Ideas for the future</a></li>
 </ul></li>
 </ul>
 </nav>
 <h1 id="monadic-synthesizers-in-ocaml">Monadic synthesizers in OCaml</h1>
-<p>This library called <code>msynth</code> is my own take at organizing the various classical functions for performing audio synthesis.</p>
-<p>It is mainly based on the idea that audio streams can be represented as functions <code>float -&gt; float</code>: such a function takes as argument the time <em>dt</em> elapsed since the last sample and returns the current value for the sample. Typically, when the sampling rate is 44100, <em>dt</em> will be 1/44100 (but fancy effects might vary its value). The type</p>
+<p>This library called <code>msynth</code> is my own take at organizing the various classical functions for performing audio synthesis. Our aim is to provide a clean programming environment in which one can easily try new ideas for synthesizers (performance is not a priority, although it is of course taken into account).</p>
+<p>It is mainly based on the idea that audio streams can be represented as functions <code>float -&gt; float</code>: such a function takes as argument the time <em>dt</em> elapsed since the last sample and returns the current value for the sample. Typically, when the sampling rate is 44100, <em>dt</em> will be 1/44100, but fancy effects might vary its value. The type</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">type</span> &#39;a stream = <span class="dt">float</span> -&gt; &#39;a</a></code></pre></div>
 <p>is thus called a <em>stream</em> of <code>'a</code>. It can be equipped with the structure of a <a href="https://en.wikipedia.org/wiki/Monad_(functional_programming)">monad</a> which can be used to easily compose operations on streams, especially since the recent introduction of the dedicated <a href="https://caml.inria.fr/pub/docs/manual-ocaml/bindingops.html">syntax for monads</a> in OCaml.</p>
 <h2 id="installing">Installing</h2>
@@ -159,7 +160,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb10-4" title="4">    sine () (<span class="dv">440</span>. +. <span class="dv">10</span>. *. f)</a>
 <a class="sourceLine" id="cb10-5" title="5">  <span class="kw">in</span></a>
 <a class="sourceLine" id="cb10-6" title="6">  Output.play (s &gt;&gt;= stereo)</a></code></pre></div>
-<p>we do not hear any sound: this is because we create a new oscillator at each sample, and thus always hear the first sample of the oscillator which is 0, and this is not what we want.</p>
+<p>we do not hear any sound: this is because we create a new oscillator at each sample, and thus always hear the first sample of the oscillator which is 0, and this is not what we want. The general rule is: declare all operators before the first <code>let*</code>.</p>
 <p>Another way to write the same program as above, with the <code>&gt;&gt;=</code> operator, would be</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">let</span> () =</a>
 <a class="sourceLine" id="cb11-2" title="2">  <span class="kw">let</span> s = cadd <span class="dv">440</span>. (cmul <span class="dv">10</span>. (sine () <span class="dv">5</span>.)) &gt;&gt;= sine () &gt;&gt;= stereo <span class="kw">in</span></a>
@@ -187,36 +188,43 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb15-4" title="4">  <span class="kw">let</span> s = bind2 pair left right <span class="kw">in</span></a>
 <a class="sourceLine" id="cb15-5" title="5">  Output.play s</a></code></pre></div>
 <h3 id="parameters-from-osc">Parameters from OSC</h3>
-<p>One way to dynamically acquire parameters</p>
-<p><a href="https://en.wikipedia.org/wiki/Open_Sound_Control">OSC</a></p>
+<p>One way to dynamically acquire parameters is to use the <a href="https://en.wikipedia.org/wiki/Open_Sound_Control">OSC</a> which is supported by many software and hardware controllers.</p>
 <h2 id="instruments">Instruments</h2>
 <p>….</p>
+<p>TODO: ADSR on the envelope</p>
 <h1 id="advanced-topics">Advanced topics</h1>
 <h2 id="using-a-stream-multiple-times">Using a stream multiple times</h2>
 <p>Streams should not be used multiple times. For instance, if we want to play the same sine on the left and the right channel, we might be tempted two write</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb16-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb16-2" title="2">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb16-3" title="3">  <span class="kw">let</span> s = bind2 pair osc osc <span class="kw">in</span></a>
-<a class="sourceLine" id="cb16-4" title="4">  Output.play s</a></code></pre></div>
+<a class="sourceLine" id="cb16-2" title="2">  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></a>
+<a class="sourceLine" id="cb16-3" title="3">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
+<a class="sourceLine" id="cb16-4" title="4">  <span class="kw">let</span> s = bind2 pair osc osc <span class="kw">in</span></a>
+<a class="sourceLine" id="cb16-5" title="5">  Output.play s</a></code></pre></div>
 <p>but the result is that we hear a sine at 880 Hz. The reason is that each time we pull a sample for <code>s</code>, we actually pull two samples from <code>osc</code>: once for the left channel and once for the right channel. One way to avoid this is to explicitly extract the value of the stream, and there is no problem in duplicated this value:</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb17-2" title="2">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-3" title="3">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb17-4" title="4">    <span class="kw">let</span>* x = osc <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-5" title="5">    pair x x</a>
-<a class="sourceLine" id="cb17-6" title="6">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-7" title="7">  Output.play s</a></code></pre></div>
+<a class="sourceLine" id="cb17-2" title="2">  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></a>
+<a class="sourceLine" id="cb17-3" title="3">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
+<a class="sourceLine" id="cb17-4" title="4">  <span class="kw">let</span> s =</a>
+<a class="sourceLine" id="cb17-5" title="5">    <span class="kw">let</span>* x = osc <span class="kw">in</span></a>
+<a class="sourceLine" id="cb17-6" title="6">    pair x x</a>
+<a class="sourceLine" id="cb17-7" title="7">  <span class="kw">in</span></a>
+<a class="sourceLine" id="cb17-8" title="8">  Output.play s</a></code></pre></div>
 <p>Another way consists in using the <code>dup</code> operator, which returns a pair: the first one should be used first to evaluate the stream and the second one is a stream which can be used as many times as we want. We can thus rewrite our example as follows:</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb18-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb18-2" title="2">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb18-3" title="3">  <span class="kw">let</span> eval, osc = dup () osc <span class="kw">in</span></a>
-<a class="sourceLine" id="cb18-4" title="4">  <span class="kw">let</span> s = eval &gt;&gt; bind2 pair osc osc <span class="kw">in</span></a>
-<a class="sourceLine" id="cb18-5" title="5">  Output.play s</a></code></pre></div>
+<a class="sourceLine" id="cb18-2" title="2">  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></a>
+<a class="sourceLine" id="cb18-3" title="3">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
+<a class="sourceLine" id="cb18-4" title="4">  <span class="kw">let</span> eval, osc = dup () osc <span class="kw">in</span></a>
+<a class="sourceLine" id="cb18-5" title="5">  <span class="kw">let</span> s = eval &gt;&gt; bind2 pair osc osc <span class="kw">in</span></a>
+<a class="sourceLine" id="cb18-6" title="6">  Output.play s</a></code></pre></div>
 <h2 id="general-principles-behind-the-library">General principles behind the library</h2>
 <ul>
 <li>Clean code is more important than efficient code (although we want to remain reasonably efficient).</li>
 <li>The infinitesimal <em>dt</em> is supposed to be very small. In particular, the stream at instant <em>t</em> or <em>t+dt</em> should be roughly the same.</li>
 <li>The infinitesimal variations are supposed to be varying slowly, i.e. be “locally constant”. In particular, this means that small buffers can assume that the <em>dt</em> is the same for the whole buffer.</li>
+</ul>
+<h2 id="ideas-for-the-future">Ideas for the future</h2>
+<ul>
+<li>Make a compiler (into, say, C) for our synthesizers, possibly by simply changing the monad.</li>
 </ul>
 </body>
 </html>

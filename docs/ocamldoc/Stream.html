@@ -252,7 +252,7 @@
 </div>
 </div>
 
-<pre><span id="VALadd_list"><span class="keyword">val</span> add_list</span> : <code class="type">float <a href="Stream.html#TYPEt">t</a> list -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALmix"><span class="keyword">val</span> mix</span> : <code class="type">float <a href="Stream.html#TYPEt">t</a> list -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Add a list of streams.</p>
 </div>
@@ -407,41 +407,27 @@
 
 <pre><span id="VALrandom_zero"><span class="keyword">val</span> random_zero</span> : <code class="type">unit -> ?attraction:float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre>
 <pre><span id="VALkarplus_strong"><span class="keyword">val</span> karplus_strong</span> : <code class="type">?filter:(<a href="Stream.html#TYPEsample">sample</a> -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a>) -><br>       unit -> float -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre><h3 id="2_Envelopes">Envelopes</h3>
-<pre><span id="VALadsr"><span class="keyword">val</span> adsr</span> : <code class="type">?event:[< `Release | `Reset ] <a href="Stream.Event.html#TYPEt">Event.t</a> -><br>       ?on_die:(unit -> unit) -><br>       unit -><br>       ?a:float -><br>       ?d:float -><br>       ?s:float -><br>       ?r:float -><br>       ?sustain:bool -><br>       ?release:[< `Exponential | `Linear > `Linear ] -> unit -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>ADSR (Attack / Decay / Sustain / Release) envelope.</p>
-</div>
-</div>
-
-<pre><span id="VALexponential"><span class="keyword">val</span> exponential</span> : <code class="type">?init:float -> unit -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Exponential decay with given parameter.</p>
-</div>
-</div>
-
-<pre><span id="VALexponential_hl"><span class="keyword">val</span> exponential_hl</span> : <code class="type">?init:float -> unit -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Same as above but taking half-life as parameter.</p>
-</div>
-</div>
-
+<pre><span id="MODULEEnvelope"><span class="keyword">module</span> <a href="Stream.Envelope.html">Envelope</a></span>: <code class="code">sig</code> <a href="Stream.Envelope.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALadsr"><span class="keyword">val</span> adsr</span> : <code class="type">?event:[< `Release | `Reset ] <a href="Stream.Event.html#TYPEt">Event.t</a> -><br>       ?on_die:(unit -> unit) -><br>       unit -><br>       ?a:float -><br>       ?d:float -><br>       ?s:float -><br>       ?r:float -><br>       ?sustain:bool -><br>       ?release:[< `Exponential | `Linear > `Linear ] -> unit -> float <a href="Stream.html#TYPEt">t</a></code></pre>
 <pre><span id="VALsmooth"><span class="keyword">val</span> smooth</span> : <code class="type">?init:float -> unit -> float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Smoothen the stream. This is useful to avoid big jumps in controllers. The
     parmeter is roughly the time taken to reach the desired value.</p>
 </div>
 </div>
+<h3 id="2_Effects">Effects</h3>
+<pre><span id="MODULEFilter"><span class="keyword">module</span> <a href="Stream.Filter.html">Filter</a></span>: <code class="code">sig</code> <a href="Stream.Filter.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Filters.</p>
 
-<pre><span id="VALramp"><span class="keyword">val</span> ramp</span> : <code class="type">unit -> float -> float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Affine from a value to a value in a given time.</p>
-</div>
 </div>
 
-<pre><span id="VALexp_ramp"><span class="keyword">val</span> exp_ramp</span> : <code class="type">unit -> float -> float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><h3 id="2_Effects">Effects</h3>
-<pre><span id="MODULEFilter"><span class="keyword">module</span> <a href="Stream.Filter.html">Filter</a></span>: <code class="code">sig</code> <a href="Stream.Filter.html">..</a> <code class="code">end</code></pre>
 <pre><span id="MODULERingbuffer"><span class="keyword">module</span> <a href="Stream.Ringbuffer.html">Ringbuffer</a></span>: <code class="code">sig</code> <a href="Stream.Ringbuffer.html">..</a> <code class="code">end</code></pre>
-<pre><span id="VALdelay"><span class="keyword">val</span> delay</span> : <code class="type">unit -><br>       ?dry:float -><br>       ?wet:float -> ?feedback:float -> float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre>
+<pre><span id="VALdelay"><span class="keyword">val</span> delay</span> : <code class="type">unit -><br>       ?dry:float -><br>       ?wet:float -> ?feedback:float -> float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Delay effect on the stream.</p>
+</div>
+</div>
+
 <pre><span id="VALcomb"><span class="keyword">val</span> comb</span> : <code class="type">unit -> float -> float -> <a href="Stream.html#TYPEsample">sample</a> -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>A <a href=" https://en.wikipedia.org/wiki/Comb_filter"> comb filter</a>.</p>
