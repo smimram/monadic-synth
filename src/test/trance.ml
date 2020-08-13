@@ -16,7 +16,7 @@ let s =
     let adsr = adsr ~event ~on_die () ~a:0.01 ~d:0.1 ~r:0.001 () in
     let dup_adsr, adsr = dup () adsr in
     let fm = fm ~carrier:`Saw ~modulator:`Triangle () in
-    let exp = exponential_hl () in
+    let exp = Envelope.exponential_hl () in
     fun freq vol ->
       let s = dup_adsr >> cmul 500. adsr >>= (fun depth -> fm ~ratio:1. depth freq) in
       let r = exp (vol *. 0.04) in
@@ -53,7 +53,7 @@ let s =
       (* (OSC.float "/1/fader5" 0.3) *)
       (* drums *)
   (* in *)
-  let s = Stereo.add_list [bass;drums;pad] >>= Stereo.amp 0.3 in
+  let s = Stereo.mix [bass;drums;pad] >>= Stereo.amp 0.3 in
   s
   (* s >>= Visu.Stereo.bands ~dt ~amp:5. () *)
 

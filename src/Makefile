@@ -3,7 +3,7 @@ RESULT = msynth
 THREADS = yes
 ANNOTATE = true
 PACKS = alsa lo graphics
-OCAMLOPTFLAGS = -inline 10000 -nodynlink #-unsafe
+OCAMLOPTFLAGS = -O3
 
 # the name output.ml apparently messes up ocamldoc
 DOC_FILES = $(filter-out output.ml,$(SOURCES))

@@ -42,7 +42,7 @@ let s =
   let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> cmul vol (Note.Drum.snare ~on_die ~lp:2000. ())) in
   let drums = pd (Pattern.midi_drums ~loop:true tempo (Pattern.load_drums "c1.drums")) >>= stereo in
   let drums = Stereo.bmul (OSC.bool "/1/toggle2" true) drums in
-  let s = Stereo.add_list [synth;drums;bass] in
+  let s = Stereo.mix [synth;drums;bass] in
   (* let s = s >>= Stereo.map (agc ~dt ()) (agc ~dt ()) in *)
   Stereo.cmul 0.6 s
 

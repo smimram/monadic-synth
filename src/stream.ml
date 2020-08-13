@@ -231,7 +231,7 @@ let amp x y = return (x *. y)
 let add = funct2 ( +. )
 
 (** Add a list of streams. *)
-let rec add_list ss =
+let rec mix ss =
   List.fold_left (funct2 (+.)) blank ss
 
 (** Subtract streams. *)
@@ -265,9 +265,12 @@ let unstretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
       let x = (x -. min) /. d in
       log10 (x *. 9. +. 1.)
 
+(** Convert octave numbers to multiplicative coefficient for frequency. *)
+let octaves x =
+  return (Float.pow 2. x)
+
 (** Number of samples in a given amount of time. *)
-let samples : float -> int t =
-  fun t ->
+let samples t =
   let* dt = dt in
   return (round (t /. dt))
 
@@ -775,62 +778,84 @@ let karplus_strong ?filter () =
 
 (** {2 Envelopes} *)
 
-(** ADSR (Attack / Decay / Sustain / Release) envelope. *)
-let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
-  let state = ref `Attack in
-  let log2 = log 2. in
-  let amp = ref 0. in
-  let die () = state := `Dead; on_die (); amp := 0.; return 0. in
-  let integ amp' =
-    let* dt = dt in
-    let ans = !amp in
-    amp := !amp +. amp' *. dt;
-    return ans
-  in
-  let set s =
-    (* Printf.printf "new state: %s\n%!" (match s with `Attack -> "a" | `Decay -> "d" | `Sustain -> "s" | `Release -> "r" | `Dead -> "x"); *)
-    state := s
-  in
-  let rec stream ?(a=0.01) ?(d=0.05) ?(s=0.8) ?(r=0.5) ?(sustain=true) ?(release=`Linear) () =
-    let* st = Ref.get state in
-    match st with
-    | `Dead -> return 0.
-    | `Sustain -> return s
-    | `Release ->
-      (
-        match release with
-        | `Linear ->
-          let* a = integ (-. s /. r) in
-          if a <= 0.0001 || s <= 0.001 || r <= 0.001 then die () else return a
-        | `Exponential ->
-          let a = integ (-. log2 /. r *. !amp) in
-          if !amp <= 0.001 || r <= 0.001 then die () else a
-      )
-    | `Decay -> if !amp <= s || d <= 0.0001 then (amp := s; set (if sustain then `Sustain else `Release); stream ()) else integ ((s -. 1.) /. d)
-    | `Attack ->
-      if !amp >= 1. || a <= 0.0001 then (set `Decay; stream ()) else integ (1. /. a)
-  in
-  let handler = function
-    | `Release -> set `Release
-    | `Reset -> amp := 0.; set `Attack
-  in
-  Event.register event handler;
-  stream
+module Envelope = struct
+  (** ADSR (Attack / Decay / Sustain / Release) envelope. *)
+  let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
+    let state = ref `Attack in
+    let log2 = log 2. in
+    let amp = ref 0. in
+    let die () = state := `Dead; on_die (); amp := 0.; return 0. in
+    let integ amp' =
+      let* dt = dt in
+      let ans = !amp in
+      amp := !amp +. amp' *. dt;
+      return ans
+    in
+    let set s =
+      (* Printf.printf "new state: %s\n%!" (match s with `Attack -> "a" | `Decay -> "d" | `Sustain -> "s" | `Release -> "r" | `Dead -> "x"); *)
+      state := s
+    in
+    let rec stream ?(a=0.01) ?(d=0.05) ?(s=0.8) ?(r=0.5) ?(sustain=true) ?(release=`Linear) () =
+      let* st = Ref.get state in
+      match st with
+      | `Dead -> return 0.
+      | `Sustain -> return s
+      | `Release ->
+        (
+          match release with
+          | `Linear ->
+            let* a = integ (-. s /. r) in
+            if a <= 0.0001 || s <= 0.001 || r <= 0.001 then die () else return a
+          | `Exponential ->
+            let a = integ (-. log2 /. r *. !amp) in
+            if !amp <= 0.001 || r <= 0.001 then die () else a
+        )
+      | `Decay -> if !amp <= s || d <= 0.0001 then (amp := s; set (if sustain then `Sustain else `Release); stream ()) else integ ((s -. 1.) /. d)
+      | `Attack ->
+        if !amp >= 1. || a <= 0.0001 then (set `Decay; stream ()) else integ (1. /. a)
+    in
+    let handler = function
+      | `Release -> set `Release
+      | `Reset -> amp := 0.; set `Attack
+    in
+    Event.register event handler;
+    stream
 
-(** Exponential decay with given parameter. *)
-let exponential ?(init=1.) () =
-  let y = ref 1. in
-  fun k ->
-    let* dt = dt in
-    let ans = !y in
-    y := !y *. (1. +. k *. dt);
-    return ans
+  (** Exponential decay with given parameter. *)
+  let exponential ?(init=1.) () =
+    let y = ref 1. in
+    fun k ->
+      let* dt = dt in
+      let ans = !y in
+      y := !y *. (1. +. k *. dt);
+      return ans
 
-(** Same as above but taking half-life as parameter. *)
-let exponential_hl ?init () =
-  let ln2 = log 2. in
-  let e = exponential ?init () in
-  fun h -> e (-. ln2 /. h)
+  (** Same as above but taking half-life as parameter. *)
+  let exponential_hl ?init () =
+    let ln2 = log 2. in
+    let e = exponential ?init () in
+    fun h -> e (-. ln2 /. h)
+
+  (** Affine from a value to a value in a given time. *)
+  let ramp () =
+    let arrived = ref false in
+    let t = integrate ~periodic:true ~on_reset:(fun () -> arrived := true) () in
+    fun from dest duration ->
+      let a = dest -. from in
+      let a' = 1. /. duration in
+      stream_ref arrived >>=
+      fallback
+        (return dest)
+        (let* t = t a' in return (a *. t +. from))
+
+  let exp_ramp () =
+    let e = exponential_hl () in
+    fun a b duration ->
+      let* e = e duration in
+      return ((1. -. e) *. (b -. a) +. a)
+end
+
+let adsr = Envelope.adsr
 
 (** Smoothen the stream. This is useful to avoid big jumps in controllers. The
     parmeter is roughly the time taken to reach the desired value. *)
@@ -841,33 +866,18 @@ let smooth ?(init=0.) () =
     x := !x +. (dt /. a) *. (target -. !x);
     return !x
 
-(** Affine from a value to a value in a given time. *)
-let ramp () =
-  let arrived = ref false in
-  let t = integrate ~periodic:true ~on_reset:(fun () -> arrived := true) () in
-  fun from dest duration ->
-    let a = dest -. from in
-    let a' = 1. /. duration in
-    stream_ref arrived >>=
-    fallback
-      (return dest)
-      (let* t = t a' in return (a *. t +. from))
-
-let exp_ramp () =
-  let e = exponential_hl () in
-  fun a b duration ->
-    let* e = e duration in
-    return ((1. -. e) *. (b -. a) +. a)
-
 (** {2 Effects} *)
 
+(** Filters. *)
 module Filter = struct
+
+  (** First order filter. *)
   let first_order () =
     let x' = ref 0. in
     let y' = ref 0. in
     fun kind freq ->
       let rc = 1. /. (2. *. Float.pi *. freq) in
-      fun x ->
+      fun (x : sample) ->
         match kind with
         | `Low_pass ->
           let* dt = dt in
@@ -881,21 +891,22 @@ module Filter = struct
           let y = a *. (!y' +. x -. !x') in
           x' := x;
           y' := y;
-          return y
+          return (y : sample)
 
+  (** Biquadratic / second order filter. *)
   (* See http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt *)
   let biquad () =
-    let x' = ref 0. in
+    let x'  = ref 0. in
     let x'' = ref 0. in
-    let y' = ref 0. in
+    let y'  = ref 0. in
     let y'' = ref 0. in
     let advance x y =
       x'' := !x';
-      x' := x;
+      x'  := x;
       y'' := !y';
-      y' := y
+      y'  := y
     in
-    fun kind q freq x ->
+    fun kind q freq (x : sample) ->
       assert (q > 0.);
       let* dt = dt in
       let w0 = 2. *. Float.pi *. dt *. freq in
@@ -950,6 +961,7 @@ module Ringbuffer = struct
   (* let advance (dt,r) = Sample.Ringbuffer.advance r *)
 end
 
+(** Delay effect on the stream. *)
 let delay () =
   let r = Ringbuffer.create () in
   fun ?(dry=1.) ?(wet=0.5) ?(feedback=0.9) delay x ->
@@ -1166,7 +1178,7 @@ module Stereo = struct
       let y = delay_r0 y >>= delay_r ?dry ?wet ~feedback delay in
       add (return c) (merge (cmul feedback x) (cmul feedback y))
 
-  let add_list ss =
+  let mix ss =
     List.fold_left add blank ss
 
   let amp a (x,y) = return (a *. x, a *. y)
@@ -1199,11 +1211,17 @@ module Stereo = struct
         let* y = delay_r dr y in
         return (x, y)
 
-  let pan ?(law=`Mixed) () =
+  (** Pan the sound according to a number between -1 (full left) and 1 (full
+     right). Various {{:
+     http://www.cs.cmu.edu/~music/icm-online/readings/panlaws/} pan laws} can be
+     used. *)
+  let pan ?(law=`Linear) () =
     fun a ->
+    let a = (a +. 1.) /. 2. in
     let l, r =
       match law with
-      | `Linear -> 1. -. a, a
+      | `Linear ->
+        1. -. a, a
       | `Circular -> (* Equal power *)
         cos (a *. Float.pi /. 2.),
         sin (a *. Float.pi /. 2.)
@@ -1212,7 +1230,7 @@ module Stereo = struct
         sqrt ((1. -. a) *. cos (a *. Float.pi /. 2.)),
         sqrt ((1. -. a) *. sin (a *. Float.pi /. 2.))
     in
-    fun x -> return (l *. x, r *. x)
+    fun (x : sample) -> (return (l *. x, r *. x) : sample t)
 
   (** {{: https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html} Schroeder reverberation}. *)
   let schroeder () =

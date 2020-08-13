@@ -17,7 +17,7 @@ let s =
   in
   let synth = synth >>= stereo in
   let synth = synth >>= Stereo.dephase () 0.01 in
-  let s = Stereo.add_list [synth] in
+  let s = Stereo.mix [synth] in
   Stereo.cmul 0.6 s
 
 let () =

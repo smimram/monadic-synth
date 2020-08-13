@@ -10,7 +10,8 @@ open Stream
 type 'event t = event:('event Event.t) -> on_die:(unit -> unit) -> unit -> sample -> float -> sample stream
 
 (** Convert note height into frequency. *)
-let freq ?(detune=0.) n = 440. *. (2. ** ((float n +. detune -. 69.) /. 12.))
+let frequency ?(detune=0.) n =
+  440. *. (2. ** ((n +. detune -. 69.) /. 12.))
 
 (** Duration of a note at given tempo. *)
 let duration tempo d =
@@ -51,7 +52,7 @@ let add n1 n2 : 'a t =
 (** Basic (TR-808 type) drum notes. *)
 module Drum = struct
   let kick ?on_die () =
-    let s = cmul 150. (exponential () (-9.)) >>= sine () in
+    let s = cmul 150. (Envelope.exponential () (-9.)) >>= sine () in
     let env = adsr () ~a:0.001 ~d:0.1 ~s:0.9 ~sustain:false ~r:0.8 ?on_die () in
     mul env s
 

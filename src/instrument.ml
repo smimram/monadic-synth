@@ -6,7 +6,7 @@ open Stream
 (** A note of an instrument. *)
 type 'event note =
   {
-    note : int;
+    note : int; (** Note: A4 is 69. *)
     stream : sample stream;
     event : 'event Event.t;
     mutable released : bool;
@@ -37,7 +37,7 @@ let create ~event ?portamento (note:'a Note.t) =
       let event = Event.create () in
       let alive = ref true in
       let on_die () = alive := false in
-      let freq = Note.freq n in
+      let freq = Note.frequency (float n) in
       (* let stream = note ~event ~on_die () freq v in *)
       let freq =
         match portamento with
@@ -51,7 +51,7 @@ let create ~event ?portamento (note:'a Note.t) =
             | Some a ->
               let b = freq in
               last_freq := Some freq;
-              let ramp = ramp () in
+              let ramp = Envelope.ramp () in
               (* let ramp = exp_ramp in *)
               let* p = p in
               ramp a b p
@@ -93,7 +93,7 @@ let create_drum ~event note =
   let on_die () = stream := blank in
   let handler = function
     | `Note_on (n,v) ->
-      let freq = Note.freq n in
+      let freq = Note.frequency (float n) in
       stream := note ~on_die freq v
     | `Note_off _ -> ()
     | _ -> ()
@@ -158,7 +158,7 @@ let play_drums ?kick ?snare ?closed_hat midi =
     | `Closed_hat v -> Event.emit closed_hat (`Note_on (0,v))
     | `Nop -> ()
   in
-  midi >>= (fun l -> return (List.iter emit l)) >> add_list !streams
+  midi >>= (fun l -> return (List.iter emit l)) >> mix !streams
 
 let kick tempo =
   let event = Event.create () in
