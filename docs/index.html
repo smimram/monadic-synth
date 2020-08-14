@@ -166,7 +166,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb11-2" title="2">  <span class="kw">let</span> s = cadd <span class="dv">440</span>. (cmul <span class="dv">10</span>. (sine () <span class="dv">5</span>.)) &gt;&gt;= sine () &gt;&gt;= stereo <span class="kw">in</span></a>
 <a class="sourceLine" id="cb11-3" title="3">  Output.play s</a></code></pre></div>
 <p><em>Exercise</em>: play a sine with tremolo, which can be achieved by periodically varying its amplitude.</p>
-<p>As another example, instead of generating a sine, we are going to generate a square wave (with the <code>square</code> operator).</p>
+<p>As another example, instead of generating a sine, we are going to generate a square wave, using the <code>square</code> operator: by default, its value is 1 over half a period and -1 over the other half. However, there is no particular reason to do half and half, and we call the <em>width</em> of a square wave, the portion of the period its value is 1 (by default, the width is thus 0.5). We can achieve nice sounds by periodically modulating this value, which is called <a href="https://en.wikipedia.org/wiki/Pulse-width_modulation">pulse width modulation</a>. For instance:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">let</span> () =</a>
 <a class="sourceLine" id="cb12-2" title="2">  <span class="kw">let</span> lfo = sine () <span class="dv">2</span>. <span class="kw">in</span></a>
 <a class="sourceLine" id="cb12-3" title="3">  <span class="kw">let</span> osc = square () <span class="kw">in</span></a>
@@ -176,7 +176,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb12-7" title="7">    osc ~width <span class="dv">440</span>.</a>
 <a class="sourceLine" id="cb12-8" title="8">  <span class="kw">in</span></a>
 <a class="sourceLine" id="cb12-9" title="9">  Output.play (s &gt;&gt;= stereo)</a></code></pre></div>
-<p>Testing: <audio controls><source src="mp3/square-width.mp3"></audio></p>
+<p>Here, we generate a square wave (<code>osc</code>) whose width is modulated between 0.2 and 0.8 by a sine oscillator (<code>lfo</code>) at the frequency of 2 Hz.</p>
 <h3 id="returning-streams">Returning streams</h3>
 <p>We can create constant streams with the <code>return</code> function, which creates a stream whose value is always the one given in the argument. For instance, we can define the pairing function with</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">let</span> pair x y = return (x, y)</a></code></pre></div>

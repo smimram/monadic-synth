@@ -157,7 +157,12 @@ _Exercise_: play a sine with tremolo, which can be achieved by periodically
 varying its amplitude.
 
 As another example, instead of generating a sine, we are going to generate a
-square wave (with the `square` operator).
+square wave, using the `square` operator: by default, its value is 1 over half a
+period and -1 over the other half. However, there is no particular reason to do
+half and half, and we call the _width_ of a square wave, the portion of the
+period its value is 1 (by default, the width is thus 0.5). We can achieve nice
+sounds by periodically modulating this value, which is called [pulse width
+modulation](https://en.wikipedia.org/wiki/Pulse-width_modulation). For instance:
 
 ```ocaml
 let () =
@@ -171,7 +176,8 @@ let () =
   Output.play (s >>= stereo)
 ```
 
-Testing: <audio controls><source src="mp3/square-width.mp3"></audio>
+Here, we generate a square wave (`osc`) whose width is modulated between 0.2 and
+0.8 by a sine oscillator (`lfo`) at the frequency of 2 Hz.
 
 ### Returning streams
 
