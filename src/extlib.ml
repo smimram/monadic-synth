@@ -83,3 +83,11 @@ module Complex = struct
 
   let cmul a c = { re = a *. c.re; im = a *. c.im }
 end
+
+module Float = struct
+  include Float
+
+  let of_bool = function
+    | false -> 0.
+    | true -> 1.
+end

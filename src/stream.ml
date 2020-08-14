@@ -368,16 +368,21 @@ let at () =
     let* t = now in
     activates (t >= time)
 
-(** Generate an event every period of time. *)
-let every () =
+(** Generate an event at a given frequency. *)
+let frequently () =
   let b = ref false in
   let on_reset () = b := true in
   let p = periodic ~on_reset () in
-  fun time ->
-    let freq = 1. /. time in
+  fun freq ->
     p freq >>= drop >>
-    if !b then (b := false; return true)
+    let* cond = Ref.get b in
+    if cond then (b := false; return true)
     else return false
+
+(** Generate an event every period of time. *)
+let every () =
+  let f = frequently () in
+  fun time -> f (1. /. time)
 
 (** Whether this is the first sample of the stream. *)
 let is_first () =
@@ -412,6 +417,13 @@ let fallback (x:'a t) (y:'a t) b : 'a t =
   if b then x else y
 
 let fallblank x b = fallback x blank b
+
+(** Generate a random value at given frequency. *)
+let random () =
+  let x = ref 0. in
+  let frequently = frequently () in
+  fun ?(min=0.) ?(max=1.) freq ->
+    frequently freq >>= on (fun () -> x := Random.float (max -. min) +. min) >> Ref.get x
 
 (** Operations with samples as unit time. *)
 module Sample = struct
@@ -595,6 +607,7 @@ let square () =
 let noise () =
   seq (fun () -> Random.float 2. -. 1.)
 
+(** Play a sample stored in a buffer at various speeds. *)
 let sampler ?(interpolation=`Closest) ?(freq=1.) buf =
   let p = periodic () in
   let buflen = Array.length buf in
@@ -697,13 +710,6 @@ module Spectral = struct
     sampler ~freq:f0 buf
    *)
 end
-
-(** Generate a random value at given frequency. *)
-let random () =
-  let x = ref 0. in
-  let every = every () in
-  fun ?(min=0.) ?(max=1.) freq ->
-    every (1. /. freq) >>= on (fun () -> x := Random.float (max -. min) +. min) >> stream_ref x
 
 (** Generic oscillator. *)
 let osc kind =
@@ -837,34 +843,52 @@ module Envelope = struct
     fun h -> e (-. ln2 /. h)
 
   (** Affine from a value to a value in a given time. *)
-  let ramp () =
-    let arrived = ref false in
-    let t = integrate ~periodic:true ~on_reset:(fun () -> arrived := true) () in
-    fun from dest duration ->
-      let a = dest -. from in
-      let a' = 1. /. duration in
-      stream_ref arrived >>=
-      fallback
-        (return dest)
-        (let* t = t a' in return (a *. t +. from))
-
-  let exp_ramp () =
-    let e = exponential_hl () in
-    fun a b duration ->
-      let* e = e duration in
-      return ((1. -. e) *. (b -. a) +. a)
+  let ramp ?(kind=`Linear) () =
+    match kind with
+    | `Linear ->
+      let arrived = ref false in
+      let t = integrate ~periodic:true ~on_reset:(fun () -> arrived := true) () in
+      fun from dest duration ->
+        let a = dest -. from in
+        let a' = 1. /. duration in
+        stream_ref arrived >>=
+        fallback
+          (return dest)
+          (let* t = t a' in return (a *. t +. from))
+    | `Exponential ->
+      let e = exponential_hl () in
+      fun a b duration ->
+        let* e = e duration in
+        return ((1. -. e) *. (b -. a) +. a)
 end
 
 let adsr = Envelope.adsr
 
 (** Smoothen the stream. This is useful to avoid big jumps in controllers. The
     parmeter is roughly the time taken to reach the desired value. *)
-let smooth ?(init=0.) () =
+let smooth ?(init=0.) ?(kind=`Exponential) () =
   let x = ref init in
-  fun a target ->
-    let* dt = dt in
-    x := !x +. (dt /. a) *. (target -. !x);
-    return !x
+  match kind with
+  | `Exponential ->
+    fun a target ->
+      let* dt = dt in
+      x := !x +. (dt /. a) *. (target -. !x);
+      return !x
+  | `Linear ->
+    fun a target ->
+      let* dt = dt in
+      if !x = target then ()
+      else if !x < target then
+        (
+          x := !x +. a *. dt;
+          if !x > target then x := target
+        )
+      else
+        (
+          x := !x -. a *. dt;
+          if !x < target then x := target
+        );
+      return !x
 
 (** {2 Effects} *)
 
@@ -1092,9 +1116,10 @@ end
 
 (** {2 Analysis} *)
 
-(** Print value of stream when it changes. *)
-let print ?first name =
-  on_change ?first (fun x -> Printf.printf "%s: %f\n%!" name x)
+(** Print value of stream. *)
+let print ?first ?(changes=true) name =
+  if changes then on_change ?first (fun x -> Printf.printf "%s: %f\n%!" name x)
+  else (fun x -> Printf.printf "%s: %f\n%!" name x; return x)
 
 (** Blink a led on tempo. *)
 let blink_tempo on off =
@@ -1156,6 +1181,9 @@ module Stereo = struct
     let* x = s1 in
     let* y = s2 in
     return (x, y)
+
+  let noise () =
+    merge (noise ()) (noise ())
 
   (** Add two stereo streams. *)
   let add s1 s2 =
