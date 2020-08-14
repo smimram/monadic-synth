@@ -156,6 +156,23 @@ let () =
 _Exercise_: play a sine with tremolo, which can be achieved by periodically
 varying its amplitude.
 
+As another example, instead of generating a sine, we are going to generate a
+square wave (with the `square` operator).
+
+```ocaml
+let () =
+  let lfo = sine () 2. in
+  let osc = square () in
+  let s =
+    let* lfo = lfo in
+    let width = 0.5 +. 0.3 *. lfo in
+    osc ~width 440.
+  in
+  Output.play (s >>= stereo)
+```
+
+Testing: <audio controls><source src="mp3/square-width.mp3"></audio>
+
 ### Returning streams
 
 We can create constant streams with the `return` function, which creates a
@@ -204,6 +221,30 @@ let () =
 One way to dynamically acquire parameters is to use the
 [OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) which is supported by
 many software and hardware controllers.
+
+
+```ocaml
+let () =
+  let s =
+    let osc = saw () 440. in
+    let a   = OSC.float "/oscControl/slider1" 0.5 in
+    let lp  = Filter.biquad () `Low_pass in
+    let lpq = OSC.float "/oscControl/slider2" ~min:0.1 ~max:5. 1. in
+    let lpf = OSC.float ~mode:`Logarithmic "/oscControl/slider3" ~max:10000. 1500. in
+    let a   = a   >>= print "a" in
+    let lpq = lpq >>= print "q" in
+    let lpf = lpf >>= print "f" in
+    let* a  = a in
+    let* f  = lpf in
+    let* q  = lpq in
+    osc
+    >>= lp q f
+    >>= amp a
+    >>= stereo
+  in
+  OSC.server 10000;
+  Output.play s
+```
 
 ## Instruments
 

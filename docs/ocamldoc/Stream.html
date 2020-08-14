@@ -343,6 +343,18 @@
 </div>
 </div>
 
+<pre><span id="VALafter"><span class="keyword">val</span> after</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">sample</a> -> bool <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Check whether we are after a particular instant.</p>
+</div>
+</div>
+
+<pre><span id="VALfrequently"><span class="keyword">val</span> frequently</span> : <code class="type">unit -> float -> bool <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Generate an event at a given frequency.</p>
+</div>
+</div>
+
 <pre><span id="VALevery"><span class="keyword">val</span> every</span> : <code class="type">unit -> float -> bool <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Generate an event every period of time.</p>
@@ -375,6 +387,12 @@
 
 <pre><span id="VALfallback"><span class="keyword">val</span> fallback</span> : <code class="type">'a <a href="Stream.html#TYPEt">t</a> -> 'a <a href="Stream.html#TYPEt">t</a> -> bool -> 'a <a href="Stream.html#TYPEt">t</a></code></pre>
 <pre><span id="VALfallblank"><span class="keyword">val</span> fallblank</span> : <code class="type"><a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a> -> bool -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre>
+<pre><span id="VALrandom"><span class="keyword">val</span> random</span> : <code class="type">unit -> ?min:float -> ?max:float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Generate a random value at given frequency.</p>
+</div>
+</div>
+
 <pre><span id="MODULESample"><span class="keyword">module</span> <a href="Stream.Sample.html">Sample</a></span>: <code class="code">sig</code> <a href="Stream.Sample.html">..</a> <code class="code">end</code></pre><div class="info">
 <p>Operations with samples as unit time.</p>
 
@@ -385,14 +403,13 @@
 <pre><span id="VALsine"><span class="keyword">val</span> sine</span> : <code class="type">unit -> float -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre>
 <pre><span id="VALsquare"><span class="keyword">val</span> square</span> : <code class="type">unit -> ?width:float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre>
 <pre><span id="VALnoise"><span class="keyword">val</span> noise</span> : <code class="type">unit -> float <a href="Stream.html#TYPEt">t</a></code></pre>
-<pre><span id="VALsampler"><span class="keyword">val</span> sampler</span> : <code class="type">?interpolation:[ `Closest ] -><br>       ?freq:float -> 'a array -> float -> 'a <a href="Stream.html#TYPEt">t</a></code></pre>
-<pre><span id="MODULESpectral"><span class="keyword">module</span> <a href="Stream.Spectral.html">Spectral</a></span>: <code class="code">sig</code> <a href="Stream.Spectral.html">..</a> <code class="code">end</code></pre>
-<pre><span id="VALrandom"><span class="keyword">val</span> random</span> : <code class="type">unit -> ?min:float -> ?max:float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALsampler"><span class="keyword">val</span> sampler</span> : <code class="type">?interpolation:[ `Closest ] -><br>       ?freq:float -> 'a array -> float -> 'a <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
-<p>Generate a random value at given frequency.</p>
+<p>Play a sample stored in a buffer at various speeds.</p>
 </div>
 </div>
 
+<pre><span id="MODULESpectral"><span class="keyword">module</span> <a href="Stream.Spectral.html">Spectral</a></span>: <code class="code">sig</code> <a href="Stream.Spectral.html">..</a> <code class="code">end</code></pre>
 <pre><span id="VALosc"><span class="keyword">val</span> osc</span> : <code class="type">[< `Noise | `Random | `Saw | `Sine | `Square | `Triangle ] -><br>       float -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Generic oscillator.</p>
@@ -409,7 +426,7 @@
 <pre><span id="VALkarplus_strong"><span class="keyword">val</span> karplus_strong</span> : <code class="type">?filter:(<a href="Stream.html#TYPEsample">sample</a> -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a>) -><br>       unit -> float -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre><h3 id="2_Envelopes">Envelopes</h3>
 <pre><span id="MODULEEnvelope"><span class="keyword">module</span> <a href="Stream.Envelope.html">Envelope</a></span>: <code class="code">sig</code> <a href="Stream.Envelope.html">..</a> <code class="code">end</code></pre>
 <pre><span id="VALadsr"><span class="keyword">val</span> adsr</span> : <code class="type">?event:[< `Release | `Reset ] <a href="Stream.Event.html#TYPEt">Event.t</a> -><br>       ?on_die:(unit -> unit) -><br>       unit -><br>       ?a:float -><br>       ?d:float -><br>       ?s:float -><br>       ?r:float -><br>       ?sustain:bool -><br>       ?release:[< `Exponential | `Linear > `Linear ] -> unit -> float <a href="Stream.html#TYPEt">t</a></code></pre>
-<pre><span id="VALsmooth"><span class="keyword">val</span> smooth</span> : <code class="type">?init:float -> unit -> float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALsmooth"><span class="keyword">val</span> smooth</span> : <code class="type">?init:float -><br>       ?kind:[< `Exponential | `Linear > `Exponential ] -><br>       unit -> float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Smoothen the stream. This is useful to avoid big jumps in controllers. The
     parmeter is roughly the time taken to reach the desired value.</p>
@@ -475,9 +492,9 @@
 
 </div>
 <h3 id="2_Analysis">Analysis</h3>
-<pre><span id="VALprint"><span class="keyword">val</span> print</span> : <code class="type">?first:bool -> string -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALprint"><span class="keyword">val</span> print</span> : <code class="type">?first:bool -> ?changes:bool -> string -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
-<p>Print value of stream when it changes.</p>
+<p>Print value of stream.</p>
 </div>
 </div>
 

@@ -29,6 +29,7 @@
 
 <pre><span id="MODULEEnvelope"><span class="keyword">module</span> Envelope</span>: <code class="code">sig</code> <a href="Stream.Envelope.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
+<pre><span id="VALapply"><span class="keyword">val</span> apply</span> : <code class="type">float <a href="Stream.html#TYPEt">Stream.t</a> -> float -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
 <pre><span id="VALadsr"><span class="keyword">val</span> adsr</span> : <code class="type">?event:[< `Release | `Reset ] <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>       ?on_die:(unit -> unit) -><br>       unit -><br>       ?a:float -><br>       ?d:float -><br>       ?s:float -><br>       ?r:float -><br>       ?sustain:bool -><br>       ?release:[< `Exponential | `Linear > `Linear ] -> unit -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>ADSR (Attack / Decay / Sustain / Release) envelope.</p>
@@ -47,10 +48,9 @@
 </div>
 </div>
 
-<pre><span id="VALramp"><span class="keyword">val</span> ramp</span> : <code class="type">unit -> float -> float -> float -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<pre><span id="VALramp"><span class="keyword">val</span> ramp</span> : <code class="type">?kind:[< `Exponential | `Linear > `Linear ] -><br>       unit -> float -> float -> float -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Affine from a value to a value in a given time.</p>
 </div>
 </div>
-
-<pre><span id="VALexp_ramp"><span class="keyword">val</span> exp_ramp</span> : <code class="type">unit -> float -> float -> float -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre></body></html>
+</body></html>

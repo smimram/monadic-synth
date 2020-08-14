@@ -49,6 +49,7 @@
 </div>
 </div>
 
+<pre><span id="VALnoise"><span class="keyword">val</span> noise</span> : <code class="type">unit -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type">(float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -><br>       (float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Add two stereo streams.</p>
@@ -87,5 +88,6 @@
 
 <pre><span id="VALschroeder_random"><span class="keyword">val</span> schroeder_random</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALschroeder2"><span class="keyword">val</span> schroeder2</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (<a href="Stream.html#TYPEsample">Stream.sample</a> * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
-<pre><span id="VALagc"><span class="keyword">val</span> agc</span> : <code class="type">unit -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><h3 id="2_Effects">Effects</h3>
+<pre><span id="VALagc"><span class="keyword">val</span> agc</span> : <code class="type">unit -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="MODULEEnvelope"><span class="keyword">module</span> <a href="Stream.Stereo.Envelope.html">Envelope</a></span>: <code class="code">sig</code> <a href="Stream.Stereo.Envelope.html">..</a> <code class="code">end</code></pre><h3 id="2_Effects">Effects</h3>
 <pre><span id="VALfreeverb"><span class="keyword">val</span> freeverb</span> : <code class="type">unit -><br>       ?roomsize:float -><br>       ?damp:float -><br>       ?width:float -><br>       ?wet:float -> ?dry:float -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre></body></html>

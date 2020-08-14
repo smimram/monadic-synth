@@ -22,6 +22,7 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;blank&nbsp;:&nbsp;float&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;merge&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>a&nbsp;*&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;noise&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;add&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
@@ -61,6 +62,12 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;schroeder2&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Stream</span>.sample&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Stream</span>.sample&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;agc&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;*&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Envelope</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;apply&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;float&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;float&nbsp;*&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;freeverb&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;?roomsize:float&nbsp;<span class="keywordsign">-&gt;</span><br>
