@@ -313,9 +313,10 @@
 </div>
 </div>
 
-<pre><span id="VALtimed"><span class="keyword">val</span> timed</span> : <code class="type">?loop:bool -> (float * 'a) list -> 'a list <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALtimed"><span class="keyword">val</span> timed</span> : <code class="type">?tempo:float -> ?loop:bool -> (float * 'a) list -> 'a list <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
-<p>Create a stream from timed events, supposed to be sorted.</p>
+<p>Create a stream from timed events, supposed to be sorted. If tempo is
+    not specified, time is assumed in seconds (otherwise, in notes).</p>
 </div>
 </div>
 <h3 id="2_Control">Control</h3>
