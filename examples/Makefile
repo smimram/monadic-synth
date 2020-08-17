@@ -7,7 +7,7 @@ ci:
 	@$(MAKE) -C .. $@
 
 lib:
-	@$(MAKE) -C ..
+	@$(MAKE) -C ../src
 
 test: lib midi
 	./midi
@@ -18,8 +18,8 @@ debug: lib bug
 clean:
 	rm -f $(wildcard *.cmi *.cmx *.o) $(PROG)
 
-%: %.ml ../msynth.cmxa
-	ocamlfind ocamlopt -package alsa,lo,graphics,threads -thread -I .. \
+%: %.ml lib ../src/msynth.cmxa
+	ocamlfind ocamlopt -package alsa,lo,graphics,threads -thread -I ../src \
 	graphics.cmxa str.cmxa alsa.cmxa unix.cmxa threads.cmxa lo.cmxa msynth.cmxa \
 	-o $@ $<
 
