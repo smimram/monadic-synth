@@ -19,5 +19,5 @@ jobs:
       run: opam depext -y -i msynth
     - name: Build locally
       run: eval $(opam env) && make
-    - name: Build tests
-      run: eval $(opam env) && make -C src/test
+    - name: Build examples
+      run: eval $(opam env) && make -C examples
