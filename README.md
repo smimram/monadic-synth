@@ -2,9 +2,12 @@ Monadic synthesizers in OCaml
 =============================
 
 This library called `msynth` is my own take at organizing the various classical
-functions for performing audio synthesis. Our aim is to provide a clean
+functions for performing audio synthesis. The aim is to provide a clean
 programming environment in which one can easily try new ideas for synthesizers
-(performance is not a priority, although it is of course taken into account).
+(performance is not a priority, although it is of course taken into
+account). Yes, I know that some people tend to spend more time making
+synthesizers than making actual music, and I am spending my time making
+libraries to make synthesizers to make sound.
 
 It is mainly based on the idea that audio streams can be represented as
 functions `float -> float`: such a function takes as argument the time _dt_
@@ -43,6 +46,9 @@ The main documentation consists in
 - the source code
 
 # Tutorial
+
+In case you need it, most examples in this tutorial are [in this
+file](https://github.com/smimram/monadic-synth/blob/master/examples/doc.ml).
 
 ## Our first sines
 
@@ -287,17 +293,191 @@ stereo.
 ## Instruments
 
 Unless you are making [concrete
-music](https://en.wikipedia.org/wiki/Musique_concr%C3%A8te)
+music](https://en.wikipedia.org/wiki/Musique_concr%C3%A8te), you certainly want
+to play some notes. In order to illustrate this let's detail step by step how we
+can quickly recreate the song _[better off
+alone](https://www.youtube.com/watch?v=Lj9GzcHbJ-w)_ (sort of) by detailing
+[this
+example](https://github.com/smimram/monadic-synth/blob/master/examples/better_off_alone.ml)
 
-....
+### Playing notes
 
-TODO: ADSR on the envelope
+We first have to learn how to play notes. A melody can be described as a
+_pattern_ which is a list of triples consisting of
+
+- the time of the note (in beats),
+- the duration of the note (in beats),
+- the actual note together with its height (in semitones, A4 is 69) and its
+  volume (between 0 and 1).
+
+Our melody consists of two very similar patterns and can be described as
+
+```ocaml
+  let lead o =
+    [
+      0. , 0.5, `Note (71, 1.);
+      1. , 0.5, `Note (71, 1.);
+      1.5, 0.5, `Note (68, 1.);
+      2.5, 0.5, `Note (71, 1.);
+      3.5, 0.5, `Note (71, 1.);
+      4.5, 0.5, `Note (70, 1.);
+      5.5, 0.5, `Note (66, 1.);
+      6. , 0.5, `Note (78+o, 1.);
+      6.7, 0.5, `Note (78+o, 1.);
+      7.3, 0.5, `Note (75, 1.);
+      8. , 0. , `Nop
+    ]
+  in
+  let lead = Pattern.append (lead 0) (lead (-2)) in
+```
+
+We can transform a pattern into a stream of MIDI events with `Pattern.stream`,
+
+```ocaml
+  let lead = Pattern.stream ~loop:true tempo lead in
+```
+
+which can in turn be played (i.e. converted into a sound stream) with
+`Instrument.play`. We can thus get a stream with
+
+```ocaml
+  let lead = Instrument.play (Note.simple saw) lead in
+```
+
+which can be played as usual (`Output.play (lead >>= stereo)`). Above, the first
+argument is the sound to play the melody: it describes one note, which here is
+simply a saw, without any envelope or anything fancy.
+
+### Adding drums
+
+Drums can be added similarly with
+
+```ocaml
+  let drum =
+    [
+      0., `Kick 1.;
+      0.5, `Snare 1.;
+      1., `Nop;
+    ]
+  in
+  let drum = Instrument.play_drums (Stream.timed ~loop:true ~tempo drum) >>= amp 2. in
+```
+
+where we loop on a simple pattern of one beat and use the dedicated function
+`Instrument.play_drums` to convert it to a stream.
+
+The two streams can be played together with
+
+```ocaml
+  let s = B.mix [lead; drum] >>= amp 0.2 in
+  Output.play (s >>= stereo)
+```
+
+### More advanced instruments
+
+The instrument we used for the lead is quite boring, let's try to do better now
+for the bass. We could play use a sound consisting of a saw with an ADSR
+envelope as a starting point:
+
+```ocaml
+  let bass =
+    [
+      0. , 4., `Note (40, 1.);
+      4. , 4., `Note (39, 1.);
+      8. , 4., `Note (44, 1.);
+      12., 4., `Note (42, 1.);
+    ]
+  in
+  let note = Note.adsr saw in
+  let bass = Instrument.play note (Pattern.stream ~loop:true tempo bass) in
+```
+
+However, we are not satisfied with the sound and would rather have a square
+oscillator with a low-pass filter closing down each time a note is played. This
+can be achieved by changing the definition of `note` to
+
+```ocaml
+  let note () =
+    let osc = square () in
+    let lp = Filter.biquad () `Low_pass 3. in
+    let ramp = Envelope.ramp ~kind:`Exponential () ~from:5000. ~target:100. 0.5 in
+    fun freq -> bind2 lp ramp (osc freq)
+  in
+  let note = Note.adsr note in
+```
+
+As you can see, `Note.adsr` takes as argument a function which, when applied to
+`()` creates a function which plays the stream corresponding to the note, at the
+given frequency.
+
+The long note takes too much space in the sound, let's chop it in small pieces:
+
+```ocaml
+  let bass = bass >>= Stream.Slicer.eurotrance () (60. /. tempo)  in
+```
 
 ### Arpeggiators
 
-### Custom notes
+A pattern can also consist in chords. This is particularly useful in conjunction
+with arpeggiators, which play notes from the chords. For instance, we can add a
+small "harp like" synth with
 
-TODO: ADSR on the filter
+```ocaml
+  let chords =
+    [
+      0. , 4., `Chord ([40;44;47;52], 1.);
+      4. , 4., `Chord ([39;42;46;51], 1.);
+      8. , 4., `Chord ([44;47;51;56], 1.);
+      12., 4., `Chord ([42;46;49;54], 1.);
+    ]
+  in
+  let arp = Pattern.arpeggiate `Up (Pattern.transpose 24 chords) in
+  let arp = Instrument.play (Note.simple sine) (Pattern.stream ~loop:true tempo arp) in
+```
+
+If you were too lazy to try by yourself [your can hear the result
+here](https://youtu.be/F7q-wtJRgjM).
+
+### Live MIDI input
+
+An example of MIDI input (say, from a physical keyboard) in order to generates
+notes and values for parameters from physical controllers can be [found
+here](https://github.com/smimram/monadic-synth/blob/master/examples/midi.ml).
+
+In order to use MIDI, we should begin with using the function `MIDI.create`
+which provides us with a handle from which midi events can be drawn (with
+`MIDI.events`) as well as the value of controllers (with `MIDI.controller`). For
+instance, in the following example, we play the notes pressed on the keyboard
+with a saw instrument chained with a low pass filter whose Q parameter and
+cutoff frequency can be controlled by controller 0 and 1 respectively (you might
+have to change those numbers depending on your controller):
+
+```ocaml
+let () =
+  let midi = MIDI.create () in
+  let note () =
+    let osc = saw () in
+    let lp = Filter.biquad () `Low_pass in
+    let q = MIDI.controller midi 0 ~min:0.1 ~max:5. 1. >>= print "q" in
+    let f = MIDI.controller midi 1  ~mode:`Logarithmic ~max:10000. 1500. >>= print "f" in
+    fun freq ->
+      let* q = q in
+      let* f = f in
+      osc freq >>= lp q f
+  in
+  let s = Instrument.play (Note.adsr note) (MIDI.events midi) >>= clip in
+  Output.play (s >>= stereo)
+```
+
+# Going further
+
+If you have read everything up to there, you should know most of the principles
+you need to get started with the library the rest consist in
+
+- using effects,
+- combining functions,
+- finding the right parameters,
+- and having imagination.
 
 # Advanced topics
 

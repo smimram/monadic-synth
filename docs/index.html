@@ -100,10 +100,14 @@
 </ul></li>
 <li><a href="#instruments">Instruments</a>
 <ul>
+<li><a href="#playing-notes">Playing notes</a></li>
+<li><a href="#adding-drums">Adding drums</a></li>
+<li><a href="#more-advanced-instruments">More advanced instruments</a></li>
 <li><a href="#arpeggiators">Arpeggiators</a></li>
-<li><a href="#custom-notes">Custom notes</a></li>
+<li><a href="#live-midi-input">Live MIDI input</a></li>
 </ul></li>
 </ul></li>
+<li><a href="#going-further">Going further</a></li>
 <li><a href="#advanced-topics">Advanced topics</a>
 <ul>
 <li><a href="#using-a-stream-multiple-times">Using a stream multiple times</a></li>
@@ -113,7 +117,7 @@
 </ul>
 </nav>
 <h1 id="monadic-synthesizers-in-ocaml">Monadic synthesizers in OCaml</h1>
-<p>This library called <code>msynth</code> is my own take at organizing the various classical functions for performing audio synthesis. Our aim is to provide a clean programming environment in which one can easily try new ideas for synthesizers (performance is not a priority, although it is of course taken into account).</p>
+<p>This library called <code>msynth</code> is my own take at organizing the various classical functions for performing audio synthesis. The aim is to provide a clean programming environment in which one can easily try new ideas for synthesizers (performance is not a priority, although it is of course taken into account). Yes, I know that some people tend to spend more time making synthesizers than making actual music, and I am spending my time making libraries to make synthesizers to make sound.</p>
 <p>It is mainly based on the idea that audio streams can be represented as functions <code>float -&gt; float</code>: such a function takes as argument the time <em>dt</em> elapsed since the last sample and returns the current value for the sample. Typically, when the sampling rate is 44100, <em>dt</em> will be 1/44100, but fancy effects might vary its value. The type</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">type</span> &#39;a stream = <span class="dt">float</span> -&gt; &#39;a</span></code></pre></div>
 <p>is thus called a <em>stream</em> of <code>'a</code>. It can be equipped with the structure of a <a href="https://en.wikipedia.org/wiki/Monad_(functional_programming)">monad</a> which can be used to easily compose operations on streams, especially since the recent introduction of the dedicated <a href="https://caml.inria.fr/pub/docs/manual-ocaml/bindingops.html">syntax for monads</a> in OCaml.</p>
@@ -129,6 +133,7 @@
 <li>the source code</li>
 </ul>
 <h1 id="tutorial">Tutorial</h1>
+<p>In case you need it, most examples in this tutorial are <a href="https://github.com/smimram/monadic-synth/blob/master/examples/doc.ml">in this file</a>.</p>
 <h2 id="our-first-sines">Our first sines</h2>
 <h3 id="playing-a-sound">Playing a sound</h3>
 <p>When creating synthesizers, you typically want to open the <code>Stream</code> module:</p>
@@ -239,36 +244,135 @@
 <li><a href="https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml">thx.ml</a>: a quick recreation of the <a href="https://www.youtube.com/watch?v=uYMpMcmpfkI">THX deep note</a> by adding many saw oscillators, whose frequency is initially between 200 and 400 Hz, and slowly evolve to the same note at various octaves.</li>
 </ul>
 <h2 id="instruments">Instruments</h2>
-<p>Unless you are making <a href="https://en.wikipedia.org/wiki/Musique_concr%C3%A8te">concrete music</a></p>
-<p>….</p>
-<p>TODO: ADSR on the envelope</p>
+<p>Unless you are making <a href="https://en.wikipedia.org/wiki/Musique_concr%C3%A8te">concrete music</a>, you certainly want to play some notes. In order to illustrate this let’s detail step by step how we can quickly recreate the song <em><a href="https://www.youtube.com/watch?v=Lj9GzcHbJ-w">better off alone</a></em> (sort of) by detailing <a href="https://github.com/smimram/monadic-synth/blob/master/examples/better_off_alone.ml">this example</a></p>
+<h3 id="playing-notes">Playing notes</h3>
+<p>We first have to learn how to play notes. A melody can be described as a <em>pattern</em> which is a list of triples consisting of</p>
+<ul>
+<li>the time of the note (in beats),</li>
+<li>the duration of the note (in beats),</li>
+<li>the actual note together with its height (in semitones, A4 is 69) and its volume (between 0 and 1).</li>
+</ul>
+<p>Our melody consists of two very similar patterns and can be described as</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a>  <span class="kw">let</span> lead o =</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a>    [</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a>      <span class="dv">0</span>. , <span class="fl">0.5</span>, `Note (<span class="dv">71</span>, <span class="dv">1</span>.);</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>      <span class="dv">1</span>. , <span class="fl">0.5</span>, `Note (<span class="dv">71</span>, <span class="dv">1</span>.);</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a>      <span class="fl">1.5</span>, <span class="fl">0.5</span>, `Note (<span class="dv">68</span>, <span class="dv">1</span>.);</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a>      <span class="fl">2.5</span>, <span class="fl">0.5</span>, `Note (<span class="dv">71</span>, <span class="dv">1</span>.);</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a>      <span class="fl">3.5</span>, <span class="fl">0.5</span>, `Note (<span class="dv">71</span>, <span class="dv">1</span>.);</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a>      <span class="fl">4.5</span>, <span class="fl">0.5</span>, `Note (<span class="dv">70</span>, <span class="dv">1</span>.);</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a>      <span class="fl">5.5</span>, <span class="fl">0.5</span>, `Note (<span class="dv">66</span>, <span class="dv">1</span>.);</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true"></a>      <span class="dv">6</span>. , <span class="fl">0.5</span>, `Note (<span class="dv">78</span>+o, <span class="dv">1</span>.);</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true"></a>      <span class="fl">6.7</span>, <span class="fl">0.5</span>, `Note (<span class="dv">78</span>+o, <span class="dv">1</span>.);</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true"></a>      <span class="fl">7.3</span>, <span class="fl">0.5</span>, `Note (<span class="dv">75</span>, <span class="dv">1</span>.);</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true"></a>      <span class="dv">8</span>. , <span class="dv">0</span>. , `Nop</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true"></a>    ]</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true"></a>  <span class="kw">let</span> lead = Pattern.append (lead <span class="dv">0</span>) (lead (<span class="dv">-2</span>)) <span class="kw">in</span></span></code></pre></div>
+<p>We can transform a pattern into a stream of MIDI events with <code>Pattern.stream</code>,</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a>  <span class="kw">let</span> lead = Pattern.stream ~loop:<span class="kw">true</span> tempo lead <span class="kw">in</span></span></code></pre></div>
+<p>which can in turn be played (i.e. converted into a sound stream) with <code>Instrument.play</code>. We can thus get a stream with</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a>  <span class="kw">let</span> lead = Instrument.play (Note.simple saw) lead <span class="kw">in</span></span></code></pre></div>
+<p>which can be played as usual (<code>Output.play (lead &gt;&gt;= stereo)</code>). Above, the first argument is the sound to play the melody: it describes one note, which here is simply a saw, without any envelope or anything fancy.</p>
+<h3 id="adding-drums">Adding drums</h3>
+<p>Drums can be added similarly with</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true"></a>  <span class="kw">let</span> drum =</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true"></a>    [</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true"></a>      <span class="dv">0</span>., `Kick <span class="dv">1</span>.;</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true"></a>      <span class="fl">0.5</span>, `Snare <span class="dv">1</span>.;</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true"></a>      <span class="dv">1</span>., `Nop;</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true"></a>    ]</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true"></a>  <span class="kw">let</span> drum = Instrument.play_drums (<span class="dt">Stream</span>.timed ~loop:<span class="kw">true</span> ~tempo drum) &gt;&gt;= amp <span class="dv">2</span>. <span class="kw">in</span></span></code></pre></div>
+<p>where we loop on a simple pattern of one beat and use the dedicated function <code>Instrument.play_drums</code> to convert it to a stream.</p>
+<p>The two streams can be played together with</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true"></a>  <span class="kw">let</span> s = B.mix [lead; drum] &gt;&gt;= amp <span class="fl">0.2</span> <span class="kw">in</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true"></a>  Output.play (s &gt;&gt;= stereo)</span></code></pre></div>
+<h3 id="more-advanced-instruments">More advanced instruments</h3>
+<p>The instrument we used for the lead is quite boring, let’s try to do better now for the bass. We could play use a sound consisting of a saw with an ADSR envelope as a starting point:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true"></a>  <span class="kw">let</span> bass =</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true"></a>    [</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true"></a>      <span class="dv">0</span>. , <span class="dv">4</span>., `Note (<span class="dv">40</span>, <span class="dv">1</span>.);</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true"></a>      <span class="dv">4</span>. , <span class="dv">4</span>., `Note (<span class="dv">39</span>, <span class="dv">1</span>.);</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true"></a>      <span class="dv">8</span>. , <span class="dv">4</span>., `Note (<span class="dv">44</span>, <span class="dv">1</span>.);</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true"></a>      <span class="dv">12</span>., <span class="dv">4</span>., `Note (<span class="dv">42</span>, <span class="dv">1</span>.);</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true"></a>    ]</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true"></a>  <span class="kw">let</span> note = Note.adsr saw <span class="kw">in</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true"></a>  <span class="kw">let</span> bass = Instrument.play note (Pattern.stream ~loop:<span class="kw">true</span> tempo bass) <span class="kw">in</span></span></code></pre></div>
+<p>However, we are not satisfied with the sound and would rather have a square oscillator with a low-pass filter closing down each time a note is played. This can be achieved by changing the definition of <code>note</code> to</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true"></a>  <span class="kw">let</span> note () =</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true"></a>    <span class="kw">let</span> osc = square () <span class="kw">in</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true"></a>    <span class="kw">let</span> lp = Filter.biquad () `Low_pass <span class="dv">3</span>. <span class="kw">in</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true"></a>    <span class="kw">let</span> ramp = Envelope.ramp ~kind:`Exponential () ~from:<span class="dv">5000</span>. ~target:<span class="dv">100</span>. <span class="fl">0.5</span> <span class="kw">in</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true"></a>    <span class="kw">fun</span> freq -&gt; bind2 lp ramp (osc freq)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true"></a>  <span class="kw">let</span> note = Note.adsr note <span class="kw">in</span></span></code></pre></div>
+<p>As you can see, <code>Note.adsr</code> takes as argument a function which, when applied to <code>()</code> creates a function which plays the stream corresponding to the note, at the given frequency.</p>
+<p>The long note takes too much space in the sound, let’s chop it in small pieces:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true"></a>  <span class="kw">let</span> bass = bass &gt;&gt;= <span class="dt">Stream</span>.Slicer.eurotrance () (<span class="dv">60</span>. /. tempo)  <span class="kw">in</span></span></code></pre></div>
 <h3 id="arpeggiators">Arpeggiators</h3>
-<h3 id="custom-notes">Custom notes</h3>
-<p>TODO: ADSR on the filter</p>
+<p>A pattern can also consist in chords. This is particularly useful in conjunction with arpeggiators, which play notes from the chords. For instance, we can add a small “harp like” synth with</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true"></a>  <span class="kw">let</span> chords =</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true"></a>    [</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true"></a>      <span class="dv">0</span>. , <span class="dv">4</span>., `Chord ([<span class="dv">40</span>;<span class="dv">44</span>;<span class="dv">47</span>;<span class="dv">52</span>], <span class="dv">1</span>.);</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true"></a>      <span class="dv">4</span>. , <span class="dv">4</span>., `Chord ([<span class="dv">39</span>;<span class="dv">42</span>;<span class="dv">46</span>;<span class="dv">51</span>], <span class="dv">1</span>.);</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true"></a>      <span class="dv">8</span>. , <span class="dv">4</span>., `Chord ([<span class="dv">44</span>;<span class="dv">47</span>;<span class="dv">51</span>;<span class="dv">56</span>], <span class="dv">1</span>.);</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true"></a>      <span class="dv">12</span>., <span class="dv">4</span>., `Chord ([<span class="dv">42</span>;<span class="dv">46</span>;<span class="dv">49</span>;<span class="dv">54</span>], <span class="dv">1</span>.);</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true"></a>    ]</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true"></a>  <span class="kw">let</span> arp = Pattern.arpeggiate `Up (Pattern.transpose <span class="dv">24</span> chords) <span class="kw">in</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true"></a>  <span class="kw">let</span> arp = Instrument.play (Note.simple sine) (Pattern.stream ~loop:<span class="kw">true</span> tempo arp) <span class="kw">in</span></span></code></pre></div>
+<p>If you were too lazy to try by yourself <a href="https://youtu.be/F7q-wtJRgjM">your can hear the result here</a>.</p>
+<h3 id="live-midi-input">Live MIDI input</h3>
+<p>An example of MIDI input (say, from a physical keyboard) in order to generates notes and values for parameters from physical controllers can be <a href="https://github.com/smimram/monadic-synth/blob/master/examples/midi.ml">found here</a>.</p>
+<p>In order to use MIDI, we should begin with using the function <code>MIDI.create</code> which provides us with a handle from which midi events can be drawn (with <code>MIDI.events</code>) as well as the value of controllers (with <code>MIDI.controller</code>). For instance, in the following example, we play the notes pressed on the keyboard with a saw instrument chained with a low pass filter whose Q parameter and cutoff frequency can be controlled by controller 0 and 1 respectively (you might have to change those numbers depending on your controller):</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true"></a>  <span class="kw">let</span> midi = MIDI.create () <span class="kw">in</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true"></a>  <span class="kw">let</span> note () =</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true"></a>    <span class="kw">let</span> osc = saw () <span class="kw">in</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true"></a>    <span class="kw">let</span> lp = Filter.biquad () `Low_pass <span class="kw">in</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true"></a>    <span class="kw">let</span> q = MIDI.controller midi <span class="dv">0</span> ~<span class="dt">min</span>:<span class="fl">0.1</span> ~<span class="dt">max</span>:<span class="dv">5</span>. <span class="dv">1</span>. &gt;&gt;= print <span class="st">&quot;q&quot;</span> <span class="kw">in</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true"></a>    <span class="kw">let</span> f = MIDI.controller midi <span class="dv">1</span>  ~mode:`Logarithmic ~<span class="dt">max</span>:<span class="dv">10000</span>. <span class="dv">1500</span>. &gt;&gt;= print <span class="st">&quot;f&quot;</span> <span class="kw">in</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true"></a>    <span class="kw">fun</span> freq -&gt;</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true"></a>      <span class="kw">let</span>* q = q <span class="kw">in</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true"></a>      <span class="kw">let</span>* f = f <span class="kw">in</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true"></a>      osc freq &gt;&gt;= lp q f</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true"></a>  <span class="kw">let</span> s = Instrument.play (Note.adsr note) (MIDI.events midi) &gt;&gt;= clip <span class="kw">in</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true"></a>  Output.play (s &gt;&gt;= stereo)</span></code></pre></div>
+<h1 id="going-further">Going further</h1>
+<p>If you have read everything up to there, you should know most of the principles you need to get started with the library the rest consist in</p>
+<ul>
+<li>using effects,</li>
+<li>combining functions,</li>
+<li>finding the right parameters,</li>
+<li>and having imagination.</li>
+</ul>
 <h1 id="advanced-topics">Advanced topics</h1>
 <h2 id="using-a-stream-multiple-times">Using a stream multiple times</h2>
 <p>Streams should not be used multiple times. For instance, if we want to play the same sine on the left and the right channel, we might be tempted two write</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>  <span class="kw">let</span> s = bind2 pair osc osc <span class="kw">in</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true"></a>  <span class="kw">let</span> s = bind2 pair osc osc <span class="kw">in</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>but the result is that we hear a sine at 880 Hz. The reason is that each time we pull a sample for <code>s</code>, we actually pull two samples from <code>osc</code>: once for the left channel and once for the right channel. One way to avoid this is to explicitly extract the value of the stream, and there is no problem in duplicated this value:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a>    <span class="kw">let</span>* x = osc <span class="kw">in</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a>    pair x x</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a>  <span class="kw">in</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true"></a>    <span class="kw">let</span>* x = osc <span class="kw">in</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true"></a>    pair x x</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>Another way consists in using the <code>dup</code> operator, which returns a pair: the first one should be used first to evaluate the stream and the second one is a stream which can be used as many times as we want. We can thus rewrite our example as follows:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a>  <span class="kw">let</span> eval, osc = dup () osc <span class="kw">in</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a>  <span class="kw">let</span> s = eval &gt;&gt; bind2 pair osc osc <span class="kw">in</span></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true"></a>  <span class="kw">let</span> eval, osc = dup () osc <span class="kw">in</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true"></a>  <span class="kw">let</span> s = eval &gt;&gt; bind2 pair osc osc <span class="kw">in</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <h2 id="general-principles-behind-the-library">General principles behind the library</h2>
 <ul>
 <li>Clean code is more important than efficient code (although we want to remain reasonably efficient).</li>
