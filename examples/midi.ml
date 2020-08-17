@@ -1,16 +1,6 @@
 open Stream
 
 let s =
-  (* let tempo = 138. in *)
-  (* let pad = Pattern.concat [ *)
-  (* [0.,8.,`Chord([64;69;72],0.8);6.,1.,`Note(76,0.6);7.,1.,`Note(74,0.6)]; *)
-  (* [0.,8.,`Chord([64;68;71],0.8);6.,1.,`Note(74,0.6);7.,1.,`Note(72,0.6)]; *)
-  (* [0.,8.,`Chord([64;65;69],0.8);6.,1.,`Note(71,0.6);7.,1.,`Note(72,0.6)]; *)
-  (* [0.,8.,`Chord([64;68;71],0.8)]; *)
-  (* ] *)
-  (* in *)
-  (* let pad = Pattern.merge pad [0.,32.,`Note(40,2.5)] in *)
-  (* let pad = sine ~dt 440. in *)
   let midi = MIDI.create () in
   let toggle n = MIDI.toggle midi n in
   let midi =
