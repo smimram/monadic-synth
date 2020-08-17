@@ -23,7 +23,7 @@ class pulseaudio ?(channels=2) samplerate =
 class alsa ?(channels=2) samplerate =
   let open Alsa in
   let dev, period_size =
-    let buflen = 256 in
+    let buflen = 1024 in
     let periods = 4 in
     let dev = Pcm.open_pcm "default" [Pcm.Playback] [] in
     let params = Pcm.get_params dev in
@@ -31,7 +31,7 @@ class alsa ?(channels=2) samplerate =
     Pcm.set_format dev params Pcm.Format_float;
     let _ = Pcm.set_rate_near dev params samplerate Dir_eq in
     Pcm.set_channels dev params channels;
-    Pcm.set_buffer_size dev params (buflen * periods);
+    Pcm.set_buffer_size dev params buflen;
     Pcm.set_periods dev params periods Dir_eq;
     Pcm.set_params dev params;
     let period_size = Pcm.get_period_size params in
@@ -130,20 +130,18 @@ class wav ?(channels=2) samplerate fname =
 
 exception End_of_stream
 
-let play ?(infinite=true) ?(samplerate=44100) s =
+let play ?(samplerate=44100) ?duration s =
+  let s =
+    match duration with
+    | None -> s
+    | Some t -> at () t >>= on (fun () -> raise End_of_stream) >> s
+  in
   let dt = 1. /. float samplerate in
   Random.self_init ();
   let out = new alsa samplerate in
   let buflen = out#buflen in
   let buf = Array.init 2 (fun _ -> Array.make buflen 0.) in
   let wavout = new wav samplerate "output.wav" in
-  let s =
-    if infinite then
-      s
-    else
-      let dup_s, s = dup () s in
-      dup_s >> s >>= Stereo.to_mono >>= is_blank 2. 0.001 >>= activates () >>= on (fun () -> raise End_of_stream) >> s
-  in
   try
     while true do
       for i = 0 to buflen - 1 do

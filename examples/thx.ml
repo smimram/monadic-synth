@@ -1,6 +1,7 @@
 (** The THX deep note. *)
 
-(* http://earslap.com/article/recreating-the-thx-deep-note.html *)
+(* We are more or less following the explanations from
+   http://earslap.com/article/recreating-the-thx-deep-note.html *)
 
 open Extlib
 open Stream
@@ -12,7 +13,7 @@ let () =
     (* Initial frequency. *)
     let freq = Random.float 200. +. 200. in
     (* Final frequency. *)
-    let final = Note.frequency (Float.floor (Random.float 6.) *. 12. +. 14.5) in
+    let final = Note.frequency (Float.floor (Random.float 7.) *. 12. +. 2.5) in
     (* Add some noise in final frequency. *)
     let final =
       let e = 0.01 in
@@ -27,4 +28,11 @@ let () =
     >>= Stereo.pan ~law:`Circular () (Random.float 2. -. 1.)
   in
   let voices = List.init voices (fun _ -> voice ()) in
-  Output.play (Stereo.mix voices >>= Stereo.amp 0.5)
+  let s =
+    Stereo.mix voices
+    (* Avoid abrupt start *)
+    >>= Stereo.Envelope.apply (Envelope.ramp () 0. 1. 0.1)
+    (* Adjust general volume *)
+    >>= Stereo.amp 0.5
+  in
+  Output.play s

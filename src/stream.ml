@@ -300,8 +300,14 @@ let now ?event () : sample t =
 let periodic ?(init=0.) ?on_reset () =
   integrate ~periodic:true ~init ?on_reset ()
 
-(** Create a stream from timed events, supposed to be sorted. *)
-let timed ?(loop=false) l =
+(** Create a stream from timed events, supposed to be sorted. If tempo is
+    not specified, time is assumed in seconds (otherwise, in notes). *)
+let timed ?tempo ?(loop=false) l =
+  let l =
+    match tempo with
+    | Some tempo -> List.map (fun (t,e) -> 60. /. tempo *. t, e) l
+    | None -> l
+  in
   let l0 = l in
   let l = ref l in
   let toff = ref 0. in
@@ -367,6 +373,13 @@ let at () =
   fun (time:float) ->
     let* t = now in
     activates (t >= time)
+
+(** Check whether we are after a particular instant. *)
+let after () =
+  let now = now () in
+  fun time ->
+    let* t = now in
+    return (t >= time)
 
 (** Generate an event at a given frequency. *)
 let frequently () =
@@ -602,7 +615,7 @@ let square () =
   let p = periodic () in
   fun ?(width=0.5) freq ->
     let* x = p freq in
-    return (if x <= width then -1. else 1.)
+    return (if x <= width then 1. else -1.)
 
 let noise () =
   seq (fun () -> Random.float 2. -. 1.)
@@ -785,6 +798,10 @@ let karplus_strong ?filter () =
 (** {2 Envelopes} *)
 
 module Envelope = struct
+  let apply e x =
+    let* e = e in
+    return (e *. x)
+
   (** ADSR (Attack / Decay / Sustain / Release) envelope. *)
   let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
     let state = ref `Attack in
@@ -1317,6 +1334,13 @@ module Stereo = struct
     let agcl = agc () in
     let agcr = agc () in
     map agcl agcr
+
+  module Envelope = struct
+    let apply e =
+      fun (x, y) ->
+        let* e = e in
+        return (e *. x, e *. y)
+  end
 
   (** {2 Effects} *)
 

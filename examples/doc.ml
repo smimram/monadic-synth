@@ -3,8 +3,8 @@ open Stream
 let () =
   let s =
     let osc = saw () 440. in
-    let a   = OSC.float "/oscControl/slider1" 0.5 in
     let lp  = Filter.biquad () `Low_pass in
+    let a   = OSC.float "/oscControl/slider1" 0.5 in
     let lpq = OSC.float "/oscControl/slider2" ~min:0.1 ~max:5. 1. in
     let lpf = OSC.float ~mode:`Logarithmic "/oscControl/slider3" ~max:10000. 1500. in
     let a   = a   >>= print "a" in
@@ -20,6 +20,16 @@ let () =
   in
   OSC.server 10000;
   Output.play s
+
+let () =
+  let lfo = sine () 2. in
+  let osc = square () in
+  let s =
+    let* lfo = lfo in
+    let width = 0.5 +. 0.3 *. lfo in
+    osc ~width 440.
+  in
+  Output.play (s >>= stereo)
 
 let () =
   let pair x y = return (x, y) in
@@ -82,7 +92,6 @@ let () =
   in
   Output.play (s >>= stereo)
 
-(*
 let () =
   let s = bind stereo (sine () 440.) in
   Output.play s
@@ -97,4 +106,4 @@ let () =
 let () =
   let s = sine () 440. >>= stereo in
   Output.play s
-*)
+

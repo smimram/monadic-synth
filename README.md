@@ -54,8 +54,8 @@ When creating synthesizers, you typically want to open the `Stream` module:
 open Stream
 ```
 
-Our first example consists in playing a sine at 440Hz, which can be obtained
-with
+In subsequent code, we always suppose that this was done. Our first example
+consists in playing a sine at 440Hz, which can be obtained with
 
 ```ocaml
 let () =
@@ -226,15 +226,26 @@ let () =
 
 One way to dynamically acquire parameters is to use the
 [OSC](https://en.wikipedia.org/wiki/Open_Sound_Control) which is supported by
-many software and hardware controllers.
+many software and hardware controllers (for instance, this [free app on
+Android](https://play.google.com/store/apps/details?id=com.ffsmultimedia.osccontroller)). In
+order to be able to use this, we should first call the function `OSC.server`
+(which takes the port number on which it should listen as argument). The value
+of a controller can then be acquired with the function `OSC.float`, which takes
+as argument the path of the controller and its initial value and returns a
+stream of its values.
 
+For instance, in the following, we can play a saw oscillator chained with a
+[low-pass filter](https://en.wikipedia.org/wiki/Low-pass_filter) where the
+global volume, the [Q factor](https://en.wikipedia.org/wiki/Q_factor) and
+[cutoff frequency](https://en.wikipedia.org/wiki/Cutoff_frequency) of the filter
+can be configured though OSC controls as follows.
 
 ```ocaml
 let () =
   let s =
     let osc = saw () 440. in
-    let a   = OSC.float "/oscControl/slider1" 0.5 in
     let lp  = Filter.biquad () `Low_pass in
+    let a   = OSC.float "/oscControl/slider1" 0.5 in
     let lpq = OSC.float "/oscControl/slider2" ~min:0.1 ~max:5. 1. in
     let lpf = OSC.float ~mode:`Logarithmic "/oscControl/slider3" ~max:10000. 1500. in
     let a   = a   >>= print "a" in
@@ -252,11 +263,38 @@ let () =
   Output.play s
 ```
 
+Here, we begin by creating the saw oscillator (`osc`) and the low-pass filter
+(`lp`), as well as the streams corresponding to the controllers for
+amplification, q and cutoff frequency. The line
+
+```ocaml
+let a = a >>= print "a" in
+```
+
+makes the value for amplification `a` being printed on standard output when it
+changes, which is useful for debugging. Finally, the stream consists in the
+oscillator which goes through the filter, is amplified, and finally converted to
+stereo.
+
+### Other examples
+
+- [thx.ml](https://github.com/smimram/monadic-synth/blob/master/src/test/thx.ml):
+  a quick recreation of the [THX deep
+  note](https://www.youtube.com/watch?v=uYMpMcmpfkI) by adding many saw
+  oscillators, whose frequency is initially between 200 and 400 Hz, and slowly
+  evolve to the same note at various octaves.
+
 ## Instruments
 
 ....
 
 TODO: ADSR on the envelope
+
+### Arpeggiators
+
+### Custom notes
+
+TODO: ADSR on the filter
 
 # Advanced topics
 
