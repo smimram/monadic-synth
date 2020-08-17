@@ -12,12 +12,8 @@ OCAMLDOCFLAGS = -I +threads
 
 all: dncl
 
-test: all
-	$(MAKE) -C test
-
 ci:
-	git ci . -m "Worked on synth."
-	git push
+	$(MAKE) -C .. $@
 
 dist:
 	tar zcvf msynth.tar.gz msynth *.ml Makefile OCamlMakefile test/*.ml test/Makefile

@@ -278,7 +278,7 @@ stereo.
 
 ### Other examples
 
-- [thx.ml](https://github.com/smimram/monadic-synth/blob/master/src/test/thx.ml):
+- [thx.ml](https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml):
   a quick recreation of the [THX deep
   note](https://www.youtube.com/watch?v=uYMpMcmpfkI) by adding many saw
   oscillators, whose frequency is initially between 200 and 400 Hz, and slowly
