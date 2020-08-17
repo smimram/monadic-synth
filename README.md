@@ -43,7 +43,7 @@ The main documentation consists in
 - this file,
 - the [documentation generated from the source
   code comments](http://smimram.github.io/monadic-synth/ocamldoc/),
-- the source code
+- the source code.
 
 # Tutorial
 
@@ -477,7 +477,8 @@ you need to get started with the library the rest consist in
 - using effects,
 - combining functions,
 - finding the right parameters,
-- and having imagination.
+- adding functions to the library,
+- using your imagination.
 
 # Advanced topics
 
