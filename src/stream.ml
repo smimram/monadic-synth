@@ -870,18 +870,18 @@ module Envelope = struct
     | `Linear ->
       let arrived = ref false in
       let t = integrate ~periodic:true ~on_reset:(fun () -> arrived := true) () in
-      fun from dest duration ->
-        let a = dest -. from in
+      fun ?(from=0.) ?(target=1.) duration ->
+        let a = target -. from in
         let a' = 1. /. duration in
         stream_ref arrived >>=
         fallback
-          (return dest)
+          (return target)
           (let* t = t a' in return (a *. t +. from))
     | `Exponential ->
       let e = exponential_hl () in
-      fun a b duration ->
+      fun ?(from=0.) ?(target=1.) duration ->
         let* e = e duration in
-        return ((1. -. e) *. (b -. a) +. a)
+        return ((1. -. e) *. (target -. from) +. from)
 end
 
 let adsr = Envelope.adsr

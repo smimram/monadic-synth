@@ -1,6 +1,21 @@
 open Stream
 
 let () =
+  let midi = MIDI.create () in
+  let note () =
+    let osc = saw () in
+    let lp = Filter.biquad () `Low_pass in
+    let q = MIDI.controller midi 0 ~min:0.1 ~max:5. 1. >>= print "q" in
+    let f = MIDI.controller midi 1  ~mode:`Logarithmic ~max:10000. 1500. >>= print "f" in
+    fun freq ->
+      let* q = q in
+      let* f = f in
+      osc freq >>= lp q f
+  in
+  let s = Instrument.play (Note.adsr note) (MIDI.events midi) >>= clip in
+  Output.play (s >>= stereo)
+
+let () =
   let s =
     let osc = saw () 440. in
     let lp  = Filter.biquad () `Low_pass in

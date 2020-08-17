@@ -54,7 +54,7 @@ let create ~event ?portamento (note:'a Note.t) =
               let ramp = Envelope.ramp () in
               (* let ramp = exp_ramp in *)
               let* p = p in
-              ramp a b p
+              ramp ~from:a ~target:b p
           )
       in
       let note = note ~event ~on_die () in

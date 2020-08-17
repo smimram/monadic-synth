@@ -16,7 +16,8 @@ Software synths
 - all [Arturia's emulations](https://en.wikipedia.org/wiki/Arturia)
 - many [open source synths](https://zynthian.org/engines)
 - [zynaddsubfx](https://zynaddsubfx.sourceforge.io/)
-- [Helm](https://tytel.org/helm/) (see [the source](https://github.com/mtytel/helm))
+- [Helm](https://tytel.org/helm/) (see [the
+  source](https://github.com/mtytel/helm))
 - [Viktor NV-1](https://nicroto.github.io/viktor/)
 
 Hardware synths

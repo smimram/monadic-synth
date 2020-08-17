@@ -21,7 +21,10 @@ let () =
       let max = final *. (1. +. e) in
       random () ~min ~max 0.5 >>= smooth () 1.
     in
-    let freq = bind2 (Envelope.ramp () freq) final (return 4.) in
+    let freq =
+      let ramp = Envelope.ramp () in
+      let* target = final in
+      ramp ~from:freq ~target 5. in
     freq
     >>= saw ()
     >>= amp (1. /. float voices)
@@ -31,7 +34,7 @@ let () =
   let s =
     Stereo.mix voices
     (* Avoid abrupt start *)
-    >>= Stereo.Envelope.apply (Envelope.ramp () 0. 1. 0.1)
+    >>= Stereo.Envelope.apply (Envelope.ramp () 0.1)
     (* Adjust general volume *)
     >>= Stereo.amp 0.5
   in
