@@ -112,6 +112,12 @@
 </div>
 </div>
 
+<pre><span id="VALbind_list"><span class="keyword">val</span> bind_list</span> : <code class="type">('a list -> 'b <a href="Stream.html#TYPEt">t</a>) -> 'a <a href="Stream.html#TYPEt">t</a> list -> 'b <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Bind a function taking a list of arguments.</p>
+</div>
+</div>
+
 <pre><span id="VALfunct"><span class="keyword">val</span> funct</span> : <code class="type">('a -> 'b) -> 'a <a href="Stream.html#TYPEt">t</a> -> 'b <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Functoriality of the stream monad.</p>
@@ -216,25 +222,13 @@
 </div>
 </div>
 
-<pre><span id="VALcmul"><span class="keyword">val</span> cmul</span> : <code class="type">float -> float <a href="Stream.html#TYPEt">t</a> -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Multiply a stream by a constant.</p>
-</div>
-</div>
-
-<pre><span id="VALbmul"><span class="keyword">val</span> bmul</span> : <code class="type">bool <a href="Stream.html#TYPEt">t</a> -> float <a href="Stream.html#TYPEt">t</a> -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALbmul"><span class="keyword">val</span> bmul</span> : <code class="type">bool -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Multiply a stream by a boolean (interpreted as 0 / 1 for false / true).</p>
 </div>
 </div>
 
-<pre><span id="VALcadd"><span class="keyword">val</span> cadd</span> : <code class="type">float -> float <a href="Stream.html#TYPEt">t</a> -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Add a constant to a stream.</p>
-</div>
-</div>
-
-<pre><span id="VALmul"><span class="keyword">val</span> mul</span> : <code class="type">float <a href="Stream.html#TYPEt">t</a> -> float <a href="Stream.html#TYPEt">t</a> -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALmul"><span class="keyword">val</span> mul</span> : <code class="type">float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Multiply two streams.</p>
 </div>
@@ -246,13 +240,13 @@
 </div>
 </div>
 
-<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type">float <a href="Stream.html#TYPEt">t</a> -> float <a href="Stream.html#TYPEt">t</a> -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type">float -> float -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Add two streams.</p>
 </div>
 </div>
 
-<pre><span id="VALmix"><span class="keyword">val</span> mix</span> : <code class="type">float <a href="Stream.html#TYPEt">t</a> list -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALmix"><span class="keyword">val</span> mix</span> : <code class="type">float list -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Add a list of streams.</p>
 </div>
@@ -446,7 +440,7 @@
 </div>
 </div>
 
-<pre><span id="VALcomb"><span class="keyword">val</span> comb</span> : <code class="type">unit -> float -> float -> <a href="Stream.html#TYPEsample">sample</a> -> float <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALcomb"><span class="keyword">val</span> comb</span> : <code class="type">?kind:[< `Feedback | `Feedforward > `Feedback ] -><br>       unit -> float -> float -> <a href="Stream.html#TYPEsample">sample</a> -> <a href="Stream.html#TYPEsample">sample</a> <a href="Stream.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>A <a href=" https://en.wikipedia.org/wiki/Comb_filter"> comb filter</a>.</p>
 </div>
@@ -526,5 +520,10 @@
 <div class="info-desc">
 <p>Duplicate a mono stream to become a stereo stream.</p>
 </div>
+</div>
+
+<pre><span id="MODULEB"><span class="keyword">module</span> <a href="Stream.B.html">B</a></span>: <code class="code">sig</code> <a href="Stream.B.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Binded functions.</p>
+
 </div>
 </body></html>

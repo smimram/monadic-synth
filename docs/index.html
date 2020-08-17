@@ -5,74 +5,75 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>Monadic synthesizers in OCaml</title>
-  <style type="text/css">
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-  </style>
-  <style type="text/css">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode { white-space: pre; position: relative; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
-}
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(title);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {  }
-@media screen {
-a.sourceLine::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
   <link rel="stylesheet" href="github.css" />
 </head>
@@ -80,26 +81,31 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <header id="title-block-header">
 <h1 class="title">Monadic synthesizers in OCaml</h1>
 </header>
-<nav id="TOC">
+<nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#monadic-synthesizers-in-ocaml">Monadic synthesizers in OCaml</a><ul>
+<li><a href="#monadic-synthesizers-in-ocaml">Monadic synthesizers in OCaml</a>
+<ul>
 <li><a href="#installing">Installing</a></li>
 <li><a href="#documentation">Documentation</a></li>
 </ul></li>
-<li><a href="#tutorial">Tutorial</a><ul>
-<li><a href="#our-first-sines">Our first sines</a><ul>
+<li><a href="#tutorial">Tutorial</a>
+<ul>
+<li><a href="#our-first-sines">Our first sines</a>
+<ul>
 <li><a href="#playing-a-sound">Playing a sound</a></li>
 <li><a href="#modulating-parameters">Modulating parameters</a></li>
 <li><a href="#returning-streams">Returning streams</a></li>
 <li><a href="#parameters-from-osc">Parameters from OSC</a></li>
 <li><a href="#other-examples">Other examples</a></li>
 </ul></li>
-<li><a href="#instruments">Instruments</a><ul>
+<li><a href="#instruments">Instruments</a>
+<ul>
 <li><a href="#arpeggiators">Arpeggiators</a></li>
 <li><a href="#custom-notes">Custom notes</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#advanced-topics">Advanced topics</a><ul>
+<li><a href="#advanced-topics">Advanced topics</a>
+<ul>
 <li><a href="#using-a-stream-multiple-times">Using a stream multiple times</a></li>
 <li><a href="#general-principles-behind-the-library">General principles behind the library</a></li>
 <li><a href="#ideas-for-the-future">Ideas for the future</a></li>
@@ -109,11 +115,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1 id="monadic-synthesizers-in-ocaml">Monadic synthesizers in OCaml</h1>
 <p>This library called <code>msynth</code> is my own take at organizing the various classical functions for performing audio synthesis. Our aim is to provide a clean programming environment in which one can easily try new ideas for synthesizers (performance is not a priority, although it is of course taken into account).</p>
 <p>It is mainly based on the idea that audio streams can be represented as functions <code>float -&gt; float</code>: such a function takes as argument the time <em>dt</em> elapsed since the last sample and returns the current value for the sample. Typically, when the sampling rate is 44100, <em>dt</em> will be 1/44100, but fancy effects might vary its value. The type</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">type</span> &#39;a stream = <span class="dt">float</span> -&gt; &#39;a</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">type</span> &#39;a stream = <span class="dt">float</span> -&gt; &#39;a</span></code></pre></div>
 <p>is thus called a <em>stream</em> of <code>'a</code>. It can be equipped with the structure of a <a href="https://en.wikipedia.org/wiki/Monad_(functional_programming)">monad</a> which can be used to easily compose operations on streams, especially since the recent introduction of the dedicated <a href="https://caml.inria.fr/pub/docs/manual-ocaml/bindingops.html">syntax for monads</a> in OCaml.</p>
 <h2 id="installing">Installing</h2>
 <p>The easiest way to install the library is to clone the <a href="https://github.com/smimram/monadic-synth">github repository</a> and type</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" title="1"><span class="ex">opam</span> pin add .</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ex">opam</span> pin add .</span></code></pre></div>
 <p>which will use opam to install the library and its dependencies.</p>
 <h2 id="documentation">Documentation</h2>
 <p>The main documentation consists in</p>
@@ -126,113 +132,114 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2 id="our-first-sines">Our first sines</h2>
 <h3 id="playing-a-sound">Playing a sound</h3>
 <p>When creating synthesizers, you typically want to open the <code>Stream</code> module:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">open</span> <span class="dt">Stream</span></a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">open</span> <span class="dt">Stream</span></span></code></pre></div>
 <p>In subsequent code, we always suppose that this was done. Our first example consists in playing a sine at 440Hz, which can be obtained with</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb4-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb4-2" title="2">  <span class="kw">let</span> s = sine () <span class="dv">440</span>. &gt;&gt;= stereo <span class="kw">in</span></a>
-<a class="sourceLine" id="cb4-3" title="3">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>  <span class="kw">let</span> s = sine () <span class="dv">440</span>. &gt;&gt;= stereo <span class="kw">in</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>We use the function <code>sine</code> to create the oscillator (which oscillates 440 times per second between -1 and 1), then use <code>&gt;&gt;=</code> to pipe it to the <code>stereo</code> operator which converts a stream into a stereo one (a <em>stereo stream</em> is a stream of pairs of floats), and finally use <code>Output.play</code> to stream the result. Another equivalent way to write this is</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb5-2" title="2">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb5-3" title="3">    <span class="kw">let</span>* x = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb5-4" title="4">    stereo x</a>
-<a class="sourceLine" id="cb5-5" title="5">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb5-6" title="6">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>    <span class="kw">let</span>* x = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>    stereo x</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>where the expression <code>let* x = s in e</code> can be interpreted as <em>given <code>x</code> the current value of the stream <code>s</code> return <code>e</code></em>. A last possible syntax (which is less clear in our opinion) would be</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb6-2" title="2">  <span class="kw">let</span> s = bind stereo (sine () <span class="dv">440</span>.) <span class="kw">in</span></a>
-<a class="sourceLine" id="cb6-3" title="3">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>  <span class="kw">let</span> s = bind stereo (sine () <span class="dv">440</span>.) <span class="kw">in</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>Here, the <code>bind</code> operator has type</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb7-1" title="1">(&#39;a -&gt; &#39;b t) -&gt; (&#39;a t -&gt; &#39;b &#39;t)</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a>(&#39;a -&gt; &#39;b t) -&gt; (&#39;a t -&gt; &#39;b &#39;t)</span></code></pre></div>
 <p>i.e. it transforms a function returning a stream so that it can take a stream as argument.</p>
 <h3 id="modulating-parameters">Modulating parameters</h3>
 <p>One of the main advantage of using the monadic syntax is that all arguments can vary over time. For instance, we can achieve a vibrato as follows:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb8-2" title="2">  <span class="kw">let</span> lfo = sine () <span class="kw">in</span></a>
-<a class="sourceLine" id="cb8-3" title="3">  <span class="kw">let</span> vco = sine () <span class="kw">in</span></a>
-<a class="sourceLine" id="cb8-4" title="4">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb8-5" title="5">    <span class="kw">let</span>* f = lfo <span class="dv">5</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb8-6" title="6">    vco (<span class="dv">440</span>. +. <span class="dv">10</span>. *. f)</a>
-<a class="sourceLine" id="cb8-7" title="7">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb8-8" title="8">  Output.play (s &gt;&gt;= stereo)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a>  <span class="kw">let</span> lfo = sine () <span class="kw">in</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>  <span class="kw">let</span> vco = sine () <span class="kw">in</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>    <span class="kw">let</span>* f = lfo <span class="dv">5</span>. <span class="kw">in</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true"></a>    vco (<span class="dv">440</span>. +. <span class="dv">10</span>. *. f)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true"></a>  Output.play (s &gt;&gt;= stereo)</span></code></pre></div>
 <p>Here, we begin by creating two oscillators respectively called <code>lfo</code> and <code>vco</code> (the names come from the <a href="https://en.wikipedia.org/wiki/Low-frequency_oscillation">LFO</a> and <a href="https://en.wikipedia.org/wiki/Voltage-controlled_oscillator">VCO</a> electric circuits) and state that the source <code>s</code> is the vco oscillator whose frequency is around 440 Hz, varying by ±10 Hz at the rate of 5 Hz (the rate of the lfo). Note that since the frequency is exponential with respect to notes, a vibrato of half a semitone should rather be achieved by replacing the last line in the definition of <code>s</code> by</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb9-1" title="1">    vco (<span class="dv">440</span>. *. <span class="dv">2</span>. ** (<span class="fl">0.5</span> *. f /. <span class="dv">12</span>.))</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a>    vco (<span class="dv">440</span>. *. <span class="dv">2</span>. ** (<span class="fl">0.5</span> *. f /. <span class="dv">12</span>.))</span></code></pre></div>
 <p>but we leave this kind of details to you. Here, it is important that the oscillators are created <em>beforehand</em>. If we try the code</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb10-2" title="2">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb10-3" title="3">    <span class="kw">let</span>* f = sine () <span class="dv">5</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb10-4" title="4">    sine () (<span class="dv">440</span>. +. <span class="dv">10</span>. *. f)</a>
-<a class="sourceLine" id="cb10-5" title="5">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb10-6" title="6">  Output.play (s &gt;&gt;= stereo)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>    <span class="kw">let</span>* f = sine () <span class="dv">5</span>. <span class="kw">in</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>    sine () (<span class="dv">440</span>. +. <span class="dv">10</span>. *. f)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>  Output.play (s &gt;&gt;= stereo)</span></code></pre></div>
 <p>we do not hear any sound: this is because we create a new oscillator at each sample, and thus always hear the first sample of the oscillator which is 0, and this is not what we want. The general rule is: declare all operators before the first <code>let*</code>.</p>
 <p>Another way to write the same program as above, with the <code>&gt;&gt;=</code> operator, would be</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb11-2" title="2">  <span class="kw">let</span> s = cadd <span class="dv">440</span>. (cmul <span class="dv">10</span>. (sine () <span class="dv">5</span>.)) &gt;&gt;= sine () &gt;&gt;= stereo <span class="kw">in</span></a>
-<a class="sourceLine" id="cb11-3" title="3">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a>  <span class="kw">let</span> s = B.cadd <span class="dv">440</span>. (B.cmul <span class="dv">10</span>. (sine () <span class="dv">5</span>.)) &gt;&gt;= sine () &gt;&gt;= stereo <span class="kw">in</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p><em>Exercise</em>: play a sine with tremolo, which can be achieved by periodically varying its amplitude.</p>
 <p>As another example, instead of generating a sine, we are going to generate a square wave, using the <code>square</code> operator: by default, its value is 1 over half a period and -1 over the other half. However, there is no particular reason to do half and half, and we call the <em>width</em> of a square wave, the portion of the period its value is 1 (by default, the width is thus 0.5). We can achieve nice sounds by periodically modulating this value, which is called <a href="https://en.wikipedia.org/wiki/Pulse-width_modulation">pulse width modulation</a>. For instance:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb12-2" title="2">  <span class="kw">let</span> lfo = sine () <span class="dv">2</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb12-3" title="3">  <span class="kw">let</span> osc = square () <span class="kw">in</span></a>
-<a class="sourceLine" id="cb12-4" title="4">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb12-5" title="5">    <span class="kw">let</span>* lfo = lfo <span class="kw">in</span></a>
-<a class="sourceLine" id="cb12-6" title="6">    <span class="kw">let</span> width = <span class="fl">0.5</span> +. <span class="fl">0.3</span> *. lfo <span class="kw">in</span></a>
-<a class="sourceLine" id="cb12-7" title="7">    osc ~width <span class="dv">440</span>.</a>
-<a class="sourceLine" id="cb12-8" title="8">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb12-9" title="9">  Output.play (s &gt;&gt;= stereo)</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  <span class="kw">let</span> lfo = sine () <span class="dv">2</span>. <span class="kw">in</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = square () <span class="kw">in</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a>    <span class="kw">let</span>* lfo = lfo <span class="kw">in</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>    <span class="kw">let</span> width = <span class="fl">0.5</span> +. <span class="fl">0.3</span> *. lfo <span class="kw">in</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>    osc ~width <span class="dv">440</span>.</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>  Output.play (s &gt;&gt;= stereo)</span></code></pre></div>
 <p>Here, we generate a square wave (<code>osc</code>) whose width is modulated between 0.2 and 0.8 by a sine oscillator (<code>lfo</code>) at the frequency of 2 Hz.</p>
 <h3 id="returning-streams">Returning streams</h3>
 <p>We can create constant streams with the <code>return</code> function, which creates a stream whose value is always the one given in the argument. For instance, we can define the pairing function with</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">let</span> pair x y = return (x, y)</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="kw">let</span> pair x y = return (x, y)</span></code></pre></div>
 <p>Given two values <code>x</code> and <code>y</code>, it creates the stream whose value is always the pair <code>(x, y)</code>. We can then use it to play a sine at different frequency over each channel with</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb14-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb14-2" title="2">  <span class="kw">let</span> left  = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb14-3" title="3">  <span class="kw">let</span> right = sine () <span class="dv">880</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb14-4" title="4">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb14-5" title="5">    <span class="kw">let</span>* x = left  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb14-6" title="6">    <span class="kw">let</span>* y = right <span class="kw">in</span></a>
-<a class="sourceLine" id="cb14-7" title="7">    pair x y</a>
-<a class="sourceLine" id="cb14-8" title="8">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb14-9" title="9">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>  <span class="kw">let</span> left  = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>  <span class="kw">let</span> right = sine () <span class="dv">880</span>. <span class="kw">in</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true"></a>    <span class="kw">let</span>* x = left  <span class="kw">in</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true"></a>    <span class="kw">let</span>* y = right <span class="kw">in</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true"></a>    pair x y</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>Another possible way to write this is using the <code>bind2</code> operators whose type is</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb15-1" title="1">(&#39;a -&gt; &#39;b -&gt; &#39;c t) -&gt; (&#39;a t -&gt; &#39;b t -&gt; &#39;c t)</a></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a>(&#39;a -&gt; &#39;b -&gt; &#39;c t) -&gt; (&#39;a t -&gt; &#39;b t -&gt; &#39;c t)</span></code></pre></div>
 <p>i.e. it transforms a function with two arguments which returns a stream, so that it accepts streams as arguments:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb16-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb16-2" title="2">  <span class="kw">let</span> left  = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb16-3" title="3">  <span class="kw">let</span> right = sine () <span class="dv">880</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb16-4" title="4">  <span class="kw">let</span> s = bind2 pair left right <span class="kw">in</span></a>
-<a class="sourceLine" id="cb16-5" title="5">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a>  <span class="kw">let</span> left  = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a>  <span class="kw">let</span> right = sine () <span class="dv">880</span>. <span class="kw">in</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a>  <span class="kw">let</span> s = bind2 pair left right <span class="kw">in</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <h3 id="parameters-from-osc">Parameters from OSC</h3>
 <p>One way to dynamically acquire parameters is to use the <a href="https://en.wikipedia.org/wiki/Open_Sound_Control">OSC</a> which is supported by many software and hardware controllers (for instance, this <a href="https://play.google.com/store/apps/details?id=com.ffsmultimedia.osccontroller">free app on Android</a>). In order to be able to use this, we should first call the function <code>OSC.server</code> (which takes the port number on which it should listen as argument). The value of a controller can then be acquired with the function <code>OSC.float</code>, which takes as argument the path of the controller and its initial value and returns a stream of its values.</p>
 <p>For instance, in the following, we can play a saw oscillator chained with a <a href="https://en.wikipedia.org/wiki/Low-pass_filter">low-pass filter</a> where the global volume, the <a href="https://en.wikipedia.org/wiki/Q_factor">Q factor</a> and <a href="https://en.wikipedia.org/wiki/Cutoff_frequency">cutoff frequency</a> of the filter can be configured though OSC controls as follows.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb17-2" title="2">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb17-3" title="3">    <span class="kw">let</span> osc = saw () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-4" title="4">    <span class="kw">let</span> lp  = Filter.biquad () `Low_pass <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-5" title="5">    <span class="kw">let</span> a   = OSC.<span class="dt">float</span> <span class="st">&quot;/oscControl/slider1&quot;</span> <span class="fl">0.5</span> <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-6" title="6">    <span class="kw">let</span> lpq = OSC.<span class="dt">float</span> <span class="st">&quot;/oscControl/slider2&quot;</span> ~<span class="dt">min</span>:<span class="fl">0.1</span> ~<span class="dt">max</span>:<span class="dv">5</span>. <span class="dv">1</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-7" title="7">    <span class="kw">let</span> lpf = OSC.<span class="dt">float</span> ~mode:`Logarithmic <span class="st">&quot;/oscControl/slider3&quot;</span> ~<span class="dt">max</span>:<span class="dv">10000</span>. <span class="dv">1500</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-8" title="8">    <span class="kw">let</span> a   = a   &gt;&gt;= print <span class="st">&quot;a&quot;</span> <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-9" title="9">    <span class="kw">let</span> lpq = lpq &gt;&gt;= print <span class="st">&quot;q&quot;</span> <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-10" title="10">    <span class="kw">let</span> lpf = lpf &gt;&gt;= print <span class="st">&quot;f&quot;</span> <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-11" title="11">    <span class="kw">let</span>* a  = a <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-12" title="12">    <span class="kw">let</span>* f  = lpf <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-13" title="13">    <span class="kw">let</span>* q  = lpq <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-14" title="14">    osc</a>
-<a class="sourceLine" id="cb17-15" title="15">    &gt;&gt;= lp q f</a>
-<a class="sourceLine" id="cb17-16" title="16">    &gt;&gt;= amp a</a>
-<a class="sourceLine" id="cb17-17" title="17">    &gt;&gt;= stereo</a>
-<a class="sourceLine" id="cb17-18" title="18">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb17-19" title="19">  OSC.server <span class="dv">10000</span>;</a>
-<a class="sourceLine" id="cb17-20" title="20">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true"></a>    <span class="kw">let</span> osc = saw () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true"></a>    <span class="kw">let</span> lp  = Filter.biquad () `Low_pass <span class="kw">in</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true"></a>    <span class="kw">let</span> a   = OSC.<span class="dt">float</span> <span class="st">&quot;/oscControl/slider1&quot;</span> <span class="fl">0.5</span> <span class="kw">in</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true"></a>    <span class="kw">let</span> lpq = OSC.<span class="dt">float</span> <span class="st">&quot;/oscControl/slider2&quot;</span> ~<span class="dt">min</span>:<span class="fl">0.1</span> ~<span class="dt">max</span>:<span class="dv">5</span>. <span class="dv">1</span>. <span class="kw">in</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true"></a>    <span class="kw">let</span> lpf = OSC.<span class="dt">float</span> ~mode:`Logarithmic <span class="st">&quot;/oscControl/slider3&quot;</span> ~<span class="dt">max</span>:<span class="dv">10000</span>. <span class="dv">1500</span>. <span class="kw">in</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true"></a>    <span class="kw">let</span> a   = a   &gt;&gt;= print <span class="st">&quot;a&quot;</span> <span class="kw">in</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true"></a>    <span class="kw">let</span> lpq = lpq &gt;&gt;= print <span class="st">&quot;q&quot;</span> <span class="kw">in</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true"></a>    <span class="kw">let</span> lpf = lpf &gt;&gt;= print <span class="st">&quot;f&quot;</span> <span class="kw">in</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true"></a>    <span class="kw">let</span>* a  = a <span class="kw">in</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true"></a>    <span class="kw">let</span>* f  = lpf <span class="kw">in</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true"></a>    <span class="kw">let</span>* q  = lpq <span class="kw">in</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true"></a>    osc</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true"></a>    &gt;&gt;= lp q f</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true"></a>    &gt;&gt;= amp a</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true"></a>    &gt;&gt;= stereo</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true"></a>  OSC.server <span class="dv">10000</span>;</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>Here, we begin by creating the saw oscillator (<code>osc</code>) and the low-pass filter (<code>lp</code>), as well as the streams corresponding to the controllers for amplification, q and cutoff frequency. The line</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb18-1" title="1"><span class="kw">let</span> a = a &gt;&gt;= print <span class="st">&quot;a&quot;</span> <span class="kw">in</span></a></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="kw">let</span> a = a &gt;&gt;= print <span class="st">&quot;a&quot;</span> <span class="kw">in</span></span></code></pre></div>
 <p>makes the value for amplification <code>a</code> being printed on standard output when it changes, which is useful for debugging. Finally, the stream consists in the oscillator which goes through the filter, is amplified, and finally converted to stereo.</p>
 <h3 id="other-examples">Other examples</h3>
 <ul>
 <li><a href="https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml">thx.ml</a>: a quick recreation of the <a href="https://www.youtube.com/watch?v=uYMpMcmpfkI">THX deep note</a> by adding many saw oscillators, whose frequency is initially between 200 and 400 Hz, and slowly evolve to the same note at various octaves.</li>
 </ul>
 <h2 id="instruments">Instruments</h2>
+<p>Unless you are making <a href="https://en.wikipedia.org/wiki/Musique_concr%C3%A8te">concrete music</a></p>
 <p>….</p>
 <p>TODO: ADSR on the envelope</p>
 <h3 id="arpeggiators">Arpeggiators</h3>
@@ -241,27 +248,27 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1 id="advanced-topics">Advanced topics</h1>
 <h2 id="using-a-stream-multiple-times">Using a stream multiple times</h2>
 <p>Streams should not be used multiple times. For instance, if we want to play the same sine on the left and the right channel, we might be tempted two write</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb19-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb19-2" title="2">  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></a>
-<a class="sourceLine" id="cb19-3" title="3">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb19-4" title="4">  <span class="kw">let</span> s = bind2 pair osc osc <span class="kw">in</span></a>
-<a class="sourceLine" id="cb19-5" title="5">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a>  <span class="kw">let</span> s = bind2 pair osc osc <span class="kw">in</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>but the result is that we hear a sine at 880 Hz. The reason is that each time we pull a sample for <code>s</code>, we actually pull two samples from <code>osc</code>: once for the left channel and once for the right channel. One way to avoid this is to explicitly extract the value of the stream, and there is no problem in duplicated this value:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb20-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb20-2" title="2">  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></a>
-<a class="sourceLine" id="cb20-3" title="3">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb20-4" title="4">  <span class="kw">let</span> s =</a>
-<a class="sourceLine" id="cb20-5" title="5">    <span class="kw">let</span>* x = osc <span class="kw">in</span></a>
-<a class="sourceLine" id="cb20-6" title="6">    pair x x</a>
-<a class="sourceLine" id="cb20-7" title="7">  <span class="kw">in</span></a>
-<a class="sourceLine" id="cb20-8" title="8">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a>  <span class="kw">let</span> s =</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a>    <span class="kw">let</span>* x = osc <span class="kw">in</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a>    pair x x</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a>  <span class="kw">in</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <p>Another way consists in using the <code>dup</code> operator, which returns a pair: the first one should be used first to evaluate the stream and the second one is a stream which can be used as many times as we want. We can thus rewrite our example as follows:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb21-1" title="1"><span class="kw">let</span> () =</a>
-<a class="sourceLine" id="cb21-2" title="2">  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></a>
-<a class="sourceLine" id="cb21-3" title="3">  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></a>
-<a class="sourceLine" id="cb21-4" title="4">  <span class="kw">let</span> eval, osc = dup () osc <span class="kw">in</span></a>
-<a class="sourceLine" id="cb21-5" title="5">  <span class="kw">let</span> s = eval &gt;&gt; bind2 pair osc osc <span class="kw">in</span></a>
-<a class="sourceLine" id="cb21-6" title="6">  Output.play s</a></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true"></a><span class="kw">let</span> () =</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true"></a>  <span class="kw">let</span> pair x y = return (x, y) <span class="kw">in</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true"></a>  <span class="kw">let</span> osc = sine () <span class="dv">440</span>. <span class="kw">in</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true"></a>  <span class="kw">let</span> eval, osc = dup () osc <span class="kw">in</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true"></a>  <span class="kw">let</span> s = eval &gt;&gt; bind2 pair osc osc <span class="kw">in</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true"></a>  Output.play s</span></code></pre></div>
 <h2 id="general-principles-behind-the-library">General principles behind the library</h2>
 <ul>
 <li>Clean code is more important than efficient code (although we want to remain reasonably efficient).</li>

@@ -23,7 +23,12 @@
 &nbsp;</div>
 <h1>Module <a href="type_Stream.Sample.Ringbuffer.html">Stream.Sample.Ringbuffer</a></h1>
 
-<pre><span id="MODULERingbuffer"><span class="keyword">module</span> Ringbuffer</span>: <code class="code">sig</code> <a href="Stream.Sample.Ringbuffer.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULERingbuffer"><span class="keyword">module</span> Ringbuffer</span>: <code class="code">sig</code> <a href="Stream.Sample.Ringbuffer.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Ringbuffers.</p>
+</div>
+</div>
+<hr width="100%">
 
 <pre><code><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = {</code></pre><table class="typetable">
 <tr>
@@ -42,6 +47,11 @@
 </tr></table>
 <code>}</code>
 
+<div class="info ">
+<div class="info-desc">
+<p>A ringbuffer.</p>
+</div>
+</div>
 
 
 <pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">unit -> <a href="Stream.Sample.Ringbuffer.html#TYPEt">t</a></code></pre>
@@ -57,6 +67,11 @@
 </div>
 </div>
 
-<pre><span id="VALadvance"><span class="keyword">val</span> advance</span> : <code class="type"><a href="Stream.Sample.Ringbuffer.html#TYPEt">t</a> -> unit</code></pre>
+<pre><span id="VALadvance"><span class="keyword">val</span> advance</span> : <code class="type"><a href="Stream.Sample.Ringbuffer.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Advance the write cursor by one sample.</p>
+</div>
+</div>
+
 <pre><span id="VALpast"><span class="keyword">val</span> past</span> : <code class="type"><a href="Stream.Sample.Ringbuffer.html#TYPEt">t</a> -> int -> <a href="Stream.html#TYPEsample">Stream.sample</a></code></pre>
 <pre><span id="VALwrite"><span class="keyword">val</span> write</span> : <code class="type"><a href="Stream.Sample.Ringbuffer.html#TYPEt">t</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> unit</code></pre></body></html>

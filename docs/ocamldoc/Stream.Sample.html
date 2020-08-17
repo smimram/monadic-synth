@@ -36,7 +36,11 @@
 
 <pre><span id="VALevery"><span class="keyword">val</span> every</span> : <code class="type">unit -> int -> bool <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
 <pre><span id="VALconvolve"><span class="keyword">val</span> convolve</span> : <code class="type">float array -> float -> unit -> float</code></pre>
-<pre><span id="MODULERingbuffer"><span class="keyword">module</span> <a href="Stream.Sample.Ringbuffer.html">Ringbuffer</a></span>: <code class="code">sig</code> <a href="Stream.Sample.Ringbuffer.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULERingbuffer"><span class="keyword">module</span> <a href="Stream.Sample.Ringbuffer.html">Ringbuffer</a></span>: <code class="code">sig</code> <a href="Stream.Sample.Ringbuffer.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Ringbuffers.</p>
+
+</div>
+
 <pre><span id="VALdelay"><span class="keyword">val</span> delay</span> : <code class="type">unit -> int -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Delay the signal by given amount of samples.</p>
@@ -51,9 +55,9 @@
 </div>
 </div>
 
-<pre><span id="VALcomb"><span class="keyword">val</span> comb</span> : <code class="type">unit -> int -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<pre><span id="VALcomb"><span class="keyword">val</span> comb</span> : <code class="type">?kind:[< `Feedback | `Feedforward > `Feedback ] -><br>       unit -> int -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
 <div class="info-desc">
-<p>Feedback comb filter.</p>
+<p>Comb filter.</p>
 </div>
 </div>
 
