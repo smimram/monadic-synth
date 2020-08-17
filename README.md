@@ -149,7 +149,7 @@ be
 
 ```ocaml
 let () =
-  let s = cadd 440. (cmul 10. (sine () 5.)) >>= sine () >>= stereo in
+  let s = B.cadd 440. (B.cmul 10. (sine () 5.)) >>= sine () >>= stereo in
   Output.play s
 ```
 
@@ -285,6 +285,9 @@ stereo.
   evolve to the same note at various octaves.
 
 ## Instruments
+
+Unless you are making [concrete
+music](https://en.wikipedia.org/wiki/Musique_concr%C3%A8te)
 
 ....
 

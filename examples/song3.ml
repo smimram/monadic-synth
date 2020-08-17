@@ -4,7 +4,7 @@ let tempo = 130.
 
 let s =
   let synth = Pattern.concat [[0.,8.,`Chord([69;71;72;76],1.)];[0.,8.,`Chord([68;71;74;76],1.)]] in
-  let synth = Pattern.arpeggiate tempo `Up synth in
+  let synth = Pattern.arpeggiate `Up synth in
   let synth = Pattern.transpose (-12) synth in
 
   let sound () = saw () in

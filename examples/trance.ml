@@ -16,19 +16,19 @@ let s =
     let adsr = adsr ~event ~on_die () ~a:0.01 ~d:0.1 ~r:0.001 () in
     let dup_adsr, adsr = dup () adsr in
     let fm = fm ~carrier:`Saw ~modulator:`Triangle () in
-    let exp = Envelope.exponential_hl () in
+    (* let exp = Envelope.exponential_hl () in *)
     fun freq vol ->
-      let s = dup_adsr >> cmul 500. adsr >>= (fun depth -> fm ~ratio:1. depth freq) in
-      let r = exp (vol *. 0.04) in
-      let r = cadd 500. (cmul (10000.*.vol**4.) r) in
+      let s = dup_adsr >> B.cmul 500. adsr >>= (fun depth -> fm ~ratio:1. depth freq) in
+      (* let r = exp (vol *. 0.04) in *)
+      (* let r = cadd 500. (cmul (10000.*.vol**4.) r) in *)
       (* let s = bind2 (Filter.biquad ~dt `Low_pass 4.) r s in *)
-      mul s adsr
+      B.mul s adsr
   in
   let bass v = [0.,4.,`Nop; 0.,0.5,`Note (64,v); 0.75,0.5,`Note (64,v); 1.5,0.5,`Note (64,v); 2.5,0.5,`Note (64,v); 3.,0.5,`Note (65,v)] in
   let bass = Pattern.concat (List.map bass [0.6;0.7;0.8;1.]) in
   let bass = Pattern.transpose (-24) bass in
   let bass = Instrument.play bass_note (Pattern.stream ~loop:true tempo bass) in
-  let bass = cmul 0.08 bass in
+  let bass = B.cmul 0.08 bass in
   (* let bass = bind3 (Filter.biquad ~dt `Low_pass) (OSC.float "/1/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/1/fader4" ~min:1. ~max:5000. 5000.) bass in *)
   (* let bass = bass >>= stereo >>= Stereo.dephase ~dt 0.01 in *)
   let bass = bass >>= Stereo.schroeder2 () in
@@ -40,7 +40,7 @@ let s =
   (* let slice = Instrument.play ~dt (Note.simple saw) (Pattern.midi tempo slice) in *)
   (* let slice = slice >>= Slicer.eurotrance ~dt (Note.duration tempo 1.) in *)
   (* let slice = slice >>= amp 0.4 >>= stereo in *)
-  let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> cmul vol (Note.Drum.snare ~on_die ~lp:2400. ())) in
+  let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> Note.Drum.snare ~on_die ~lp:2400. () >>= amp vol) in
   let drums = pd (Pattern.midi_drums ~loop:true tempo (Pattern.load_drums "basic.drums")) >>= amp 1. >>= stereo in
   (* let drums = *)
     (* let fv = Stereo.freeverb () in *)

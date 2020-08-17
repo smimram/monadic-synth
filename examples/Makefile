@@ -18,7 +18,7 @@ debug: lib bug
 clean:
 	rm -f $(wildcard *.cmi *.cmx *.o) $(PROG)
 
-%: %.ml lib ../src/msynth.cmxa
+%: %.ml ../src/msynth.cmxa
 	ocamlfind ocamlopt -package alsa,lo,graphics,threads -thread -I ../src \
 	graphics.cmxa str.cmxa alsa.cmxa unix.cmxa threads.cmxa lo.cmxa msynth.cmxa \
 	-o $@ $<

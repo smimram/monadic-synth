@@ -39,6 +39,13 @@ let bind3 f x y z =
 let bind4 f x y z t =
   bind (fun x -> bind (fun y -> bind (fun z -> bind (f x y z) t) z) y) x
 
+(** Bind a function taking a list of arguments. *)
+let rec bind_list f = function
+  | [] -> f []
+  | x::l ->
+    let f x l = f (x::l) in
+    bind (fun x -> bind_list (f x) l) x
+
 (** Functoriality of the stream monad. *)
 let funct : ('a -> 'b) -> 'a t -> 'b t =
   fun f x -> bind (fun x -> return (f x)) x
@@ -205,34 +212,22 @@ let cst x : sample t = return x
 (** The constantly zero stream. *)
 let blank = cst 0.
 
-(** Multiply a stream by a constant. *)
-let cmul a s =
-  let f x = return (a *. x) in
-  s >>= f
-
 (** Multiply a stream by a boolean (interpreted as 0 / 1 for false / true). *)
-let bmul b s =
-  let* b = b in
-  let* x = s in
+let bmul b x =
   if b then return x else return 0.
 
-(** Add a constant to a stream. *)
-let cadd a s =
-  let f x = return (a +. x) in
-  s >>= f
-
 (** Multiply two streams. *)
-let mul = funct2 ( *. )
+let mul x y = return (x *. y)
 
 (** Amplify a stream. *)
-let amp x y = return (x *. y)
+let amp = mul
 
 (** Add two streams. *)
-let add = funct2 ( +. )
+let add x y = return (x +. y)
 
 (** Add a list of streams. *)
 let rec mix ss =
-  List.fold_left (funct2 (+.)) blank ss
+  return (List.fold_left (+.) 0. ss)
 
 (** Subtract streams. *)
 let sub = funct2 ( -. )
@@ -463,11 +458,13 @@ module Sample = struct
       if !n = len then n := 0;
       !ans
 
+  (** Ringbuffers. *)
   module Ringbuffer = struct
+    (** A ringbuffer. *)
     type t =
       {
-        mutable buffer : sample array;
-        mutable pos : int;
+        mutable buffer : sample array; (* Buffer. *)
+        mutable pos : int; (* Write cursor. *)
       }
 
     let create () =
@@ -492,6 +489,7 @@ module Sample = struct
     let size r =
       Array.length r.buffer - 1
 
+    (** Advance the write cursor by one sample. *)
     let advance r =
       r.pos <- r.pos + 1;
       if r.pos >= Array.length r.buffer then r.pos <- 0
@@ -528,13 +526,20 @@ module Sample = struct
       Ringbuffer.write r y;
       return y
 
-  (** Feedback comb filter. *)
+  (** Comb filter. *)
+  (* https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html *)
   (* https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html *)
-  let comb () =
-    let d = delay () in
-    fun m a x ->
-      let* x' = d m x in
-      return (x -. a *. x')
+  let comb ?(kind=`Feedback) () =
+    match kind with
+    | `Feedback ->
+      let d = rec_delay () in
+      fun m a x ->
+        d m (fun y' -> return (x -. a *. y'))
+    | `Feedforward ->
+      let d = delay () in
+      fun m a x ->
+        let* x' = d m x in
+        return (x +. a *. x')
 
   (** All-pass filter. *)
   (* https://ccrma.stanford.edu/~jos/Delay/Schroeder_Allpass_Filters.html and
@@ -1013,8 +1018,8 @@ let delay () =
     return ans
 
 (** A {{: https://en.wikipedia.org/wiki/Comb_filter} comb filter}. *)
-let comb () =
-  let comb = Sample.comb () in
+let comb ?kind () =
+  let comb = Sample.comb ?kind () in
   fun delay a x ->
     let* delay = samples delay in
     comb delay a x
@@ -1221,7 +1226,7 @@ module Stereo = struct
     fun ?dry ?wet ?(feedback=0.6) delay ((x,y) as c) ->
       let x = delay_l ?dry ?wet ~feedback delay x in
       let y = delay_r0 y >>= delay_r ?dry ?wet ~feedback delay in
-      add (return c) (merge (cmul feedback x) (cmul feedback y))
+      add (return c) (merge (bind (mul feedback) x) (bind (mul feedback) y))
 
   let mix ss =
     List.fold_left add blank ss
@@ -1278,8 +1283,9 @@ module Stereo = struct
     fun (x : sample) -> (return (l *. x, r *. x) : sample t)
 
   (** {{: https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html} Schroeder reverberation}. *)
-  let schroeder () =
-    let fbcf d g = comb () d (-.g) in
+  let schroeder ?(size=`Small) () =
+    let kind = match size with `Small -> `Feedforward | `Large -> `Feedback in
+    let fbcf d g = comb ~kind () d (-.g) in
     let ap () = schroeder_allpass () in
     (* Original values are given for a 25 kHz sampling rate .*)
     let ap1 = ap () (347./.25000.) 0.7 in
@@ -1420,3 +1426,20 @@ end
 
 (** Duplicate a mono stream to become a stereo stream. *)
 let stereo = Stereo.of_mono
+
+(** Binded functions. *)
+module B = struct
+  (** Add a constant. *)
+  let cadd x = bind (add x)
+
+  let add = bind2 add
+
+  (** Multiply by a constant. *)
+  let cmul x = bind (mul x)
+
+  let mul = bind2 mul
+
+  let bmul = bind2 bmul
+
+  let mix = bind_list mix
+end

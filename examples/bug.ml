@@ -10,9 +10,9 @@ let s =
     fun freq vol ->
       let s = s freq in
       let sd = sd (freq *. 1.007) in
-      let s = if detune then cmul 0.8 (add s sd) else s in
-      let s = mul env s in
-      cmul vol s
+      let s = if detune then B.cmul 0.8 (B.add s sd) else s in
+      let s = B.mul env s in
+      B.cmul vol s
   in
   let vm = 1. in
   let melody =
@@ -26,8 +26,8 @@ let s =
   (* let melody = Pattern.repeat 3 melody in *)
   let melody = Pattern.append melody [0.,4.,`Nop] in
   let melody = Instrument.play (note ~detune:false ~r:0.3 saw) (Pattern.stream ~loop:true tempo melody) in
-  let melody = bind2 (Filter.first_order () `Low_pass) (add (cst 600.) (cmul 300. (sine () 10.))) melody in
-  let melody = mul melody (OSC.float "/1/fader2" 1.) in
+  let melody = bind2 (Filter.first_order () `Low_pass) (B.add (cst 600.) (B.cmul 300. (sine () 10.))) melody in
+  let melody = B.mul melody (OSC.float "/1/fader2" 1.) in
   let melody = bind3 (Filter.biquad () `Low_pass) (OSC.float "/1/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/1/fader4" ~max:10000. 10000.) melody in
   let melody = melody >>= Stereo.of_mono in
   let melody = melody >>= Stereo.dephase () 0.01 in
@@ -38,15 +38,15 @@ let s =
   let synth = Instrument.play (note karplus_strong) (Pattern.stream ~loop:true tempo synth) in
   (* (\* let disto = add (cst (-1.)) (cmul 2. (OSC.float "/1/fader4" 0.5)) in *\) *)
   (* (\* let synth = bind2 disto synth (distortion ~dt) in *\) *)
-  let synth = mul (OSC.float "/1/fader1" 0.5) synth in
+  let synth = B.mul (OSC.float "/1/fader1" 0.5) synth in
   let synth = synth >>= flanger () ~wet:0.8 0.001 (Note.duration tempo 1.) in
   let vb = 1.1 in
   let bass = [0.,16.,`Nop;0.,3.,`Note (41, vb);4.,3.,`Note (38, vb);8.,3.,`Note (45, vb);12.,3.,`Note (45, vb)] in
   let bass = Instrument.play (note ~s:0.8 ~r:0.4 sine) (Pattern.stream ~loop:true tempo bass) in
   let kick = Pattern.repeat 16 [0.,0.25,`Note(69,1.8);0.,1.,`Nop] in
-  let kick = Instrument.play_drum (fun ~on_die freq vol -> cmul vol (Note.Drum.kick ~on_die ())) (Pattern.stream ~loop:true tempo kick) in
+  let kick = Instrument.play_drum (fun ~on_die freq vol -> B.cmul vol (Note.Drum.kick ~on_die ())) (Pattern.stream ~loop:true tempo kick) in
   let snare = Pattern.repeat 16 [1.,0.25,`Note(69,0.8);0.,2.,`Nop] in
-  let snare = Instrument.play_drum (fun ~on_die freq vol -> cmul vol (Note.Drum.snare ~on_die ())) (Pattern.stream ~loop:true tempo snare) in
+  let snare = Instrument.play_drum (fun ~on_die freq vol -> B.cmul vol (Note.Drum.snare ~on_die ())) (Pattern.stream ~loop:true tempo snare) in
   let s = synth in
   (* (\* let s = bind2 (integrate ~dt 100.) s (Filter.first_order ~dt `Low_pass) in *\) *)
   (* (\* let s = s >>= slicer ~dt 0.01 in *\) *)

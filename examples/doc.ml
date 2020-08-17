@@ -72,7 +72,7 @@ let () =
   Output.play s
 
 let () =
-  let s = cadd 440. (cmul 10. (sine () 5.)) >>= sine () >>= stereo in
+  let s = B.cadd 440. (B.cmul 10. (sine () 5.)) >>= sine () >>= stereo in
   Output.play s
 
 let () =

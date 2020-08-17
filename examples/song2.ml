@@ -11,7 +11,7 @@ let s =
     let square = square () in
     let saw = saw () in
     fun freq ->
-    cmul 0.5 (add (square (freq *. 1.007)) (saw freq))
+    B.cmul 0.5 (B.add (square (freq *. 1.007)) (saw freq))
   in
   let synth = Instrument.play (Note.simple sound) (Pattern.stream ~loop:true tempo synth) in
   let lp_q = OSC.float "/1/fader1" ~min:0.1 ~max:5. 1. in
@@ -20,7 +20,7 @@ let s =
   let slicer = Slicer.staccato () ~s:0.5 in
   let slicer lp_q lp_freq = slicer ~lp_q ~lp_freq (Note.duration tempo 0.5) in
   let synth = bind3 slicer lp_q lp_freq synth in
-  let synth = cmul 0.2 synth in
+  let synth = B.cmul 0.2 synth in
   (* let synth = *)
     (* let flanger = flanger ~dt 0.01 in *)
     (* bind2 (fun wet -> flanger ~wet (1. /. Note.duration tempo 4.)) (OSC.float "/1/fader2" ~max:0.8 0.1) synth *)
@@ -36,10 +36,10 @@ let s =
   let bass = Pattern.concat bass in
   let bass = Pattern.transpose (-24) bass in
   let bass = Instrument.play (Note.adsr ~r:(return 0.1) sine) (Pattern.stream ~loop:true tempo bass) in
-  let bass = cmul 0.5 bass in
+  let bass = B.cmul 0.5 bass in
   let bass = bass >>= stereo >>= Stereo.dephase () (-0.02) in
   (* let kick = Instrument.kick ~dt ~vol:1. tempo >>= stereo in *)
-  let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> cmul vol (Note.Drum.snare ~on_die ~lp:2000. ())) in
+  let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> B.cmul vol (Note.Drum.snare ~on_die ~lp:2000. ())) in
   let drums = pd (Pattern.midi_drums ~loop:true tempo (Pattern.load_drums "c1.drums")) >>= stereo in
   let drums = Stereo.bmul (OSC.bool "/1/toggle2" true) drums in
   let s = Stereo.mix [synth;drums;bass] in

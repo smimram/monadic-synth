@@ -49,7 +49,7 @@ let amplify a (p : 'a t) : 'a t =
     p
 
 (** Arpeggiator. *)
-let arpeggiate tempo ?(note=0.25) mode (p : 'a t) : 'a t =
+let arpeggiate ?(note=0.25) mode (p : 'a t) : 'a t =
   let ans =
     List.map
       (fun (t,d,e) ->
@@ -71,11 +71,12 @@ let arpeggiate tempo ?(note=0.25) mode (p : 'a t) : 'a t =
               done
             | `Up ->
               let n = match l with
+                | [n1] -> [|n1|]
                 | [n1;n2;n3;n4] -> [|n1;n2;n3;n4|]
                 | _ -> assert false
               in
                for i = 0 to notes - 1 do
-                add (float i *. note) note n.(i mod 4)
+                add (float i *. note) note n.(i mod Array.length n)
               done
             | `Staccato ->
               for i = 0 to notes - 1 do
