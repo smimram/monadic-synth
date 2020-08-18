@@ -19,7 +19,9 @@
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><title>Operator</title>
+<link title="OSC" rel="Chapter" href="OSC.html"><link title="The outer monad (which is roughly the indexed state monad) " rel="Section" href="#2_Theoutermonadwhichisroughlytheindexedstatemonad">
+<link title="The stream monad" rel="Section" href="#2_Thestreammonad">
+<title>Operator</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Stream.html" title="Stream">Previous</a>
@@ -37,6 +39,114 @@
 </div>
 <hr width="100%">
 
+<pre><code><span id="TYPEtyp"><span class="keyword">type</span> <code class="type">'a</code> typ</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTtyp.Float"><span class="constructor">Float</span></span> <span class="keyword">:</span> <code class="type">float <a href="Operator.html#TYPEtyp">typ</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTtyp.Pair"><span class="constructor">Pair</span></span> <span class="keyword">:</span> <code class="type">('a0 <a href="Operator.html#TYPEtyp">typ</a> * 'b <a href="Operator.html#TYPEtyp">typ</a>)</code> <span class="keyword">-></span> <code class="type">('a0 * 'b) <a href="Operator.html#TYPEtyp">typ</a></code></code></td>
+
+</tr></table>
+
+
+
+<pre><code><span id="TYPEtypes"><span class="keyword">type</span> <code class="type"></code>types</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTtypes.Type"><span class="constructor">Type</span></span> <span class="keyword">:</span> <code class="type">'a <a href="Operator.html#TYPEtyp">typ</a></code> <span class="keyword">-></span> <code class="type"><a href="Operator.html#TYPEtypes">types</a></code></code></td>
+
+</tr></table>
+
+
+
+<pre><span id="TYPEreference"><span class="keyword">type</span> <code class="type">'a</code> reference</span> = <code class="type">'a <a href="Operator.html#TYPEtyp">typ</a> * int</code> </pre>
+
+
+<pre><code><span id="TYPEvalue"><span class="keyword">type</span> <code class="type">'a</code> value</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTvalue.Unit"><span class="constructor">Unit</span></span> <span class="keyword">:</span> <code class="type">unit <a href="Operator.html#TYPEvalue">value</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTvalue.Float"><span class="constructor">Float</span></span> <span class="keyword">:</span> <code class="type">float</code> <span class="keyword">-></span> <code class="type">float <a href="Operator.html#TYPEvalue">value</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTvalue.Ref"><span class="constructor">Ref</span></span> <span class="keyword">:</span> <code class="type">'a0 <a href="Operator.html#TYPEreference">reference</a></code> <span class="keyword">-></span> <code class="type">'a0 <a href="Operator.html#TYPEreference">reference</a> <a href="Operator.html#TYPEvalue">value</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTvalue.Get"><span class="constructor">Get</span></span> <span class="keyword">:</span> <code class="type">'a1 <a href="Operator.html#TYPEreference">reference</a></code> <span class="keyword">-></span> <code class="type">'a1 <a href="Operator.html#TYPEvalue">value</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTvalue.Set"><span class="constructor">Set</span></span> <span class="keyword">:</span> <code class="type">'a2 <a href="Operator.html#TYPEreference">reference</a> * 'a2 <a href="Operator.html#TYPEvalue">value</a></code> <span class="keyword">-></span> <code class="type">unit <a href="Operator.html#TYPEvalue">value</a></code></code></td>
+
+</tr></table>
+
+
+<h3 id="2_Theoutermonadwhichisroughlytheindexedstatemonad">The outer monad (which is roughly the indexed state monad) </h3>
+<pre><code><span id="TYPEstate"><span class="keyword">type</span> <code class="type"></code>state</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTstate.cell">cell</span>&nbsp;: <code class="type"><a href="Operator.html#TYPEtypes">types</a> array</code>;</code></td>
+<td class="typefieldcomment" align="left" valign="top" ><code>(*</code></td><td class="typefieldcomment" align="left" valign="top" ><div class="info ">
+<div class="info-desc">
+<p>all allocated cells</p>
+</div>
+</div>
+</td><td class="typefieldcomment" align="left" valign="bottom" ><code>*)</code></td>
+</tr></table>
+<code>}</code>
+
+<div class="info ">
+<div class="info-desc">
+<p>State of an operator.</p>
+</div>
+</div>
+
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> = <code class="type"><a href="Operator.html#TYPEstate">state</a> -> <a href="Operator.html#TYPEstate">state</a> * 'a <a href="Operator.html#TYPEvalue">value</a></code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>The outer monad.</p>
+</div>
+</div>
+
+
+<pre><span id="VALreturn"><span class="keyword">val</span> return</span> : <code class="type">'a <a href="Operator.html#TYPEvalue">value</a> -> 'a <a href="Operator.html#TYPEt">t</a></code></pre>
+<pre><span id="VALbind"><span class="keyword">val</span> bind</span> : <code class="type">('c -> ('a -> 'b <a href="Operator.html#TYPEt">t</a>) -> 'a <a href="Operator.html#TYPEt">t</a> -> 'b <a href="Operator.html#TYPEt">t</a>) -><br>       (('a -> 'b <a href="Operator.html#TYPEt">t</a>) -> 'c) -><br>       ('a -> 'b <a href="Operator.html#TYPEt">t</a>) -> 'a <a href="Operator.html#TYPEt">t</a> -> 'b <a href="Operator.html#TYPEt">t</a></code></pre>
+<pre><span id="VALlet+"><span class="keyword">val</span> let+</span> : <code class="type">(('a -> 'b <a href="Operator.html#TYPEt">t</a>) -> 'c) -><br>       ('c -> ('a -> 'b <a href="Operator.html#TYPEt">t</a>) -> 'a <a href="Operator.html#TYPEt">t</a> -> 'b <a href="Operator.html#TYPEt">t</a>) -><br>       ('a -> 'b <a href="Operator.html#TYPEt">t</a>) -> 'a <a href="Operator.html#TYPEt">t</a> -> 'b <a href="Operator.html#TYPEt">t</a></code></pre>
+<pre><span id="VALalloc"><span class="keyword">val</span> alloc</span> : <code class="type">'a <a href="Operator.html#TYPEtyp">typ</a> -> 'a <a href="Operator.html#TYPEvalue">value</a> -> 'a <a href="Operator.html#TYPEreference">reference</a> <a href="Operator.html#TYPEt">t</a></code></pre>
+<pre><span id="VALalloc_float"><span class="keyword">val</span> alloc_float</span> : <code class="type">float <a href="Operator.html#TYPEvalue">value</a> -> float <a href="Operator.html#TYPEreference">reference</a> <a href="Operator.html#TYPEt">t</a></code></pre>
+<pre><span id="VALget"><span class="keyword">val</span> get</span> : <code class="type">'a <a href="Operator.html#TYPEreference">reference</a> -> 'a <a href="Operator.html#TYPEt">t</a></code></pre>
+<pre><span id="VALset"><span class="keyword">val</span> set</span> : <code class="type">'a <a href="Operator.html#TYPEreference">reference</a> -> 'a <a href="Operator.html#TYPEvalue">value</a> -> unit <a href="Operator.html#TYPEt">t</a></code></pre><h3 id="2_Thestreammonad">The stream monad</h3>
 <pre><span id="TYPEdt"><span class="keyword">type</span> <code class="type"></code>dt</span> = <code class="type">float</code> </pre>
 
 
@@ -47,23 +157,4 @@
 </div>
 </div>
 
-
-<pre><span id="MODULEValue"><span class="keyword">module</span> <a href="Operator.Value.html">Value</a></span>: <code class="code">sig</code> <a href="Operator.Value.html">..</a> <code class="code">end</code></pre>
-<pre><span id="MODULEV"><span class="keyword">module</span> <a href="Operator.V.html">V</a></span>: <code class="type"><a href="Operator.Value.html">Value</a></code></pre>
-<pre><span id="MODULERef"><span class="keyword">module</span> <a href="Operator.Ref.html">Ref</a></span>: <code class="code">sig</code> <a href="Operator.Ref.html">..</a> <code class="code">end</code></pre>
-<pre><code><span id="TYPEstate"><span class="keyword">type</span> <code class="type"></code>state</span> = {</code></pre><table class="typetable">
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTstate.cell">cell</span>&nbsp;: <code class="type"><a href="Operator.Value.html#TYPEkinds">Value.kinds</a> array</code>;</code></td>
-
-</tr></table>
-<code>}</code>
-
-
-
-<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> = <code class="type"><a href="Operator.html#TYPEstate">state</a> -> <a href="Operator.html#TYPEstate">state</a> * 'a</code> </pre>
-
-
-<pre><span id="VALalloc"><span class="keyword">val</span> alloc</span> : <code class="type">'a <a href="Operator.Value.html#TYPEkind">Value.kind</a> -> 'a -> 'a <a href="Operator.Ref.html#TYPEt">Ref.t</a> <a href="Operator.html#TYPEt">t</a></code></pre></body></html>
+</body></html>
