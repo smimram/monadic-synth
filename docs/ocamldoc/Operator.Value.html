@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="next" href="Operator.V.html">
+<link rel="Up" href="Operator.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Stream" rel="Chapter" href="Stream.html">
+<link title="Operator" rel="Chapter" href="Operator.html">
+<link title="Visu" rel="Chapter" href="Visu.html">
+<link title="Note" rel="Chapter" href="Note.html">
+<link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
+<link title="Instrument" rel="Chapter" href="Instrument.html">
+<link title="OSC" rel="Chapter" href="OSC.html"><title>Operator.Value</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Operator.html" title="Operator">Up</a>
+&nbsp;<a class="post" href="Operator.V.html" title="Operator.V">Next</a>
+</div>
+<h1>Module <a href="type_Operator.Value.html">Operator.Value</a></h1>
+
+<pre><span id="MODULEValue"><span class="keyword">module</span> Value</span>: <code class="code">sig</code> <a href="Operator.Value.html">..</a> <code class="code">end</code></pre><hr width="100%">
+
+<pre><code><span id="TYPEkind"><span class="keyword">type</span> <code class="type">'a</code> kind</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTkind.Float"><span class="constructor">Float</span></span> <span class="keyword">:</span> <code class="type">float <a href="Operator.Value.html#TYPEkind">kind</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTkind.Bool"><span class="constructor">Bool</span></span> <span class="keyword">:</span> <code class="type">bool <a href="Operator.Value.html#TYPEkind">kind</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTkind.Pair"><span class="constructor">Pair</span></span> <span class="keyword">:</span> <code class="type">('a0 <a href="Operator.Value.html#TYPEkind">kind</a> * 'b <a href="Operator.Value.html#TYPEkind">kind</a>)</code> <span class="keyword">-></span> <code class="type">('a0 * 'b) <a href="Operator.Value.html#TYPEkind">kind</a></code></code></td>
+
+</tr></table>
+
+
+
+<pre><code><span id="TYPEkinds"><span class="keyword">type</span> <code class="type"></code>kinds</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTkinds.Kind"><span class="constructor">Kind</span></span> <span class="keyword">:</span> <code class="type">'a <a href="Operator.Value.html#TYPEkind">kind</a></code> <span class="keyword">-></span> <code class="type"><a href="Operator.Value.html#TYPEkinds">kinds</a></code></code></td>
+
+</tr></table>
+
+
+
+<pre><span id="TYPEref"><span class="keyword">type</span> <code class="type">'a</code> ref</span> = <code class="type">'a <a href="Operator.Value.html#TYPEkind">kind</a> * int</code> </pre>
+
+
+<pre><code><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.Get"><span class="constructor">Get</span></span> <span class="keyword">:</span> <code class="type">'a0 <a href="Operator.Value.html#TYPEref">ref</a></code> <span class="keyword">-></span> <code class="type">'a0 <a href="Operator.Value.html#TYPEt">t</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTt.Set"><span class="constructor">Set</span></span> <span class="keyword">:</span> <code class="type">'a1 <a href="Operator.Value.html#TYPEref">ref</a> * 'a1 <a href="Operator.Value.html#TYPEt">t</a></code> <span class="keyword">-></span> <code class="type">unit <a href="Operator.Value.html#TYPEt">t</a></code></code></td>
+
+</tr></table>
+
+
+</body></html>
