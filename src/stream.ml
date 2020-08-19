@@ -131,18 +131,8 @@ let dup () =
     (let* y = s in return (x := Some y)),
     (fun dt -> try Option.get !x with _ -> failwith "Invalid evaluation order in dup.")
 
-(** Streams of references. *)
-module Ref = struct
-  type 'a t = 'a ref
-
-  let make x = ref x
-
-  (** Stream the current value of a reference. *)
-  let get x = seq (fun () -> !x)
-end
-
 (** Stream the current value of a reference. *)
-let stream_ref = Ref.get
+let stream_ref x = seq (fun () -> !x)
 
 (** Operations on lists of streams. *)
 module StreamList = struct
@@ -377,8 +367,8 @@ let frequently () =
   let p = periodic ~on_reset () in
   fun freq ->
     p freq >>= drop >>
-    let* cond = Ref.get b in
-    if cond then (b := false; return true)
+    let* _ = dt in
+    if !b then (b := false; return true)
     else return false
 
 (** Generate an event every period of time. *)
@@ -425,7 +415,7 @@ let random () =
   let x = ref 0. in
   let frequently = frequently () in
   fun ?(min=0.) ?(max=1.) freq ->
-    frequently freq >>= on (fun () -> x := Random.float (max -. min) +. min) >> Ref.get x
+    frequently freq >>= on (fun () -> x := Random.float (max -. min) +. min) >> stream_ref x
 
 (** Operations with samples as unit time. *)
 module Sample = struct
@@ -818,8 +808,8 @@ module Envelope = struct
       state := s
     in
     let rec stream ?(a=0.01) ?(d=0.05) ?(s=0.8) ?(r=0.5) ?(sustain=true) ?(release=`Linear) () =
-      let* st = Ref.get state in
-      match st with
+      let* _ = dt in
+      match !state with
       | `Dead -> return 0.
       | `Sustain -> return s
       | `Release ->

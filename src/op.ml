@@ -2,6 +2,8 @@
 
 open Extlib
 
+type sample = float
+
 (** Pure streams. *)
 module Stream = struct
   (** Type for time differences. *)
@@ -410,18 +412,21 @@ let random () =
       rstream ans
     ) |> State.funct (fun f -> fun ?(min=0.) ?(max=1.) freq -> f min max freq)
 
-(*
 (** Operations with samples as unit time. *)
 module Sample = struct
-  let every () =
-    let t = ref 0 in
-    fun n ->
-      let* _ = dt in
-      incr t;
-      let b = !t >= n in
-      if b then t := !t - n;
-      return b
+  let every =
+    let+ t = Ref.create 0 in
+    collect (fun n ->
+        let* _ = dt in
+        let+ tv = Ref.get t in
+        let tv = tv + 1 in
+        let b = tv >= n in
+        Ref.set t tv >>
+        (if b then Ref.set t (tv - n) else return ()) >>
+        rstream b
+      )
 
+  (*
   let convolve a =
     let len = Array.length a in
     let prev = Array.make len 0. in
@@ -435,6 +440,7 @@ module Sample = struct
       incr n;
       if !n = len then n := 0;
       !ans
+  *)
 
   (** Ringbuffers. *)
   module Ringbuffer = struct
@@ -446,6 +452,7 @@ module Sample = struct
       }
 
     let create () =
+      return
       {
         buffer = [||];
         pos = 0;
@@ -484,6 +491,7 @@ module Sample = struct
       advance r
   end
 
+  (*
   (** Delay the signal by given amount of samples. *)
   let delay () =
     let r = Ringbuffer.create () in
@@ -570,8 +578,8 @@ module Sample = struct
     let a = Array.map (Complex.cmul (float n)) a in
     let a = Array.init n (fun k -> if k = 0 then a.(0) else a.(n-k)) in
     fft a 0 n
+  *)
 end
-*)
 
 (** {2 Oscillators} *)
 
@@ -895,6 +903,7 @@ let smooth ?(init=0.) ?(kind=`Exponential) () =
           if !x < target then x := target
         );
       return !x
+*)
 
 (** {2 Effects} *)
 
@@ -902,34 +911,37 @@ let smooth ?(init=0.) ?(kind=`Exponential) () =
 module Filter = struct
 
   (** First order filter. *)
-  let first_order () =
-    let x' = ref 0. in
-    let y' = ref 0. in
-    fun kind freq ->
+  let first_order =
+    let+ x' = Ref.create 0. in
+    let+ y' = Ref.create 0. in
+    collect3 (fun kind freq ->
       let rc = 1. /. (2. *. Float.pi *. freq) in
-      fun (x : sample) ->
-        match kind with
+      fun x ->
+        let* x = x in
+        match (kind : [`Low_pass | `High_pass]) with
         | `Low_pass ->
           let* dt = dt in
           let a = dt /. (rc +. dt) in
           let y = !y' +. a *. (x -. !y') in
           y' := y;
-          return y
+          rstream y
         | `High_pass ->
           let* dt = dt in
           let a = rc /. (rc +. dt) in
           let y = a *. (!y' +. x -. !x') in
           x' := x;
           y' := y;
-          return (y : sample)
+          rstream y
+      )
 
   (** Biquadratic / second order filter. *)
   (* See http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt *)
-  let biquad () =
-    let x'  = ref 0. in
-    let x'' = ref 0. in
-    let y'  = ref 0. in
-    let y'' = ref 0. in
+      (*
+  let biquad =
+    let+ x'  = Ref.create 0. in
+    let+ x'' = Ref.create 0. in
+    let+ y'  = Ref.create 0. in
+    let+ y'' = Ref.create 0. in
     let advance x y =
       x'' := !x';
       x'  := x;
@@ -971,8 +983,10 @@ module Filter = struct
       let y = (b0 *. x +. b1 *. !x' +. b2 *. !x'' -. a1 *. !y' -. a2 *. !y'') /. a0 in
       advance x y;
       return y
+*)
 end
 
+(*
 module Ringbuffer = struct
   type t = Sample.Ringbuffer.t
 
