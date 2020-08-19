@@ -15,6 +15,10 @@ test: lib midi
 debug: lib bug
 	./bug
 
+perf: lib bug
+	-perf record --call-graph=dwarf -- ./bug
+	pref report
+
 clean:
 	rm -f $(wildcard *.cmi *.cmx *.o) $(PROG)
 

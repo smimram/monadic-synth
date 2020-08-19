@@ -7,7 +7,7 @@ open Stream
     has finished playing (we cannot determine this externally in case there is
     some release), and returns a function which plays a note at given frequency
     and volume. *)
-type 'event t = event:('event Event.t) -> on_die:(unit -> unit) -> unit -> sample -> float -> sample stream
+type ('sample, 'event) t = event:('event Event.t) -> on_die:(unit -> unit) -> unit -> sample -> float -> 'sample stream
 
 (** Convert note height into frequency. *)
 let frequency ?(detune=0.) n =
@@ -18,7 +18,7 @@ let duration tempo d =
   60. /. tempo *. d
 
 (** Note from an oscillator. *)
-let simple f : 'a t =
+let simple f : _ t =
   fun ~event ~on_die () ->
   let alive = ref true in
   let handler = function
@@ -29,7 +29,7 @@ let simple f : 'a t =
   fun freq vol ->
     B.bmul (stream_ref alive) (B.cmul vol (f freq))
 
-let detune ?(cents=return 7.) ?(wet=return 0.5) (note : 'a t) : 'a t =
+let detune ?(cents=return 7.) ?(wet=return 0.5) (note : _ t) : _ t =
   fun ~event ~on_die () ->
   let n = note ~event ~on_die () in
   let nd = note ~event ~on_die () in
@@ -42,7 +42,7 @@ let detune ?(cents=return 7.) ?(wet=return 0.5) (note : 'a t) : 'a t =
     return (d +. wet *. w)
 
 (** Add two notes. *)
-let add n1 n2 : 'a t =
+let add n1 n2 : _ t =
   fun ~event ~on_die () ->
   let n1 = n1 ~dt ~event ~on_die in
   let n2 = n2 ~dt ~event ~on_die in
@@ -77,7 +77,7 @@ module Drum = struct
 end
 
 (** Simple note with adsr envelope and volume. *)
-let adsr ?a ?d ?s ?r osc : 'a t =
+let adsr ?a ?d ?s ?r osc : _ t =
   fun ~event ~on_die () ->
   let g = function
     | Some x -> Some (get x)

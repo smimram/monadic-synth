@@ -1,64 +1,63 @@
+(** Recreating "Better off alone" by Alice DJ. *)
+
 open Stream
 
-let tempo = 130.
-
-let s =
-  let note ?(detune=false) ?(r=0.1) ?(s=0.5) f ~event ~on_die () =
-    let env = adsr ~event ~on_die () ~a:0.01 ~d:0.1 ~s ~r () in
-    let s = f () in
-    let sd = f () in
-    fun freq vol ->
-      let s = s freq in
-      let sd = sd (freq *. 1.007) in
-      let s = if detune then B.cmul 0.8 (B.add s sd) else s in
-      let s = B.mul env s in
-      B.cmul vol s
-  in
-  let vm = 1. in
-  let melody =
+let () =
+  let tempo = 137. in
+  let lead o =
     [
-      0.,0.75,`Note (77,vm);
-      1.,0.5,`Note (76,vm);
-      1.5,1.,`Note (72,vm);
-      0.,4.,`Nop;
+      0. , 0.5, `Note (71, 1.);
+      1. , 0.5, `Note (71, 1.);
+      1.5, 0.5, `Note (68, 1.);
+      2.5, 0.5, `Note (71, 1.);
+      3.5, 0.5, `Note (71, 1.);
+      4.5, 0.5, `Note (70, 1.);
+      5.5, 0.5, `Note (66, 1.);
+      6. , 0.5, `Note (78+o, 1.);
+      6.7, 0.5, `Note (78+o, 1.);
+      7.3, 0.5, `Note (75, 1.);
+      8. , 0. , `Nop
     ]
   in
-  (* let melody = Pattern.repeat 3 melody in *)
-  let melody = Pattern.append melody [0.,4.,`Nop] in
-  let melody = Instrument.play (note ~detune:false ~r:0.3 saw) (Pattern.stream ~loop:true tempo melody) in
-  let melody = bind2 (Filter.first_order () `Low_pass) (B.add (cst 600.) (B.cmul 300. (sine () 10.))) melody in
-  let melody = B.mul melody (OSC.float "/1/fader2" 1.) in
-  let melody = bind3 (Filter.biquad () `Low_pass) (OSC.float "/1/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/1/fader4" ~max:10000. 10000.) melody in
-  let melody = melody >>= Stereo.of_mono in
-  let melody = melody >>= Stereo.dephase () 0.01 in
-  let vs = 0.7 in
-  let synth1 = Pattern.repeat 16 [0., 0.25, `Chord ([65;69;72],vs); 0.25, 0.25, `Nop] in
-  let synth2 = Pattern.repeat 16 [0., 0.25, `Chord ([64;69;72],vs); 0.25, 0.25, `Nop] in
-  let synth = Pattern.append synth1 synth2 in
-  let synth = Instrument.play (note karplus_strong) (Pattern.stream ~loop:true tempo synth) in
-  (* (\* let disto = add (cst (-1.)) (cmul 2. (OSC.float "/1/fader4" 0.5)) in *\) *)
-  (* (\* let synth = bind2 disto synth (distortion ~dt) in *\) *)
-  let synth = B.mul (OSC.float "/1/fader1" 0.5) synth in
-  let synth = synth >>= flanger () ~wet:0.8 0.001 (Note.duration tempo 1.) in
-  let vb = 1.1 in
-  let bass = [0.,16.,`Nop;0.,3.,`Note (41, vb);4.,3.,`Note (38, vb);8.,3.,`Note (45, vb);12.,3.,`Note (45, vb)] in
-  let bass = Instrument.play (note ~s:0.8 ~r:0.4 sine) (Pattern.stream ~loop:true tempo bass) in
-  let kick = Pattern.repeat 16 [0.,0.25,`Note(69,1.8);0.,1.,`Nop] in
-  let kick = Instrument.play_drum (fun ~on_die freq vol -> B.cmul vol (Note.Drum.kick ~on_die ())) (Pattern.stream ~loop:true tempo kick) in
-  let snare = Pattern.repeat 16 [1.,0.25,`Note(69,0.8);0.,2.,`Nop] in
-  let snare = Instrument.play_drum (fun ~on_die freq vol -> B.cmul vol (Note.Drum.snare ~on_die ())) (Pattern.stream ~loop:true tempo snare) in
-  let s = synth in
-  (* (\* let s = bind2 (integrate ~dt 100.) s (Filter.first_order ~dt `Low_pass) in *\) *)
-  (* (\* let s = s >>= slicer ~dt 0.01 in *\) *)
-  let s = s >>= Stereo.of_mono in
-  (* (\* let deph = let deph = Stereo.dephase ~dt 0.1 in fun d x -> deph ~delay:d x in *\) *)
-  (* (\* let s = bind2 (sub (cmul 0.1 (OSC.float "/1/fader5" 0.51)) (cst 0.05)) s deph in *\) *)
-  let s = Stereo.add s (bass >>= Stereo.of_mono >>= Stereo.dephase () (-0.02)) in
-  let s = Stereo.add s (snare >>= Stereo.of_mono >>= Stereo.dephase () (-0.01)) in
-  let s = Stereo.add s (kick >>= Stereo.of_mono) in
-  let s = Stereo.add s melody in
-  let s = Stereo.cmul 0.2 s in
-  s
-
-let () =
-  Output.play s
+  let lead = Pattern.append (lead 0) (lead (-2)) in
+  let lead = Pattern.stream ~loop:true tempo lead in
+  let lead = Instrument.play (Note.simple saw) lead in
+  let drum =
+    [
+      0., `Kick 1.;
+      0.5, `Snare 1.;
+      1., `Nop;
+    ]
+  in
+  let drum = Instrument.play_drums (Stream.timed ~loop:true ~tempo drum) >>= amp 2. in
+  let bass =
+    [
+      0. , 4., `Note (40, 1.);
+      4. , 4., `Note (39, 1.);
+      8. , 4., `Note (44, 1.);
+      12., 4., `Note (42, 1.);
+    ]
+  in
+  (* let note = Note.adsr saw in *)
+  let note () =
+    let osc = square () in
+    let lp = Filter.biquad () `Low_pass 3. in
+    let ramp = Envelope.ramp ~kind:`Exponential () ~from:5000. ~target:100. 0.5 in
+    fun freq -> bind2 lp ramp (osc freq)
+  in
+  let note = Note.adsr note in
+  let bass = Instrument.play note (Pattern.stream ~loop:true tempo bass) in
+  let bass = bass >>= Stream.Slicer.eurotrance () (60. /. tempo)  in
+  let chords =
+    [
+      0. , 4., `Chord ([40;44;47;52], 1.);
+      4. , 4., `Chord ([39;42;46;51], 1.);
+      8. , 4., `Chord ([44;47;51;56], 1.);
+      12., 4., `Chord ([42;46;49;54], 1.);
+    ]
+  in
+  let arp = Pattern.arpeggiate `Up (Pattern.transpose 24 chords) in
+  let arp = Instrument.play (Note.simple sine) (Pattern.stream ~loop:true tempo arp) in
+  let pad = Instrument.play (Note.adsr sine) (Pattern.stream ~loop:true tempo (Pattern.transpose 12 chords)) in
+  let s = B.mix [lead; drum; bass; arp; pad] >>= amp 0.2 in
+  Output.play (s >>= stereo)

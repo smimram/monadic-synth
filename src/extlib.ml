@@ -91,3 +91,9 @@ module Float = struct
     | false -> 0.
     | true -> 1.
 end
+
+module Random = struct
+  include Random
+
+  let float ?(min=0.) max = Random.float (max -. min) +. min
+end

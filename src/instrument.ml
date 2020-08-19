@@ -4,24 +4,24 @@ open Extlib
 open Stream
 
 (** A note of an instrument. *)
-type 'event note =
+type ('sample, 'event) note =
   {
     note : int; (** Note: A4 is 69. *)
-    stream : sample stream;
+    stream : 'sample stream;
     event : 'event Event.t;
     mutable released : bool;
     alive : bool ref; (** is the note still playing? *)
   }
 
 (** Create an instrument. *)
-let create ~event ?portamento (note:'a Note.t) =
+let create add ~event ?portamento (note:_ Note.t) =
   (* Currently playing notes. *)
   let playing = ref [] in
   let n = ref 0 in
   let stream =
     let* _ = dt in
     let ss = List.map (fun n -> n.stream) !playing in
-    let* x = StreamList.fold_left (+.) 0. ss in
+    let* x = add ss in
     incr n;
     (* Regularly remove non-alive notes. *)
     if !n = 50000 then
@@ -86,6 +86,15 @@ let create ~event ?portamento (note:'a Note.t) =
   Event.register event handler;
   stream
 
+let create_stereo ~event =
+  let (+.) (x1,y1) (x2,y2) = x1 +. x2, y1 +. y2 in
+  let add = StreamList.fold_left (+.) (0.,0.) in
+  create add ~event
+
+let create ~event =
+  let add = StreamList.fold_left (+.) 0. in
+  create add ~event
+
 (** Create a drum instrument. *)
 (* TODO: extend to polyphonic *)
 let create_drum ~event note =
@@ -129,9 +138,14 @@ let emitter ?(loop=true) f l =
 *)
 
 (** Play a stream of lists events. *)
-let play ?portamento (note:'a Note.t) midi =
+let play ?portamento (note:_ Note.t) midi =
   let event = Event.create () in
   let s = create ?portamento ~event note in
+  midi >>= Event.emitter event >> s
+
+let play_stereo ?portamento (note:_ Note.t) midi =
+  let event = Event.create () in
+  let s = create_stereo ?portamento ~event note in
   midi >>= Event.emitter event >> s
 
 let play_drum note midi =

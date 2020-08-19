@@ -26,6 +26,7 @@ Software synths
   source](https://github.com/mtytel/helm))
 - [Viktor NV-1](https://nicroto.github.io/viktor/)
 - [Nekobi](https://github.com/DISTRHO/Nekobi) LV2 emulation of TB-303
+- [OB-Xd](https://github.com/reales/OB-Xd) emulation of OB-X
 
 Hardware synths
 ===============

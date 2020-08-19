@@ -59,11 +59,11 @@ let prod : 'a t -> 'b t -> ('a * 'b) t =
   fun x y dt -> (x dt, y dt)
 
 (** Current infinitesimal variation of a stream. *)
-let dt : float stream =
+let dt : float t =
   fun dt -> dt
 
 (** Current value of a stream (this function might be removed in the future). *)
-let get : 'a stream -> 'a =
+let get : 'a t -> 'a =
   fun f -> f 0.
 
 (** Notations for usual operations of the stream monad. You usually want to open
@@ -191,7 +191,7 @@ end
 (** {2 Arithmetic} *)
 
 (** Create a constant stream. *)
-let cst x : sample t = return x
+let cst x = return x
 
 (** The constantly zero stream. *)
 let blank = cst 0.
@@ -1249,7 +1249,7 @@ module Stereo = struct
      right). Various {{:
      http://www.cs.cmu.edu/~music/icm-online/readings/panlaws/} pan laws} can be
      used. *)
-  let pan ?(law=`Linear) () =
+  let pan ?(law=`Circular) () =
     fun a ->
     let a = (a +. 1.) /. 2. in
     let l, r =
