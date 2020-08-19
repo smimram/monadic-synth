@@ -298,7 +298,7 @@ to play some notes. In order to illustrate this let's detail step by step how we
 can quickly recreate the song _[better off
 alone](https://www.youtube.com/watch?v=Lj9GzcHbJ-w)_ (sort of) by detailing
 [this
-example](https://github.com/smimram/monadic-synth/blob/master/examples/better_off_alone.ml)
+example](https://github.com/smimram/monadic-synth/blob/master/examples/better_off_alone.ml).
 
 ### Playing notes
 
@@ -436,7 +436,8 @@ small "harp like" synth with
 ```
 
 If you were too lazy to try by yourself [your can hear the result
-here](https://youtu.be/F7q-wtJRgjM).
+here](https://youtu.be/F7q-wtJRgjM) (please remember that no further effects
+where applied, nor a decent mix was performed).
 
 ### Live MIDI input
 
