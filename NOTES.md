@@ -25,6 +25,7 @@ Software synths
 - [Helm](https://tytel.org/helm/) (see [the
   source](https://github.com/mtytel/helm))
 - [Viktor NV-1](https://nicroto.github.io/viktor/)
+- [Nekobi](https://github.com/DISTRHO/Nekobi) LV2 emulation of TB-303
 
 Hardware synths
 ===============
