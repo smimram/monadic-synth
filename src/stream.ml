@@ -90,12 +90,6 @@ module Operations = struct
 
   (** Strength. *)
   let ( and* ) = prod
-
-  (** Functoriality. *)
-  let ( let+ ) x f = funct x f
-
-  (** Strength. *)
-  let ( and+ ) = prod
 end
 
 include Operations
@@ -282,8 +276,8 @@ let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=fal
   fun x ->
     let* dt = dt in
     let ans = !y in
-    y := !y +. x *. dt;
-    if periodic && !y >= 1. then (y := !y -. 1.; on_reset ());
+    y := ans +. x *. dt;
+    if periodic && ans >= 1. then (y := ans -. 1.; on_reset ());
     return ans
 
 (** Current time. *)
