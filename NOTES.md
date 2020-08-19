@@ -12,6 +12,7 @@ Languages / APIs
 ================
 
 - [SuperCollider](https://supercollider.github.io/)
+- [Faust](http://faust.grame.fr/)
 - [Web Audio API](https://www.w3.org/TR/webaudio/) (see also [MDN
   documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API))
 
