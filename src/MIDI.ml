@@ -131,7 +131,7 @@ let send midi = midi.send
 
 (** The value of a specific controller. *)
 let controller midi ?channel number ?mode ?min ?max init =
-  let stretch = Stream.stretch ?mode ?min ?max in
+  let stretch = Math.stretch ?mode ?min ?max in
   let m = Mutex.create () in
   let x = ref init in
   let h c e =

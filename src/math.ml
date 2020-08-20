@@ -4,6 +4,26 @@ open Extlib
 
 let clip x = max (-1.) (min 1. x)
 
+(** Stretch a parameter between 0 and 1 to be between given bounds. *)
+let stretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
+  let d = max -. min in
+  match mode with
+  | `Linear -> fun x -> x *. d +. min
+  | `Logarithmic ->
+    fun x ->
+      let x = (10. ** x -. 1.) /. 9. in
+      x *. d +. min
+
+(** Inverse of [stretch]. *)
+let unstretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
+  let d = max -. min in
+   match mode with
+  | `Linear -> fun x -> (x -. min) /. d
+  | `Logarithmic ->
+    fun x ->
+      let x = (x -. min) /. d in
+      log10 (x *. 9. +. 1.)
+
 (** Oscillators with period 1., first going up, starting from 0. *)
 module Osc = struct
   (** Change periodic time (between 0. and 1.) so that width becomes as

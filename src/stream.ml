@@ -235,26 +235,6 @@ let soft_clip x =
   else if x >= 1. then 2./.3.
   else x-.x*.x*.x/.3.
 
-(** Stretch a parameter between 0 and 1 to be between given bounds. *)
-let stretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
-  let d = max -. min in
-  match mode with
-  | `Linear -> fun x -> x *. d +. min
-  | `Logarithmic ->
-    fun x ->
-      let x = (10. ** x -. 1.) /. 9. in
-      x *. d +. min
-
-(** Inverse of [stretch]. *)
-let unstretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
-  let d = max -. min in
-   match mode with
-  | `Linear -> fun x -> (x -. min) /. d
-  | `Logarithmic ->
-    fun x ->
-      let x = (x -. min) /. d in
-      log10 (x *. 9. +. 1.)
-
 (** Convert octave numbers to multiplicative coefficient for frequency. *)
 let octaves x =
   return (Float.pow 2. x)
@@ -406,6 +386,15 @@ let sample_and_hold () =
     let* _ = dt in
     if b || !r = None then r := Some x;
     return (Option.get !r)
+
+(** Compute a source a lower sampling rate than the master sampling rate. *)
+let downsample freq s =
+  let r = ref None in
+  let on_reset () = r := Some (s (1. /. freq)) in
+  let p = periodic ~on_reset () in
+  let* _ = p freq in
+  if !r = None then r := Some (get s);
+  return (Option.get !r)
 
 (** Execute a function when a stream change its value. *)
 let on_change ?(first=false) f =
@@ -914,8 +903,8 @@ let smooth ?(init=0.) ?(kind=`Exponential) () =
 
 (** Filters. *)
 module Filter = struct
-
   (** First order filter. *)
+  (* TODO: Zavalishin says that it should be better to use trapzoidal integration *)
   let first_order () =
     let x' = ref 0. in
     let y' = ref 0. in
@@ -1434,6 +1423,8 @@ module B = struct
 
   (** Multiply by a constant. *)
   let cmul x = bind (mul x)
+
+  let mulc x y = cmul y x
 
   let mul = bind2 mul
 

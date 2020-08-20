@@ -12,7 +12,8 @@ General resources
 Languages / APIs
 ================
 
-- [SuperCollider](https://supercollider.github.io/)
+- [SuperCollider](https://supercollider.github.io/) (in particular the _SC book_
+  and Ruviaro's _A Gentle Introduction to SuperCollider_)
 - [Faust](http://faust.grame.fr/)
 - [Web Audio API](https://www.w3.org/TR/webaudio/) (see also [MDN
   documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API))

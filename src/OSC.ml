@@ -47,7 +47,7 @@ let register_bool path f =
 (* TODO: initialize sliders *)
 let float ?mode ?min ?max path init =
   let x = ref init in
-  let stretch = Stream.stretch ?mode ?min ?max in
+  let stretch = Math.stretch ?mode ?min ?max in
   let f x' = x := stretch x' in
   register_float path f;
   stream_ref x

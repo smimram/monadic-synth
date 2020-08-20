@@ -12,7 +12,7 @@ let synth
     ?(lfo_form=cst `Sine)
     ?(lfo_rate=cst 2.)
     ?(lfo_pwm1=cst 0.5)
-    ?(lfo_pwm2=cst 0.)
+    ?(lfo_pwm2=cst 0.5)
     ?(osc1_shape=cst `Square)
     ?(osc2_shape=cst `Saw)
     ?(osc2_volume=cst 1.)
