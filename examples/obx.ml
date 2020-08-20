@@ -12,10 +12,12 @@ let synth
     ?(lfo_form=cst `Sine)
     ?(lfo_rate=cst 2.)
     ?(lfo_pwm1=cst 0.5)
+    ?(lfo_pwm2=cst 0.)
     ?(osc1_shape=cst `Square)
     ?(osc2_shape=cst `Saw)
     ?(osc2_volume=cst 1.)
     ?(osc2_detune=cst 1.01)
+    ?a ?d ?s ?r
     e
   =
   let lfo = bind2 (osc ()) lfo_form lfo_rate in
@@ -35,12 +37,13 @@ let synth
       fun freq ->
         let* s1 = osc1_shape in
         let* s2 = osc2_shape in
-        let* lfo = lfo >>= print "lfo" in
+        let* lfo = lfo in
         let* lfo_pwm1 = lfo_pwm1 in
+        let* lfo_pwm2 = lfo_pwm2 in
+        let* detune2 = osc2_detune in
         let* x1 = osc1 ~width:((1. +. lfo *. lfo_pwm1) /. 2.) s1 freq in
-        let* d2 = osc2_detune in
+        let* x2 = osc2 ~width:((1. +. lfo *. lfo_pwm2) /. 2.) s2 (freq *. detune2) in
         let* v2 = osc2_volume in
-        let* x2 = osc2 s2 (freq *. d2) in
         return (x1 +. v2 *. x2)
     in
     let osc =
@@ -55,7 +58,7 @@ let synth
            | `Pan -> Random.float ~min:(-.stereo_amount) stereo_amount
         )
     in
-    let adsr = adsr ~event ~on_die () in
+    let adsr = adsr ~event ~on_die () ?a ?d ?s ?r in
     fun freq vol ->
       let l = List.map (fun (osc,d,p) -> osc (freq *. d) >>= Stereo.pan () p) osc in
       let* a = adsr () in

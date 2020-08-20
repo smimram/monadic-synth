@@ -201,11 +201,6 @@ end
 
 (** {2 Arithmetic} *)
 
-(** Generic arithmetical operations .*)
-module Math = struct
-  let clip x = max (-1.) (min 1. x)
-end
-
 (** Create a constant stream. *)
 let cst x = return x
 
@@ -599,31 +594,29 @@ end
 let saw () : float -> sample t =
   let p = periodic ~init:0.5 () in
   fun freq ->
-    let* x = p freq in
-    return (2. *. x -. 1.)
+    let* t = p freq in
+    return (Math.Osc.saw t)
 
 let triangle () =
   let p = periodic ~init:0.25 () in
-  fun ?(width=0.5) freq ->
+  fun freq ->
     let* t = p freq in
-    if t <= width then return (2. /. width *. t -. 1.)
-    else return (1. -. 2. /. (1. -. width) *. (t -. width))
+    return (Math.Osc.triangle t)
 
 let sine () : float -> sample t =
   let p = periodic () in
-  let a = 2. *. Float.pi in
   fun freq ->
     let* t = p freq in
-    return (sin (a *. t))
+    return (Math.Osc.sine t)
 
 let square () =
   let p = periodic () in
   fun ?(width=0.5) freq ->
-    let* x = p freq in
-    return (if x <= width then 1. else -1.)
+    let* t = p freq in
+    let t = Math.Osc.width width t in
+    return (Math.Osc.square t)
 
-let noise () =
-  seq (fun () -> Random.float 2. -. 1.)
+let noise () = seq (fun () -> Random.float ~min:(-1.) 1.)
 
 (** Play a sample stored in a buffer at various speeds. *)
 let sampler ?(interpolation=`Closest) ?(freq=1.) buf =
@@ -734,25 +727,16 @@ let osc () =
   let p = periodic () in
   fun ?(width=0.5) kind freq ->
     let* t = p freq in
-    let t =
-      if t <= 0.5 then t /. 0.5 *. width
-      else (t -. 0.5) /. 0.5 *. (1. -. width) +. width
+    let t = Math.Osc.width width t in
+    let f =
+      match kind with
+      | `Sine -> Math.Osc.sine
+      | `Saw -> Math.Osc.saw
+      | `Square -> Math.Osc.square
+      | `Triangle -> Math.Osc.triangle
+      | `Noise -> Math.Osc.noise
     in
-    match kind with
-    | `Sine -> return (sin (2. *. Float.pi *. t))
-    | `Saw -> return (2. *. t -. 1.) (* TODO: begin at 0. *)
-    | `Square -> return (if t <= 0.5 then 1. else -.1.)
-  (*
-  kind =
-  match kind with
-  | `Sine -> sine ()
-  | `Square -> square ?width:None ()
-  | `Saw -> saw ()
-  | `Triangle -> triangle ?width:None ()
-  | `Noise ->
-    let noise = noise () in (fun freq -> noise)
-  | `Random -> random () ~min:(-1.) ~max:(1.)
-*)
+    return (f t)
 
 (** Frequency modulation synthesis. *)
 let fm ?(carrier=`Sine) ?(modulator=`Sine) () =

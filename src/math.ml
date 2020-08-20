@@ -1,0 +1,40 @@
+(** Generic arithmetical operations .*)
+
+open Extlib
+
+let clip x = max (-1.) (min 1. x)
+
+(** Oscillators with period 1., first going up, starting from 0. *)
+module Osc = struct
+  (** Change periodic time (between 0. and 1.) so that width becomes as
+      specified. *)
+  let width width =
+    if width = 0.5 then fun t -> t
+    else fun t ->
+      if t <= 0.5 then t /. 0.5 *. width
+      else (t -. 0.5) /. 0.5 *. (1. -. width) +. width
+
+  let sine t = sin (2. *. Float.pi *. t)
+
+  let triangle t =
+    (*
+    if t <= 0.5 then 4. *. t -. 1.
+    else 1. -. 4. *. (t -. 0.5)
+    *)
+    if t <= 0.25 then
+      4. *. t
+    else if t <= 0.75 then
+      (* 1. -. 4. *. (t -. 0.25) *)
+      4. *. t
+    else
+      (* 4. *. (t -. 0.75) -. 1. *)
+      4. *. (t -. 1.)
+
+  let square t = if t <= 0.5 then 1. else -1.
+
+  let saw t =
+    if t <= 0.5 then 2. *. t
+    else 2. *. (t -. 1.5)
+
+  let noise t = Random.float ~min:(-1.) 1.
+end
