@@ -39,6 +39,11 @@ let bind3 f x y z =
 let bind4 f x y z t =
   bind (fun x -> bind (fun y -> bind (fun z -> bind (f x y z) t) z) y) x
 
+(** Bind the first of two arguments. *)
+let bind1_2 f x y =
+  bind (fun x -> f x y) x
+  
+
 (** Bind a function taking a list of arguments. *)
 let rec bind_list f = function
   | [] -> f []
@@ -98,6 +103,12 @@ include Operations
 
 (** Forget the result of the stream (this is [ignore] for streams). *)
 let drop _ = return ()
+
+(** Map a function on every sample of a stream. *)
+let map f x = return (f x)
+
+(** Iterate a function on every sample of a stream. *)
+let iter f = map (fun x -> f x; x)
 
 (** Create a stream from a function indicating its value at each call. *)
 let seq f =
@@ -190,6 +201,11 @@ end
 
 (** {2 Arithmetic} *)
 
+(** Generic arithmetical operations .*)
+module Math = struct
+  let clip x = max (-1.) (min 1. x)
+end
+
 (** Create a constant stream. *)
 let cst x = return x
 
@@ -217,7 +233,7 @@ let rec mix ss =
 let sub = funct2 ( -. )
 
 (** Clip a stream in the interval [-1., 1.]. *)
-let clip x = return (max (-1.) (min 1. x))
+let clip x = return (Math.clip x)
 
 let soft_clip x =
   if x <= -1. then (-2.)/.3.
@@ -581,7 +597,7 @@ end
 (** {2 Oscillators} *)
 
 let saw () : float -> sample t =
-  let p = periodic () in
+  let p = periodic ~init:0.5 () in
   fun freq ->
     let* x = p freq in
     return (2. *. x -. 1.)
@@ -714,7 +730,20 @@ module Spectral = struct
 end
 
 (** Generic oscillator. *)
-let osc kind =
+let osc () =
+  let p = periodic () in
+  fun ?(width=0.5) kind freq ->
+    let* t = p freq in
+    let t =
+      if t <= 0.5 then t /. 0.5 *. width
+      else (t -. 0.5) /. 0.5 *. (1. -. width) +. width
+    in
+    match kind with
+    | `Sine -> return (sin (2. *. Float.pi *. t))
+    | `Saw -> return (2. *. t -. 1.) (* TODO: begin at 0. *)
+    | `Square -> return (if t <= 0.5 then 1. else -.1.)
+  (*
+  kind =
   match kind with
   | `Sine -> sine ()
   | `Square -> square ?width:None ()
@@ -723,11 +752,12 @@ let osc kind =
   | `Noise ->
     let noise = noise () in (fun freq -> noise)
   | `Random -> random () ~min:(-1.) ~max:(1.)
+*)
 
 (** Frequency modulation synthesis. *)
 let fm ?(carrier=`Sine) ?(modulator=`Sine) () =
-  let carrier = osc carrier in
-  let modulator = osc modulator in
+  let carrier = osc () carrier in
+  let modulator = osc () modulator in
   fun ?(ratio=1.) depth freq ->
     let* m = modulator (ratio *. freq) in
     carrier (freq +. depth *. m)
