@@ -1335,6 +1335,14 @@ module Stereo = struct
         return (e *. x, e *. y)
   end
 
+  module Slicer = struct
+    let eurotrance () =
+      let l = Slicer.eurotrance () in
+      let r = Slicer.eurotrance () in
+      fun duration ->
+        map (l duration) (r duration)
+  end
+
   (** {2 Effects} *)
 
   (* TODO: this assumes 44.1 kHz sampling rate *)
