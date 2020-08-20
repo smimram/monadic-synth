@@ -7,7 +7,7 @@ open Stream
     has finished playing (we cannot determine this externally in case there is
     some release), and returns a function which plays a note at given frequency
     and volume. *)
-type ('sample, 'event) t = event:('event Event.t) -> on_die:(unit -> unit) -> unit -> sample -> float -> 'sample stream
+type ('sample, 'event) t = event:('event Event.t) -> on_die:(unit -> unit) -> unit -> float stream -> float stream -> 'sample stream
 
 (** Convert note height into frequency. *)
 let frequency ?(detune=0.) n =
@@ -26,7 +26,7 @@ let simple f : _ t =
   in
   Event.register event handler;
   let f = f () in
-  fun freq vol -> bmul (stream_ref alive) (cmul vol (f freq))
+  fun freq vol -> bmul (stream_ref alive) (mul vol (f freq))
 
 let detune ?(cents=return 7.) ?(wet=return 0.5) (note : _ t) : _ t =
   fun ~event ~on_die () ->
@@ -35,7 +35,7 @@ let detune ?(cents=return 7.) ?(wet=return 0.5) (note : _ t) : _ t =
   fun freq vol ->
     let cents = get cents in
     let wet = get wet in
-    let freqd = freq *. (2. ** (cents /. 1200.)) in
+    let freqd = cmul (2. ** (cents /. 1200.)) freq in
     let* d = n freq vol in
     let* w = nd freqd vol in
     return (d +. wet *. w)
@@ -76,13 +76,9 @@ end
 (** Simple note with adsr envelope and volume. *)
 let adsr ?a ?d ?s ?r osc : _ t =
   fun ~event ~on_die () ->
-  let g = function
-    | Some x -> Some (get x)
-    | None -> None
-  in
-  let env = adsr ~event ~on_die () ?a:(g a) ?d:(g d) ?s:(g s) ?r:(g r) () in
+  let env = adsr ~event ~on_die () ?a ?d ?s ?r () in
   let osc = osc () in
   fun freq vol ->
     let s = osc freq in
     let s = mul env s in
-    cmul vol s
+    mul vol s

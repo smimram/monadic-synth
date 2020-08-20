@@ -20,7 +20,7 @@ let synth
     ?a ?d ?s ?r
     e
   =
-  let lfo = bind2 (osc ()) lfo_form lfo_rate in
+  let lfo = osc () lfo_form lfo_rate in
   let lfo_, lfo = dup () lfo in
   let note : _ Note.t =
     fun ~event ~on_die () ->
@@ -35,14 +35,11 @@ let synth
       let osc1 = osc () in
       let osc2 = osc () in
       fun freq ->
-        let* s1 = osc1_shape in
-        let* s2 = osc2_shape in
         let* lfo = lfo in
         let* lfo_pwm1 = lfo_pwm1 in
         let* lfo_pwm2 = lfo_pwm2 in
-        let* detune2 = osc2_detune in
-        let* x1 = osc1 ~width:((1. +. lfo *. lfo_pwm1) /. 2.) s1 freq in
-        let* x2 = osc2 ~width:((1. +. lfo *. lfo_pwm2) /. 2.) s2 (freq *. detune2) in
+        let* x1 = osc1 ~width:!$((1. +. lfo *. lfo_pwm1) /. 2.) osc1_shape freq in
+        let* x2 = osc2 ~width:!$((1. +. lfo *. lfo_pwm2) /. 2.) osc2_shape (freq *$ osc2_detune) in
         let* v2 = osc2_volume in
         return (x1 +. v2 *. x2)
     in
@@ -60,14 +57,13 @@ let synth
     in
     let adsr = adsr ~event ~on_die () ?a ?d ?s ?r in
     fun freq vol ->
-      let l = List.map (fun (osc,d,p) -> osc (freq *. d) >>= Stereo.pan () p) osc in
-      let* a = adsr () in
-      Stereo.mix l >>= Stereo.amp (a *. vol)
+      let l = List.map (fun (osc,d,p) -> osc (cmul d freq) |> Stereo.pan () !$p) osc in
+      let a = adsr () in
+      Stereo.mix l |> Stereo.amp (a *$ vol)
   in
   let s = Instrument.play_stereo note e in
   let* unison = unison in
-  let* vol = master_volume in
-  lfo_ >> s >>= Stereo.amp (0.1 *. vol /. float unison)
+  lfo_ >> s |> Stereo.amp (!$0.1 *$ master_volume /$ !$ (float unison))
 
 let () =
   let midi = MIDI.create () in

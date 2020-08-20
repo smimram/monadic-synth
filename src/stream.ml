@@ -241,6 +241,8 @@ let add = funct2 ( +. )
 
 let ( +$ ) = add
 
+let cadd x = funct ((+.) x)
+
 (** Add a list of streams. *)
 let rec mix = List.fold_left add blank
 
@@ -255,7 +257,7 @@ let ( <=$ ) x y = funct2 ( <= ) x y
 let ( >=$ ) x y = funct2 ( >= ) x y
 
 (** Clip a stream in the interval [-1., 1.]. *)
-let clip x = funct Math.clip
+let clip = funct Math.clip
 
 let octaves = funct Math.octaves
 
@@ -1320,8 +1322,8 @@ module Stereo = struct
     fun delay s ->
       let* delay = delay in
       let dl, dr = if delay < 0. then -.delay, 0. else 0., delay in
-      let x = fst s in
-      let y = snd s in
+      let x = left s in
+      let y = right s in
       let x = delay_l !$dl x in
       let y = delay_r !$dr y in
       merge x y

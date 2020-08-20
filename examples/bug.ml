@@ -29,7 +29,7 @@ let () =
       1., `Nop;
     ]
   in
-  let drum = Instrument.play_drums (Stream.timed ~loop:true ~tempo drum) >>= amp 2. in
+  let drum = Instrument.play_drums (Stream.timed ~loop:true ~tempo drum) |> amp !$2. in
   let bass =
     [
       0. , 4., `Note (40, 1.);
@@ -41,13 +41,13 @@ let () =
   (* let note = Note.adsr saw in *)
   let note () =
     let osc = square () in
-    let lp = Filter.biquad () `Low_pass 3. in
-    let ramp = Envelope.ramp ~kind:`Exponential () ~from:5000. ~target:100. 0.5 in
-    fun freq -> bind2 lp ramp (osc freq)
+    let lp = Filter.biquad () !$`Low_pass !$3. in
+    let ramp = Envelope.ramp ~kind:`Exponential () ~from:!$5000. ~target:!$100. !$0.5 in
+    fun freq -> lp ramp (osc freq)
   in
   let note = Note.adsr note in
   let bass = Instrument.play note (Pattern.stream ~loop:true tempo bass) in
-  let bass = bass >>= Stream.Slicer.eurotrance () (60. /. tempo)  in
+  let bass = bass |> Stream.Slicer.eurotrance () !$(60. /. tempo)  in
   let chords =
     [
       0. , 4., `Chord ([40;44;47;52], 1.);
@@ -59,5 +59,5 @@ let () =
   let arp = Pattern.arpeggiate `Up (Pattern.transpose 24 chords) in
   let arp = Instrument.play (Note.simple sine) (Pattern.stream ~loop:true tempo arp) in
   let pad = Instrument.play (Note.adsr sine) (Pattern.stream ~loop:true tempo (Pattern.transpose 12 chords)) in
-  let s = B.mix [lead; drum; bass; arp; pad] >>= amp 0.2 in
-  Output.play (s >>= stereo)
+  let s = mix [lead; drum; bass; arp; pad] |> amp !$0.2 in
+  Output.play (s |> stereo)

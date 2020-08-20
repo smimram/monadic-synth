@@ -58,10 +58,7 @@ let create add ~event ?portamento (note:_ Note.t) =
           )
       in
       let note = note ~event ~on_die () in
-      let stream =
-        let* freq = freq in
-        note freq v
-      in
+      let stream = note freq !$v in
       let note =
         {
           note = n;
@@ -141,17 +138,17 @@ let emitter ?(loop=true) f l =
 let play ?portamento (note:_ Note.t) midi =
   let event = Event.create () in
   let s = create ?portamento ~event note in
-  midi >>= Event.emitter event >> s
+  midi |> Event.emitter event >> s
 
 let play_stereo ?portamento (note:_ Note.t) midi =
   let event = Event.create () in
   let s = create_stereo ?portamento ~event note in
-  midi >>= Event.emitter event >> s
+  midi |> Event.emitter event >> s
 
 let play_drum note midi =
   let event = Event.create () in
   let s = create_drum ~event note in
-  midi >>= Event.emitter event >> s
+  midi |> Event.emitter event >> s
 
 let play_drums ?kick ?snare ?closed_hat midi =
   let streams = ref [] in
