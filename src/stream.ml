@@ -1252,7 +1252,7 @@ module Stereo = struct
      right). Various {{:
      http://www.cs.cmu.edu/~music/icm-online/readings/panlaws/} pan laws} can be
      used. *)
-  let pan ?(law=`Circular) () =
+  let pan ?(law=`Circular) =
     fun a ->
     let a = (a +. 1.) /. 2. in
     let l, r =

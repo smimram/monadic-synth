@@ -5,7 +5,7 @@ open Stream
 
 let synth
     ?(master_volume=cst 1.)
-    ?(detune=cst 0.01) (* detuning in semitone *)
+    ?(detune=cst 0.1) (* detuning in semitone *)
     ?(unison=cst 1) (* number of unison channels *)
     ?(stereo_amount=cst 0.5)
     ?(stereo_mode=cst `Spread)
@@ -36,7 +36,7 @@ let synth
     in
     let unison = get unison in
     let stereo_amount = get stereo_amount in
-    let stereo_mode = get stereo_mode in
+    let stereo_mode = if stereo_amount = 0. then `Mono else get stereo_mode in
     let osc () =
       let osc1 = osc () in
       let osc2 = osc () in
@@ -59,7 +59,7 @@ let synth
            osc (),
            tuning (),
            match stereo_mode with
-           | `None -> 0.
+           | `Mono -> 0.
            | `Spread -> if i < unison then -.stereo_amount else stereo_amount
            | `Pan -> Random.float ~min:(-.stereo_amount) stereo_amount
         )
@@ -74,7 +74,7 @@ let synth
       let* lp_adsr = lp_adsr () in
       let lpl = lpl lp_q (lp_f *. lp_adsr) in
       let lpr = lpr lp_q (lp_f *. lp_adsr) in
-      let l = List.map (fun (osc,d,p) -> osc (freq *. d) >>= Stereo.pan ~law:`Linear () p) osc in
+      let l = List.map (fun (osc,d,p) -> (* let p = 1. in *) osc (freq *. d) >>= Stereo.pan p) osc in
       let* a = adsr () in
       Stereo.mix l >>= Stereo.map lpl lpr >>= Stereo.amp (a *. vol)
   in

@@ -28,7 +28,7 @@ let () =
     freq
     >>= saw ()
     >>= amp (1. /. float voices)
-    >>= Stereo.pan ~law:`Circular () (Random.float 2. -. 1.)
+    >>= Stereo.pan ~law:`Circular (Random.float 2. -. 1.)
   in
   let voices = List.init voices (fun _ -> voice ()) in
   let s =
