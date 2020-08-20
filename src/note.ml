@@ -26,8 +26,7 @@ let simple f : _ t =
   in
   Event.register event handler;
   let f = f () in
-  fun freq vol ->
-    B.bmul (stream_ref alive) (B.cmul vol (f freq))
+  fun freq vol -> bmul (stream_ref alive) (cmul vol (f freq))
 
 let detune ?(cents=return 7.) ?(wet=return 0.5) (note : _ t) : _ t =
   fun ~event ~on_die () ->
@@ -52,28 +51,26 @@ let add n1 n2 : _ t =
 (** Basic (TR-808 type) drum notes. *)
 module Drum = struct
   let kick ?on_die () =
-    let s = B.cmul 150. (Envelope.exponential () (-9.)) >>= sine () in
-    let env = adsr () ~a:0.001 ~d:0.1 ~s:0.9 ~sustain:false ~r:0.8 ?on_die () in
-    B.mul env s
+    let s = cmul 150. (Envelope.exponential () !$(-9.)) |> sine () in
+    let env = adsr () ~a:!$0.001 ~d:!$0.1 ~s:!$0.9 ~sustain:!$false ~r:!$0.8 ?on_die () in
+    amp env s
 
-  let snare ?on_die ?(a=0.01) ?(d=0.03) ?(s=0.7) ?(r=0.07) ?(lp=80000.) () =
-    let env = adsr () ?on_die ~a ~d ~s ~sustain:false ~r ~release:`Exponential () in
+  let snare ?on_die ?(a = !$0.01) ?(d = !$0.03) ?(s = !$0.7) ?(r = !$0.07) ?(lp = !$80000.) () =
+    let env = adsr () ?on_die ~a ~d ~s ~sustain:!$false ~r ~release:!$`Exponential () in
     let s = noise () in
-    let lpf = Filter.first_order () `Low_pass in
-    let* e = env in
-    let s = B.cmul e s in
-    s >>= lpf (lp *. e)
+    let lpf = Filter.first_order () !$`Low_pass in
+    mul env s |> lpf (lp *$ env)
 
   let crash ?on_die () =
     let s = noise () in
-    let env = adsr () ?on_die ~a:0.01 ~d:0.05 ~s:0.8 ~sustain:false ~r:0.5 () in
-    B.mul env s
+    let env = adsr () ?on_die ~a:!$0.01 ~d:!$0.05 ~s:!$0.8 ~sustain:!$false ~r:!$0.5 () in
+    mul env s
 
   let closed_hat ?on_die () =
     let s = noise () in
-    let env = adsr () ?on_die ~a:0.001 ~d:0.005 ~s:0.3 ~sustain:false ~r:0.01 () in
-    let s = s >>= Filter.first_order () `High_pass 4000. in
-    B.mul env s
+    let env = adsr () ?on_die ~a:!$0.001 ~d:!$0.005 ~s:!$0.3 ~sustain:!$false ~r:!$0.01 () in
+    let s = s |> Filter.first_order () !$`High_pass !$4000. in
+    mul env s
 end
 
 (** Simple note with adsr envelope and volume. *)
@@ -87,5 +84,5 @@ let adsr ?a ?d ?s ?r osc : _ t =
   let osc = osc () in
   fun freq vol ->
     let s = osc freq in
-    let s = B.mul env s in
-    B.cmul vol s
+    let s = mul env s in
+    cmul vol s

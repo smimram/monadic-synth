@@ -224,6 +224,8 @@ let mul = funct2 ( *. )
 
 let ( *$ ) = mul
 
+let cmul x = funct (( *. ) x)
+
 let div = funct2 ( /. )
 
 let ( /$ ) = div

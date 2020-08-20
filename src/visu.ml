@@ -15,6 +15,7 @@ let graphics () =
   Graphics.set_color bg;
   Graphics.fill_rect 0 0 (Graphics.size_x ()) (Graphics.size_y ());
   fun v ->
+    let* v = v in
     incr e;
     if !e = every then
       (
@@ -53,6 +54,7 @@ let bands ?(bands=1024) ?(scale=`Logarithmic) ?(amp=1.) () =
       (fun i -> int_of_float (log10 (float i/.bands*.9.+.1.) *. sx))
   in
   fun x ->
+    let* x = x in
     let* dt = dt in
     let every = int_of_float (0.5/.dt) in
     let e = ref (every-1) in
@@ -95,5 +97,5 @@ module Stereo = struct
     let b = bands in
     fun ?bands ?amp () ->
       let bands = b ?bands ?amp () in
-      fun x -> Stereo.to_mono x >>= bands >>= drop >> return x
+      fun x -> Stereo.to_mono x |> bands |> drop >> return x
 end

@@ -134,7 +134,7 @@ let play ?(samplerate=44100) ?duration s =
   let s =
     match duration with
     | None -> s
-    | Some t -> at () t >>= on (fun () -> raise End_of_stream) >> s
+    | Some t -> at () t |> on (fun () -> raise End_of_stream) >> s
   in
   let dt = 1. /. float samplerate in
   Random.self_init ();

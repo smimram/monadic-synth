@@ -54,7 +54,7 @@ let create add ~event ?portamento (note:_ Note.t) =
               let ramp = Envelope.ramp () in
               (* let ramp = exp_ramp in *)
               let* p = p in
-              ramp ~from:a ~target:b p
+              ramp ~from:!$a ~target:!$b p
           )
       in
       let note = note ~event ~on_die () in
@@ -156,7 +156,7 @@ let play_drum note midi =
 let play_drums ?kick ?snare ?closed_hat midi =
   let streams = ref [] in
   let create d note =
-    let dnote ~on_die freq vol = B.cmul vol (d ~on_die) in
+    let dnote ~on_die freq vol = cmul vol (d ~on_die) in
     let note = Option.value ~default:dnote note in
     let event = Event.create () in
     let s = create_drum ~event note in
@@ -172,7 +172,9 @@ let play_drums ?kick ?snare ?closed_hat midi =
     | `Closed_hat v -> Event.emit closed_hat (`Note_on (0,v))
     | `Nop -> ()
   in
-  midi >>= (fun l -> return (List.iter emit l)) >> B.mix !streams
+  let* l = midi in
+  List.iter emit l;
+  mix !streams
 
 let kick tempo =
   let event = Event.create () in
