@@ -43,3 +43,9 @@ Hardware synths
 - [EMS VCS 3](https://en.wikipedia.org/wiki/EMS_VCS_3)
 - [Yamaha DX7](https://en.wikipedia.org/wiki/Yamaha_DX7)
 - [RSF Kobol])() (see [this video](https://www.youtube.com/watch?v=tHKt0-ihEow))
+
+Specific topics
+===============
+
+- [Moog ladder filters
+  implementations](https://github.com/ddiakopoulos/MoogLadders)

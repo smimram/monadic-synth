@@ -858,8 +858,10 @@ module Envelope = struct
       let arrived = ref false in
       let t = integrate ~periodic:true ~on_reset:(fun () -> arrived := true) () in
       fun ?(from=0.) ?(target=1.) duration ->
+        let* _ = dt in
         let a = target -. from in
         let a' = 1. /. duration in
+        if duration = 0. then arrived := true;
         stream_ref arrived >>=
         fallback
           (return target)
@@ -927,7 +929,8 @@ module Filter = struct
           return (y : sample)
 
   (** Biquadratic / second order filter. *)
-  (* See http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt *)
+  (* See https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html
+     http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt *)
   let biquad () =
     let x'  = ref 0. in
     let x'' = ref 0. in
@@ -974,6 +977,20 @@ module Filter = struct
       let y = (b0 *. x +. b1 *. !x' +. b2 *. !x'' -. a1 *. !y' -. a2 *. !y'') /. a0 in
       advance x y;
       return y
+
+  (** Moog-type 4 pole ladder filter. *)
+  let ladder () kind =
+    let fo1 = first_order () kind in
+    let fo2 = first_order () kind in
+    let fo3 = first_order () kind in
+    let fo4 = first_order () kind in
+    let y = ref 0. in (* previous output *)
+    fun q freq x ->
+      let* _ = dt in
+      let x = x -. q *. !y in
+      let* x = return x >>= fo1 freq >>= fo2 freq >>= fo3 freq >>= fo4 freq in
+      y := x;
+      return x      
 end
 
 module Ringbuffer = struct
@@ -1226,9 +1243,9 @@ module Stereo = struct
   let bmul b s =
     bind2 (fun b c -> if b then return c else return (0.,0.)) b s
 
-  let map (fl:'a -> 'b stream) (fr:'c -> 'd stream) (x,y) =
+  let map fl fr (x,y) =
     let* x = fl x in
-    let* y = fl y in
+    let* y = fr y in
     return (x, y)
 
   let to_mono (x,y) =

@@ -24,6 +24,7 @@ let synth
     ?(lp_d=cst 10.)
     ?(lp_s=cst 0.1)
     ?(lp_r=cst 0.1)
+    ?(portamento=cst 0.)
     e
   =
   let lfo = bind2 (osc ()) lfo_form lfo_rate in
@@ -66,19 +67,19 @@ let synth
     in
     let lp_adsr = adsr ~event () ~a:(get lp_a) ~d:(get lp_d) ~s:(get lp_s) ~r:(get lp_r) in
     let adsr = adsr ~event ~on_die () ~a:(get a) ~d:(get d) ~s:(get s) ~r:(get r) in
-    let lpl = Filter.biquad () `Low_pass in
-    let lpr = Filter.biquad () `Low_pass in
+    let lpl = Filter.ladder () `Low_pass in
+    let lpr = Filter.ladder () `Low_pass in
     fun freq vol ->
       let* lp_q = lp_q in
       let* lp_f = lp_f in
       let* lp_adsr = lp_adsr () in
       let lpl = lpl lp_q (lp_f *. lp_adsr) in
       let lpr = lpr lp_q (lp_f *. lp_adsr) in
-      let l = List.map (fun (osc,d,p) -> (* let p = 1. in *) osc (freq *. d) >>= Stereo.pan p) osc in
+      let l = List.map (fun (osc,d,p) -> osc (freq *. d) >>= Stereo.pan p) osc in
       let* a = adsr () in
       Stereo.mix l >>= Stereo.map lpl lpr >>= Stereo.amp (a *. vol)
   in
-  let s = Instrument.play_stereo note e in
+  let s = Instrument.play_stereo ~portamento note e in
   let* unison = unison in
   let* vol = master_volume in
   lfo_
@@ -87,8 +88,9 @@ let synth
 
 let () =
   let midi = MIDI.create () in
+  let shift = MIDI.toggle midi 36 in
   let midi =
-    let t = MIDI.toggle midi 36 in
+    let t = shift in
     MIDI.map midi
       (fun c e ->
          match e with
@@ -123,28 +125,29 @@ let () =
     Board.create
       [
         [
-          "detune",0.,0.25,`Linear,detune;
-          "osc2 vol",0.,1.,`Linear,osc2_volume;
-          "lfp pwm1",0.,1.,`Linear,lfo_pwm1;
-          "lp freq",10.,10000.,`Logarithmic,lp_f;
+          "detune",`Knob(0.,0.25,`Linear,detune);
+          "osc2 vol",`Knob(0.,1.,`Linear,osc2_volume);
+          "lfp pwm1",`Knob(0.,1.,`Linear,lfo_pwm1);
+          "lp freq",`Knob(10.,10000.,`Logarithmic,lp_f);
         ];
         [
-          "stereo",0.,1.,`Linear,stereo_amount;
-          "lfo rate",0.,10.,`Linear,lfo_rate;
-          "lfp pwm2",0.,1.,`Linear,lfo_pwm2;
-          "lp q",0.1,5.,`Logarithmic,lp_q;
+          "stereo",`Knob(0.,1.,`Linear,stereo_amount);
+          "lfo rate",`Knob(0.,10.,`Linear,lfo_rate);
+          "lfp pwm2",`Knob(0.,1.,`Linear,lfo_pwm2);
+          "lp q",`Knob(0.1,5.,`Logarithmic,lp_q);
         ];
         [
-          "a",0.,1.,`Linear,a;
-          "d",0.,1.,`Linear,d;
-          "s",0.,1.,`Linear,sustain;
-          "r",0.,4.,`Linear,r;
+          "a",`Knob(0.,1.,`Linear,a);
+          "d",`Knob(0.,1.,`Linear,d);
+          "s",`Knob(0.,1.,`Linear,sustain);
+          "r",`Knob(0.,4.,`Linear,r);
+          "shift",`Switch shift;
         ];
         [
-          "lp a",0.,1.,`Linear,lp_a;
-          "lp d",0.,1.,`Linear,lp_d;
-          "lp s",0.,1.,`Linear,lp_s;
-          "lp r",0.,4.,`Linear,lp_r;
+          "lp a",`Knob(0.,1.,`Linear,lp_a);
+          "lp d",`Knob(0.,1.,`Linear,lp_d);
+          "lp s",`Knob(0.,1.,`Linear,lp_s);
+          "lp r",`Knob(0.,4.,`Linear,lp_r);
         ]
       ]
   in
