@@ -42,7 +42,6 @@ let bind4 f x y z t =
 (** Bind the first of two arguments. *)
 let bind1_2 f x y =
   bind (fun x -> f x y) x
-  
 
 (** Bind a function taking a list of arguments. *)
 let rec bind_list f = function
@@ -99,13 +98,17 @@ end
 
 include Operations
 
+let ( !$ ) = return
+
 (** {2 Pure operations} *)
 
 (** Forget the result of the stream (this is [ignore] for streams). *)
-let drop _ = return ()
+let drop x =
+  let* _ = x in
+  return ()
 
 (** Map a function on every sample of a stream. *)
-let map f x = return (f x)
+let map f x = funct f x
 
 (** Iterate a function on every sample of a stream. *)
 let iter f = map (fun x -> f x; x)
@@ -116,9 +119,10 @@ let seq f =
   return (f ())
 
 (** Value of the stream at previous instant. *)
-let prev (x0:'a) =
+let prev x0 =
   let prev = ref x0 in
   fun x ->
+    let* x = x in
     let ans = !prev in
     prev := x;
     return ans
@@ -128,6 +132,7 @@ let prev (x0:'a) =
 let initialize l =
   let l = ref l in
   fun x ->
+    let* x = x in
     match !l with
     | [] -> return x
     | x::l' -> l := l'; return x
@@ -179,6 +184,7 @@ module Event = struct
 
   (** Stream which emits lists of events. *)
   let emitter h e =
+    let* e = e in
     return (List.iter (emit h) e)
 
   (** Merge two hubs. *)
@@ -209,38 +215,52 @@ let blank = cst 0.
 
 (** Multiply a stream by a boolean (interpreted as 0 / 1 for false / true). *)
 let bmul b x =
+  let* b = b in
+  let* x = x in
   if b then return x else return 0.
 
 (** Multiply two streams. *)
-let mul x y = return (x *. y)
+let mul = funct2 ( *. )
+
+let ( *$ ) = mul
+
+let div = funct2 ( /. )
+
+let ( /$ ) = div
+
+(** Inverse. *)
+let inv = funct (fun x -> 1. /. x)
 
 (** Amplify a stream. *)
 let amp = mul
 
 (** Add two streams. *)
-let add x y = return (x +. y)
+let add = funct2 ( +. )
+
+let ( +$ ) = add
 
 (** Add a list of streams. *)
-let rec mix ss =
-  return (List.fold_left (+.) 0. ss)
+let rec mix =
+  bind_list (fun ss -> return (List.fold_left (+.) 0. ss))
 
 (** Subtract streams. *)
 let sub = funct2 ( -. )
 
+let ( -$ ) = sub
+
+let ( <$ ) = funct2 ( < )
+let ( >$ ) = funct2 ( > )
+let ( <=$ ) = funct2 ( <= )
+let ( >=$ ) = funct2 ( >= )
+
 (** Clip a stream in the interval [-1., 1.]. *)
-let clip x = return (Math.clip x)
+let clip x = funct Math.clip
 
-let soft_clip x =
-  if x <= -1. then (-2.)/.3.
-  else if x >= 1. then 2./.3.
-  else x-.x*.x*.x/.3.
-
-(** Convert octave numbers to multiplicative coefficient for frequency. *)
-let octaves x =
-  return (Float.pow 2. x)
+let octaves = funct Math.octaves
 
 (** Number of samples in a given amount of time. *)
 let samples t =
+  let* t = t in
   let* dt = dt in
   return (round (t /. dt))
 
@@ -255,6 +275,7 @@ let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=fal
   in
   Event.register event handler;
   fun x ->
+    let* x = x in
     let* dt = dt in
     let ans = !y in
     y := ans +. x *. dt;
@@ -263,7 +284,7 @@ let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=fal
 
 (** Current time. *)
 let now ?event () : sample t =
-  integrate ?event () 1.
+  integrate ?event () (cst 1.)
 
 (** Current time for a periodic function. *)
 (* TODO: implement periodic with events *)
@@ -308,6 +329,7 @@ let timed ?tempo ?(loop=false) l =
 let activates () =
   let prev = ref false in
   fun b ->
+    let* b = b in
     let p = !prev in
     prev := b;
     return (not p && b)
@@ -317,6 +339,7 @@ let changes () =
   let first = ref true in
   let prev = ref false in
   fun b ->
+    let* b = b in
     if !first then
       (
         first := false;
@@ -334,20 +357,22 @@ let changes () =
 let zc () =
   let activates = activates () in
   fun s ->
-    s >>= (fun x -> return (x >= 0.)) >>= activates
+    s |> map (fun x -> x >= 0.) |> activates
 
 (** Check whether we are at a particular instant. *)
 let at () =
   let now = now () in
   let activates = activates () in
-  fun (time:float) ->
+  fun time ->
+    let* time = time in
     let* t = now in
-    activates (t >= time)
+    activates (cst (t >= time))
 
 (** Check whether we are after a particular instant. *)
 let after () =
   let now = now () in
   fun time ->
+    let* time = time in
     let* t = now in
     return (t >= time)
 
@@ -357,7 +382,7 @@ let frequently () =
   let on_reset () = b := true in
   let p = periodic ~on_reset () in
   fun freq ->
-    p freq >>= drop >>
+    p freq |> drop >>
     let* _ = dt in
     if !b then (b := false; return true)
     else return false
@@ -365,24 +390,27 @@ let frequently () =
 (** Generate an event every period of time. *)
 let every () =
   let f = frequently () in
-  fun time -> f (1. /. time)
+  fun time -> f (inv time)
 
 (** Whether this is the first sample of the stream. *)
 let is_first () =
   let first = ref true in
-  fun () ->
-    let ans = !first in
-    first := false;
-    return ans
+  let* _ = dt in
+  let ans = !first in
+  first := false;
+  return ans
 
 (** Execute an action when a stream is true. *)
 let on f b =
+  let* b = b in
   if b then return (f ()) else return ()
 
 (** Sample when a condition is true and hold the sample the rest of the time. *)
 let sample_and_hold () =
   let r = ref None in
   fun b x ->
+    let* b = b in
+    let* x = x in
     let* _ = dt in
     if b || !r = None then r := Some x;
     return (Option.get !r)
@@ -392,7 +420,7 @@ let downsample freq s =
   let r = ref None in
   let on_reset () = r := Some (s (1. /. freq)) in
   let p = periodic ~on_reset () in
-  let* _ = p freq in
+  let* _ = p (!$ freq) in
   if !r = None then r := Some (get s);
   return (Option.get !r)
 
@@ -400,29 +428,33 @@ let downsample freq s =
 let on_change ?(first=false) f =
   let old = ref None in
   fun x ->
+    let* x = x in
     match !old with
     | Some x0 when x0 = x -> return x
     | Some _ -> old := Some x; f x; return x
     | None -> old := Some x; if first then f x; return x
 
-let fallback (x:'a t) (y:'a t) b : 'a t =
+(** Switch between two streams (the non-selected stream is not advanced!). *)
+let switch b x y =
+  let* b = b in
   if b then x else y
-
-let fallblank x b = fallback x blank b
 
 (** Generate a random value at given frequency. *)
 let random () =
   let x = ref 0. in
   let frequently = frequently () in
-  fun ?(min=0.) ?(max=1.) freq ->
-    frequently freq >>= on (fun () -> x := Random.float (max -. min) +. min) >> stream_ref x
+  fun ?(min = !$ 0.) ?(max = !$ 1.) freq ->
+    let* min = min in
+    let* max = max in
+    let* freq = freq in
+    frequently freq |> on (fun () -> x := Random.float (max -. min) +. min) >> stream_ref x
 
 (** Operations with samples as unit time. *)
 module Sample = struct
   let every () =
     let t = ref 0 in
     fun n ->
-      let* _ = dt in
+      let* n = n in
       incr t;
       let b = !t >= n in
       if b then t := !t - n;
@@ -432,7 +464,8 @@ module Sample = struct
     let len = Array.length a in
     let prev = Array.make len 0. in
     let n = ref 0 in
-    fun x () ->
+    fun x ->
+      let* x = x in
       prev.(!n) <- x;
       let ans = ref 0. in
       for i = 0 to len - 1 do
@@ -440,7 +473,7 @@ module Sample = struct
       done;
       incr n;
       if !n = len then n := 0;
-      !ans
+      return !ans
 
   (** Ringbuffers. *)
   module Ringbuffer = struct
@@ -494,6 +527,8 @@ module Sample = struct
   let delay () =
     let r = Ringbuffer.create () in
     fun delay x ->
+      let* delay = delay in
+      let* x = x in
       Ringbuffer.prepare r delay;
       Ringbuffer.write r x;
       let x = Ringbuffer.past r delay in
@@ -505,6 +540,7 @@ module Sample = struct
   let rec_delay () =
     let r = Ringbuffer.create () in
     fun delay f ->
+      let* delay = delay in
       Ringbuffer.prepare r delay;
       let* y = f (Ringbuffer.past r delay) in
       Ringbuffer.write r y;
@@ -518,12 +554,12 @@ module Sample = struct
     | `Feedback ->
       let d = rec_delay () in
       fun m a x ->
-        d m (fun y' -> return (x -. a *. y'))
+        d m (fun y' -> x -$ a *$ !$ y')
     | `Feedforward ->
       let d = delay () in
       fun m a x ->
-        let* x' = d m x in
-        return (x +. a *. x')
+        let x' = d m x in
+        x +$ a *$ x'
 
   (** All-pass filter. *)
   (* https://ccrma.stanford.edu/~jos/Delay/Schroeder_Allpass_Filters.html and
@@ -532,7 +568,7 @@ module Sample = struct
     let dx = delay () in
     let dy = rec_delay () in
     fun m g x ->
-      dy m (fun y' -> dx m x >>= (fun x' -> return (x'+.g*.(y'-.x))))
+      dy m (fun y' -> dx m x >>= (fun x' -> !$ x' +$ g *$ (!$ y' -$ x)))
 
   (** Fast Fourrier transform. *)
   let fft a off len =
@@ -580,30 +616,26 @@ end
 
 (** {2 Oscillators} *)
 
-let saw () : float -> sample t =
+let saw () =
   let p = periodic ~init:0.5 () in
   fun freq ->
-    let* t = p freq in
-    return (Math.Osc.saw t)
+    p freq |> funct Math.Osc.saw
 
 let triangle () =
   let p = periodic ~init:0.25 () in
   fun freq ->
-    let* t = p freq in
-    return (Math.Osc.triangle t)
+    p freq |> funct Math.Osc.triangle
 
-let sine () : float -> sample t =
+let sine () =
   let p = periodic () in
   fun freq ->
-    let* t = p freq in
-    return (Math.Osc.sine t)
+    p freq |> funct Math.Osc.sine
 
 let square () =
   let p = periodic () in
-  fun ?(width=0.5) freq ->
-    let* t = p freq in
-    let t = Math.Osc.width width t in
-    return (Math.Osc.square t)
+  fun ?(width = !$ 0.5) freq ->
+    let* width = width in
+    p freq |> funct (Math.Osc.width width) |> funct Math.Osc.square
 
 let noise () = seq (fun () -> Random.float ~min:(-1.) 1.)
 
@@ -620,8 +652,9 @@ let sampler ?(interpolation=`Closest) ?(freq=1.) buf =
         return buf.(n))
   in
   fun freq' ->
+    let* freq' = freq' in
     let* dt = dt in
-    let* t = p (freq' /. (freq *. dt *. fbuflen)) in
+    let* t = p (!$ (freq' /. (freq *. dt *. fbuflen))) in
     f t
 
 module Spectral = struct
@@ -714,7 +747,9 @@ end
 (** Generic oscillator. *)
 let osc () =
   let p = periodic () in
-  fun ?(width=0.5) kind freq ->
+  fun ?(width = !$ 0.5) kind freq ->
+    let* width = width in
+    let* kind = kind in
     let* t = p freq in
     let t = Math.Osc.width width t in
     let f =
@@ -729,15 +764,16 @@ let osc () =
 
 (** Frequency modulation synthesis. *)
 let fm ?(carrier=`Sine) ?(modulator=`Sine) () =
-  let carrier = osc () carrier in
-  let modulator = osc () modulator in
-  fun ?(ratio=1.) depth freq ->
-    let* m = modulator (ratio *. freq) in
-    carrier (freq +. depth *. m)
+  let carrier = osc () (!$ carrier) in
+  let modulator = osc () (!$ modulator) in
+  fun ?(ratio = !$ 1.) depth freq ->
+    let m = modulator (ratio *$ freq) in
+    carrier (freq +$ depth *$ m)
 
 let random_zero () =
   let x = ref 0. in
   fun ?(attraction=500.) speed ->
+    let* speed = speed in
     let* dt = dt in
     let attraction = attraction *. dt in
     let speed = speed *. dt in
@@ -774,12 +810,13 @@ let karplus_strong ?filter () =
   let r = Sample.Ringbuffer.create () in
   let prev = prev 0. in
   let average x =
-    let* y = prev x in
+    let* y = prev (!$ x) in
     return ((x +. y) /. 2.)
   in
   let filter = Option.value ~default:average filter in
   fun freq ->
-    let* n = samples (1. /. freq) in
+    let* freq = freq in
+    let* n = samples (!$ (1. /. freq)) in
     let init () = get (noise ()) in
     Sample.Ringbuffer.prepare r ~init n;
     let ans = Sample.Ringbuffer.past r n in
@@ -810,8 +847,13 @@ module Envelope = struct
       (* Printf.printf "new state: %s\n%!" (match s with `Attack -> "a" | `Decay -> "d" | `Sustain -> "s" | `Release -> "r" | `Dead -> "x"); *)
       state := s
     in
-    let rec stream ?(a=0.01) ?(d=0.05) ?(s=0.8) ?(r=0.5) ?(sustain=true) ?(release=`Linear) () =
-      let* _ = dt in
+    let rec stream ?(a = !$0.01) ?(d = !$0.05) ?(s = !$0.8) ?(r = !$0.5) ?(sustain = !$true) ?(release = !$`Linear) () =
+      let* a = a in
+      let* d = d in
+      let* s = s in
+      let* r = r in
+      let* sustain = sustain in
+      let* release = release in
       match !state with
       | `Dead -> return 0.
       | `Sustain -> return s
@@ -840,6 +882,7 @@ module Envelope = struct
   let exponential ?(init=1.) () =
     let y = ref 1. in
     fun k ->
+      let* k = k in
       let* dt = dt in
       let ans = !y in
       y := !y *. (1. +. k *. dt);
@@ -849,7 +892,9 @@ module Envelope = struct
   let exponential_hl ?init () =
     let ln2 = log 2. in
     let e = exponential ?init () in
-    fun h -> e (-. ln2 /. h)
+    fun h ->
+      let* h = h in
+      e (!$ (-. ln2 /. h))
 
   (** Affine from a value to a value in a given time. *)
   let ramp ?(kind=`Linear) () =
@@ -857,18 +902,20 @@ module Envelope = struct
     | `Linear ->
       let arrived = ref false in
       let t = integrate ~periodic:true ~on_reset:(fun () -> arrived := true) () in
-      fun ?(from=0.) ?(target=1.) duration ->
+      fun ?(from = !$0.) ?(target = !$1.) duration ->
+        let* from = from in
+        let* target = target in
+        let* duration = duration in
         let a = target -. from in
         let a' = 1. /. duration in
-        stream_ref arrived >>=
-        fallback
+        switch (stream_ref arrived)
           (return target)
-          (let* t = t a' in return (a *. t +. from))
+          (let* t = t (!$ a') in return (a *. t +. from))
     | `Exponential ->
       let e = exponential_hl () in
-      fun ?(from=0.) ?(target=1.) duration ->
-        let* e = e duration in
-        return ((1. -. e) *. (target -. from) +. from)
+      fun ?(from = !$0.) ?(target = !$1.) duration ->
+        let e = e duration in
+        (!$1. -$ e) *$ (target -$ from) +$ from
 end
 
 let adsr = Envelope.adsr
@@ -880,11 +927,15 @@ let smooth ?(init=0.) ?(kind=`Exponential) () =
   match kind with
   | `Exponential ->
     fun a target ->
+      let* a = a in
+      let* target = target in
       let* dt = dt in
       x := !x +. (dt /. a) *. (target -. !x);
       return !x
   | `Linear ->
     fun a target ->
+      let* a = a in
+      let* target = target in
       let* dt = dt in
       if !x = target then ()
       else if !x < target then
@@ -908,23 +959,25 @@ module Filter = struct
   let first_order () =
     let x' = ref 0. in
     let y' = ref 0. in
-    fun kind freq ->
+    fun kind freq (x : sample t) ->
+      let* kind = kind in
+      let* freq = freq in
       let rc = 1. /. (2. *. Float.pi *. freq) in
-      fun (x : sample) ->
-        match kind with
-        | `Low_pass ->
-          let* dt = dt in
-          let a = dt /. (rc +. dt) in
-          let y = !y' +. a *. (x -. !y') in
-          y' := y;
-          return y
-        | `High_pass ->
-          let* dt = dt in
-          let a = rc /. (rc +. dt) in
-          let y = a *. (!y' +. x -. !x') in
-          x' := x;
-          y' := y;
-          return (y : sample)
+      let* x = x in
+      match kind with
+      | `Low_pass ->
+        let* dt = dt in
+        let a = dt /. (rc +. dt) in
+        let y = !y' +. a *. (x -. !y') in
+        y' := y;
+        return y
+      | `High_pass ->
+        let* dt = dt in
+        let a = rc /. (rc +. dt) in
+        let y = a *. (!y' +. x -. !x') in
+        x' := x;
+        y' := y;
+        return (y : sample)
 
   (** Biquadratic / second order filter. *)
   (* See http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt *)
@@ -939,7 +992,11 @@ module Filter = struct
       y'' := !y';
       y'  := y
     in
-    fun kind q freq (x : sample) ->
+    fun kind q freq (x : sample t) ->
+      let* kind = kind in
+      let* q = q in
+      let* freq = freq in
+      let* x = x in
       assert (q > 0.);
       let* dt = dt in
       let w0 = 2. *. Float.pi *. dt *. freq in
@@ -997,8 +1054,13 @@ end
 (** Delay effect on the stream. *)
 let delay () =
   let r = Ringbuffer.create () in
-  fun ?(dry=1.) ?(wet=0.5) ?(feedback=0.9) delay x ->
-    let* () = Ringbuffer.prepare r delay in
+  fun ?(dry = !$1.) ?(wet = !$0.5) ?(feedback = !$0.9) delay x ->
+    let* dry = dry in
+    let* wet = wet in
+    let* feedback = feedback in
+    let* delay = delay in
+    let* x = x in
+    Ringbuffer.prepare r delay >>
     let* x' = Ringbuffer.past r delay in
     let ans = dry *. x +. wet *. x' in
     Ringbuffer.write r (x +. feedback *. ans);
@@ -1008,23 +1070,18 @@ let delay () =
 let comb ?kind () =
   let comb = Sample.comb ?kind () in
   fun delay a x ->
-    let* delay = samples delay in
-    comb delay a x
+    comb (samples delay) a x
 
 (** A {{: https://ccrma.stanford.edu/~jos/Delay/Schroeder_Allpass_Filters.html }
    Schroeder allpass filter}. *)
 let schroeder_allpass () =
   let sa = Sample.schroeder_allpass () in
-  fun delay ->
-    let* delay = samples delay in
-    sa delay
+  fun delay -> sa (samples delay)
 
 (** A simple delay with no dry or feedback. *)
 let simple_delay () =
   let d = Sample.delay () in
-  fun delay x ->
-    let* delay = samples delay in
-    d delay x
+  fun delay x -> d (samples delay) x
 
 (** Auto gain control. *)
 let agc ?(period=0.1) ?(up=0.5) ?(down=15.) ?(blank=0.01) ?(target=0.8) ?(clipping=true) () =
@@ -1037,12 +1094,13 @@ let agc ?(period=0.1) ?(up=0.5) ?(down=15.) ?(blank=0.01) ?(target=0.8) ?(clippi
   let clipped = ref false in
   let a = ref 1. in
   fun x ->
+    let* x = x in
     let ans = !a *. x in
     let ans2 = ans *. ans in
     ss := !ss +. ans2;
     if ans2 > 1. then clipped := true;
     incr n;
-    let* period = samples period in
+    let* period = samples (!$ period) in
     if !n >= period then
       (
         let ms = !ss /. float period in
@@ -1066,27 +1124,30 @@ module Slicer = struct
   let hachoir () =
     let p = periodic () in
     fun duration ?(width=0.5) x ->
-      let* y = p (1. /. duration) in
+      let* x = x in
+      let* y = p (inv duration) in
       if y <= width then return x else return 0.
 
   let staccato () =
     let event = Event.create () in
     let adsr = adsr ~event () in
-    let lpf = Filter.biquad () `Low_pass in
+    let lpf = Filter.biquad () !$`Low_pass in
     let reset () = Event.emit event `Reset in
     let every = every () in
-    fun ?a ?d ?s ?(lp=true) ?(lp_q=1.) ?(lp_freq=10000.) time x ->
-      let* () = every time >>= on reset in
-      let* a = adsr ?a ?d ?s () in
+    fun ?a ?d ?s ?(lp = !$true) ?(lp_q = !$1.) ?(lp_freq = !$10000.) time x ->
+      let* lp = lp in
+      every time |> on reset >>
+      let a = adsr ?a ?d ?s () in
       if lp then
-        lpf lp_q (lp_freq *. a) (x *. a)
+        lpf lp_q (lp_freq *$ a) (x *$ a)
       else
-        return (x *. a)
+        x *$ a
 
   let eurotrance () =
     let p = periodic () in
     fun duration x ->
-      let* t = p (1. /. duration) in
+      let* x = x in
+      let* t = p (inv duration) in
       let d = int_of_float (t *. 8.) in
       if d = 0 || d = 4 || d = 6 then return x else return 0.
 end
@@ -1094,28 +1155,30 @@ end
 (** Chorus effect. *)
 let chorus () =
   let d = simple_delay () in
-  fun ?(wet=1.) delay x ->
-    let delay = max 0. delay in
-    let* x' = d delay x in
-    return (x +. wet *. x')
+  fun ?(wet = !$1.) delay x ->
+    let delay = delay |> map (max 0.) in
+    let x' = d delay x in
+    x +$ wet *$ x'
 
 (** Flanger effect. *)
 (* TODO: add optional feedback *)
 let flanger () =
   let chorus = chorus () in
   let lfo = triangle () in
-  fun delay ?(wet=1.) freq x ->
-    let* t = lfo freq in
-    let delay = delay /. 2. *. (1. +. t) in
+  fun delay ?(wet = !$1.) freq x ->
+    let t = lfo freq in
+    let delay = delay /$ !$2. *$ (!$1. +$ t) in
     chorus ~wet delay x
 
 (** Distortion effects. *)
 module Distortion = struct
   (* amount in [-1,1] *)
   let waveshaper () =
-  fun amount x ->
-    let k = 2. *. amount /. (1. -. amount) in
-    return ((1. +. k) /. (1. +. k *. abs_float x))
+    fun amount x ->
+      let* amount = amount in
+      let* x = x in
+      let k = 2. *. amount /. (1. -. amount) in
+      return ((1. +. k) /. (1. +. k *. abs_float x))
 
   let convolver amount =
     let len = 128 in
@@ -1128,17 +1191,19 @@ end
 (** Print value of stream. *)
 let print ?first ?(changes=true) name =
   if changes then on_change ?first (fun x -> Printf.printf "%s: %f\n%!" name x)
-  else (fun x -> Printf.printf "%s: %f\n%!" name x; return x)
+  else (fun x -> let* x = x in Printf.printf "%s: %f\n%!" name x; return x)
 
 (** Blink a led on tempo. *)
 let blink_tempo on off =
   let p = periodic () in
   let au = activates () in
   let ad = activates () in
-  fun ?(duration=0.25) tempo ->
-    let* t = p (tempo /. 60.) in
-    let* up = au (t < duration) in
-    let* down = ad (t >= duration) in
+  fun ?(duration = !$0.25) tempo ->
+    let* duration = duration in
+    let* tempo = tempo in
+    let* t = p !$(tempo /. 60.) in
+    let* up = au !$(t < duration) in
+    let* down = ad !$(t >= duration) in
     if up then return (on ())
     else if down then return (off ())
     else return ()
@@ -1148,7 +1213,8 @@ let ms duration cb =
   let sq = ref 0. in
   let n = ref 0 in
   fun x ->
-    let* samples = samples duration in
+    let* x = x in
+    let* samples = samples !$duration in
     let fsamples = float_of_int samples in
     sq := !sq +. x *. x;
     incr n;
@@ -1170,6 +1236,7 @@ let is_blank duration =
   in
   let ms = ms duration cb in
   fun threshold ->
+    let* threshold = threshold in
     t := threshold;
     fun x -> ms x >> stream_ref ans
 
@@ -1413,22 +1480,3 @@ end
 
 (** Duplicate a mono stream to become a stereo stream. *)
 let stereo = Stereo.of_mono
-
-(** Binded functions. *)
-module B = struct
-  (** Add a constant. *)
-  let cadd x = bind (add x)
-
-  let add = bind2 add
-
-  (** Multiply by a constant. *)
-  let cmul x = bind (mul x)
-
-  let mulc x y = cmul y x
-
-  let mul = bind2 mul
-
-  let bmul = bind2 bmul
-
-  let mix = bind_list mix
-end

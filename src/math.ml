@@ -4,6 +4,14 @@ open Extlib
 
 let clip x = max (-1.) (min 1. x)
 
+let soft_clip x =
+  if x <= -1. then (-2.)/.3.
+  else if x >= 1. then 2./.3.
+  else x-.x*.x*.x/.3.
+
+(** Convert octave numbers to multiplicative coefficient for frequency. *)
+let octaves x = Float.pow 2. x
+
 (** Stretch a parameter between 0 and 1 to be between given bounds. *)
 let stretch ?(mode=`Linear) ?(min=0.) ?(max=1.) =
   let d = max -. min in
