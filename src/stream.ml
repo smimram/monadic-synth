@@ -240,18 +240,17 @@ let add = funct2 ( +. )
 let ( +$ ) = add
 
 (** Add a list of streams. *)
-let rec mix =
-  bind_list (fun ss -> return (List.fold_left (+.) 0. ss))
+let rec mix = List.fold_left add blank
 
 (** Subtract streams. *)
 let sub = funct2 ( -. )
 
 let ( -$ ) = sub
 
-let ( <$ ) = funct2 ( < )
-let ( >$ ) = funct2 ( > )
-let ( <=$ ) = funct2 ( <= )
-let ( >=$ ) = funct2 ( >= )
+let ( <$ ) x y = funct2 ( < ) x y
+let ( >$ ) x y = funct2 ( > ) x y
+let ( <=$ ) x y = funct2 ( <= ) x y
+let ( >=$ ) x y = funct2 ( >= ) x y
 
 (** Clip a stream in the interval [-1., 1.]. *)
 let clip x = funct Math.clip
@@ -1235,10 +1234,10 @@ let is_blank duration =
     ans := ms <= t *. t
   in
   let ms = ms duration cb in
-  fun threshold ->
+  fun threshold x ->
     let* threshold = threshold in
     t := threshold;
-    fun x -> ms x >> stream_ref ans
+    ms x >> stream_ref ans
 
 (** {2 Stereo streams} *)
 
@@ -1246,11 +1245,16 @@ let is_blank duration =
 module Stereo = struct
   type 'a t = ('a * 'a) stream
 
+  let left = map fst
+
+  let right = map snd
+
   let of_mono x : 'a t =
+    let* x = x in
     return (x, x)
 
   (** Blank stereo stream. *)
-  let blank = of_mono 0.
+  let blank = of_mono !$0.
 
   (** Construct a stereo stream from two mono streams. *)
   let merge s1 s2 =
@@ -1274,53 +1278,59 @@ module Stereo = struct
     (* Initial additional delay. *)
     let delay_r0 =
       match ping_pong with
-      | Some ping_pong -> simple_delay () (ping_pong /. 2.)
-      | None -> return
+      | Some ping_pong -> simple_delay () !$(ping_pong /. 2.)
+      | None -> id
     in
-    fun ?dry ?wet ?(feedback=0.6) delay ((x,y) as c) ->
+    fun ?dry ?wet ?(feedback = !$0.6) delay c ->
+      let x = left c in
+      let y = right c in
       let x = delay_l ?dry ?wet ~feedback delay x in
-      let y = delay_r0 y >>= delay_r ?dry ?wet ~feedback delay in
-      add (return c) (merge (bind (mul feedback) x) (bind (mul feedback) y))
+      let y = delay_r0 y |> delay_r ?dry ?wet ~feedback delay in
+      add c (merge (feedback *$ x) (feedback *$ y))
 
   let mix ss =
     List.fold_left add blank ss
 
-  let amp a (x,y) = return (a *. x, a *. y)
+  let amp a s =
+    let* a = a in
+    let* x, y = s in
+    !$(a *. x, a *. y)
 
-  let cmul a s =
-    s >>= amp a
+  let cmul = amp
 
   let bmul b s =
-    bind2 (fun b c -> if b then return c else return (0.,0.)) b s
+    let* b = b in
+    let* c = s in
+    if b then !$c else !$(0.,0.)
 
   let map (fl:'a -> 'b stream) (fr:'c -> 'd stream) (x,y) =
     let* x = fl x in
     let* y = fl y in
-    return (x, y)
+    !$(x, y)
 
-  let to_mono (x,y) =
-    return ((x +. y) /. 2.)
-
-  let left (x,y) = return x
-
-  let right (x,y) = return y
+  let to_mono c =
+    let* x, y = c in
+    !$((x +. y) /. 2.)
 
   let dephase () =
     let delay_l = simple_delay () in
     let delay_r = simple_delay () in
-    fun delay ->
+    fun delay s ->
+      let* delay = delay in
       let dl, dr = if delay < 0. then -.delay, 0. else 0., delay in
-      fun (x,y) ->
-        let* x = delay_l dl x in
-        let* y = delay_r dr y in
-        return (x, y)
+      let x = fst s in
+      let y = snd s in
+      let x = delay_l !$dl x in
+      let y = delay_r !$dr y in
+      merge x y
 
   (** Pan the sound according to a number between -1 (full left) and 1 (full
      right). Various {{:
      http://www.cs.cmu.edu/~music/icm-online/readings/panlaws/} pan laws} can be
      used. *)
   let pan ?(law=`Circular) () =
-    fun a ->
+    fun a x ->
+    let* a = a in
     let a = (a +. 1.) /. 2. in
     let l, r =
       match law with
@@ -1334,13 +1344,13 @@ module Stereo = struct
         sqrt ((1. -. a) *. cos (a *. Float.pi /. 2.)),
         sqrt ((1. -. a) *. sin (a *. Float.pi /. 2.))
     in
-    fun (x : sample) -> (return (l *. x, r *. x) : sample t)
+    merge (!$l *$ x) (!$r *$ x)
 
   (** {{: https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html} Schroeder reverberation}. *)
   let schroeder ?(size=`Small) () =
     let kind = match size with `Small -> `Feedforward | `Large -> `Feedback in
-    let fbcf d g = comb ~kind () d (-.g) in
-    let ap () = schroeder_allpass () in
+    let fbcf d g = comb ~kind () !$d !$(-.g) in
+    let ap () m g = schroeder_allpass () !$m !$g in
     (* Original values are given for a 25 kHz sampling rate .*)
     let ap1 = ap () (347./.25000.) 0.7 in
     let ap2 = ap () (113./.25000.) 0.7 in
@@ -1350,17 +1360,17 @@ module Stereo = struct
     let fbcf3 = fbcf (2053./.25000.) 0.753 in
     let fbcf4 = fbcf (2251./.25000.) 0.733 in
     fun x ->
-      let* i = ap1 x >>= ap2 >>= ap3 in
-      let* x1 = fbcf1 i in
-      let* x2 = fbcf2 i in
-      let* x3 = fbcf3 i in
-      let* x4 = fbcf4 i in
-      return (x1+.x3, x2+.x4)
+      let i = ap1 x |> ap2 |> ap3 in
+      let x1 = fbcf1 i in
+      let x2 = fbcf2 i in
+      let x3 = fbcf3 i in
+      let x4 = fbcf4 i in
+      merge (x1+$x3) (x2+$x4)
 
   let schroeder_random () =
     (* Feedback comb-filter. *)
-    let fbcf d g = comb () d (-.g) in
-    let ap = schroeder_allpass () in
+    let fbcf d g = comb () !$d !$(-.g) in
+    let ap m g = schroeder_allpass () !$m !$g in
     let ap1 = ap (Random.float 0.015 +. 0.001) 0.7 in
     let ap2 = ap (Random.float 0.015 +. 0.001) 0.7 in
     let ap3 = ap (Random.float 0.015 +. 0.001) 0.7 in
@@ -1369,16 +1379,16 @@ module Stereo = struct
     let fbcf3 = fbcf (Random.float 0.05 +. 0.05) 0.753 in
     let fbcf4 = fbcf (Random.float 0.05 +. 0.05) 0.733 in
     fun x ->
-      let* i = ap1 x >>= ap2 >>= ap3 in
-      let* x1 = fbcf1 i in
-      let* x2 = fbcf2 i in
-      let* x3 = fbcf3 i in
-      let* x4 = fbcf4 i in
-      return (x1+.x3, x2+.x4)
+      let i = ap1 x |> ap2 |> ap3 in
+      let x1 = fbcf1 i in
+      let x2 = fbcf2 i in
+      let x3 = fbcf3 i in
+      let x4 = fbcf4 i in
+      merge (x1+$x3) (x2+$x4)
 
   let schroeder2 () =
-    let fbcf d g = comb () d (-.g) in
-    let ap () = schroeder_allpass () in
+    let fbcf d g = comb () !$d !$(-.g) in
+    let ap () m g = schroeder_allpass () !$m !$g in
     let fbcf1 = fbcf (901./.25000.) 0.805 in
     let fbcf2 = fbcf (778./.25000.) 0.827 in
     let fbcf3 = fbcf (1011./.25000.) 0.783 in
@@ -1386,21 +1396,16 @@ module Stereo = struct
     let ap1 = ap () (125./.25000.) 0.7 in
     let ap2 = ap () (42./.25000.) 0.7 in
     let ap3 = ap () (12./.25000.) 0.7 in
-    let add4 x1 x2 x3 x4 = return (x1+.x2+.x3+.x4) in
+    let add4 x1 x2 x3 x4 = (x1+$x2)+$(x3+$x4) in
     fun x ->
-      bind4 add4 (fbcf1 x) (fbcf2 x) (fbcf3 x) (fbcf4 x) >>= ap1 >>= ap2 >>= ap3 >>= (fun x -> return (x, -.x))
+      add4 (fbcf1 x) (fbcf2 x) (fbcf3 x) (fbcf4 x)
+      |> ap1 |> ap2 |> ap3
+      |> funct (fun x -> x, -.x)
 
   let agc () =
     let agcl = agc () in
     let agcr = agc () in
     map agcl agcr
-
-  module Envelope = struct
-    let apply e =
-      fun (x, y) ->
-        let* e = e in
-        return (e *. x, e *. y)
-  end
 
   (** {2 Effects} *)
 
