@@ -112,20 +112,55 @@ let () =
   let d = knob 9 0.01 >>= print "d" in
   let s = knob 10 0.8 >>= print "s" in
   let r = knob 11 ~max:4. 0.1 >>= print "r" in
+  let sustain = s in
   let lp_a = knob 12 0.01 >>= print "lpa" in
   let lp_d = knob 13 0.01 >>= print "lpd" in
   let lp_s = knob 14 0.8 >>= print "lps" in
   let lp_r = knob 15 ~max:4. 0.1 >>= print "lpr" in
   let s = synth ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r (MIDI.events midi) in
+  (* Board. *)
+  let board =
+    Board.create
+      [
+        [
+          "detune",0.,0.25,`Linear,detune;
+          "osc2 vol",0.,1.,`Linear,osc2_volume;
+          "lfp pwm1",0.,1.,`Linear,lfo_pwm1;
+          "lp freq",10.,10000.,`Logarithmic,lp_f;
+        ];
+        [
+          "stereo",0.,1.,`Linear,stereo_amount;
+          "lfo rate",0.,10.,`Linear,lfo_rate;
+          "lfp pwm2",0.,1.,`Linear,lfo_pwm2;
+          "lp q",0.1,5.,`Logarithmic,lp_q;
+        ];
+        [
+          "a",0.,1.,`Linear,a;
+          "d",0.,1.,`Linear,d;
+          "s",0.,1.,`Linear,sustain;
+          "r",0.,4.,`Linear,r;
+        ];
+        [
+          "lp a",0.,1.,`Linear,lp_a;
+          "lp d",0.,1.,`Linear,lp_d;
+          "lp s",0.,1.,`Linear,lp_s;
+          "lp r",0.,4.,`Linear,lp_r;
+        ]
+      ]
+  in
+  let s = board >> s in
   (* LED animation *)
-  for n = 0 to 7 do
-    let n = if n < 4 then 13+n else 5+n in
-    Unix.sleepf 0.04;
-    MIDI.send midi 0 (`Note_on (n, 1.));
-  done;
-  for n = 0 to 7 do
-    let n = if n < 4 then 13+n else 5+n in
-    Unix.sleepf 0.04;
-    MIDI.send midi 0 (`Note_on (n, 0.));
-  done;  
+  let _ = Thread.create
+      (fun () ->
+         for n = 0 to 7 do
+           let n = if n < 4 then 13+n else 5+n in
+           Unix.sleepf 0.04;
+           MIDI.send midi 0 (`Note_on (n, 1.));
+         done;
+         for n = 0 to 7 do
+           let n = if n < 4 then 13+n else 5+n in
+           Unix.sleepf 0.04;
+           MIDI.send midi 0 (`Note_on (n, 0.));
+         done) ()
+  in
   Output.play s
