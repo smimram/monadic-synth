@@ -99,7 +99,7 @@ let synth
       let* a = adsr () in
       Stereo.mix l >>= Stereo.map lpl lpr >>= Stereo.amp (a *. vol)
   in
-  (* let reverb = Stereo.converb ~duration:0.01 () in *)
+  (* let reverb = Stereo.freeverb () in *)
   let s = Instrument.play_stereo ~portamento note e in
   let* unison = unison in
   let* vol = master_volume in
@@ -109,7 +109,7 @@ let synth
   (* >>= reverb *)
 
 let () =
-  let midi = MIDI.create () in
+  let midi = MIDI.create ~print:true () in
   let shift = MIDI.toggle midi 36 in
   let midi =
     let t = shift in
@@ -122,7 +122,6 @@ let () =
          | e -> c, e
       )
   in
-  let midi = MIDI.print midi in
   let knob n ?mode ?min ?max default = MIDI.controller midi n ?mode ?min ?max default in
   let detune = knob 0 ~max:0.25 0.01 in
   let stereo_amount = knob 4 0.5 >>= print "sa" in
@@ -178,13 +177,11 @@ let () =
   (* LED animation *)
   let _ = Thread.create
       (fun () ->
-         for n = 0 to 7 do
-           let n = if n < 4 then 13+n else 5+n in
+         for n = 0 to 16 do
            Unix.sleepf 0.04;
            MIDI.send midi 0 (`Note_on (n, 1.));
          done;
-         for n = 0 to 7 do
-           let n = if n < 4 then 13+n else 5+n in
+         for n = 0 to 16 do
            Unix.sleepf 0.04;
            MIDI.send midi 0 (`Note_on (n, 0.));
          done) ()

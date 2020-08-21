@@ -1434,6 +1434,7 @@ module Stereo = struct
       let pos = ref 0 in
       let filterstore = ref 0. in
       fun input ->
+        let* _ = dt in
         let output = buf.(!pos) in
         filterstore := output *. !damp2 +. !filterstore *. !damp1;
         buf.(!pos) <- input +. !filterstore *. !comb_feedback;
@@ -1459,7 +1460,7 @@ module Stereo = struct
     let apr = List.map ap apr in
     let apl = List.compose (List.map bind apl) in
     let apr = List.compose (List.map bind apr) in
-    fun  ?(roomsize=0.5) ?(damp=0.5) ?(width=1.) ?(wet=1./.3.) ?(dry=0.) (x,y) ->
+    fun  ?(roomsize=0.5) ?(damp=0.5) ?(width=1.) ?(wet=1./.3.) ?(dry=0.) ->
       (* Update parameters. *)
       let roomsize = roomsize *. room_scale +. room_offset in
       let damp = damp *. damp_scale in
@@ -1470,17 +1471,18 @@ module Stereo = struct
       damp1 := damp;
       damp2 := 1. -. damp;
       comb_feedback := roomsize;
-      (* Apply filters. *)
-      let i = (x +. y) *. gain in
-      let combl = List.map (fun c -> c i) combl in
-      let combr = List.map (fun c -> c i) combr in
-      let outl = List.fold_left (funct2 (+.)) (return 0.) combl in
-      let outr = List.fold_left (funct2 (+.)) (return 0.) combr in
-      let* outl = apl outl in
-      let* outr = apr outr in
-      let x = outl *. wet1 +. outr *. wet2 +. x *. dry in
-      let y = outr *. wet1 +. outl *. wet2 +. y *. dry in
-      return (x,y)
+      fun (x,y) ->
+        (* Apply filters. *)
+        let i = (x +. y) *. gain in
+        let combl = List.map (fun c -> c i) combl in
+        let combr = List.map (fun c -> c i) combr in
+        let outl = List.fold_left (funct2 (+.)) (return 0.) combl in
+        let outr = List.fold_left (funct2 (+.)) (return 0.) combr in
+        let* outl = apl outl in
+        let* outr = apr outr in
+        let x = outl *. wet1 +. outr *. wet2 +. x *. dry in
+        let y = outr *. wet1 +. outl *. wet2 +. y *. dry in
+        return (x,y)
 
   (** Testing reverb with convolution with noise. *)
   let converb ?(duration=1.) () =

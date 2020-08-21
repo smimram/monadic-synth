@@ -23,7 +23,7 @@ type t =
     send : int -> event -> unit
   }
 
-let create ?(synchronous=false) () =
+let create ?(synchronous=false) ?(print=false) () =
   let mutex = Mutex.create () in
   let handlers = ref [] in
   let seq = Alsa.Sequencer.create "default" `Duplex in
@@ -45,20 +45,26 @@ let create ?(synchronous=false) () =
            match (Sequencer.input_event seq).ev_event with
            | Sequencer.Event.Note_on n ->
              let c, n, v = n.note_channel, n.note_note, float_of_int n.note_velocity /. 127. in
+             if print then Printf.printf "note on  (%d): %d at %f\n%!" c n v;
              add c (`Note_on (n, v))
            | Sequencer.Event.Note_off n ->
              let c, n = n.note_channel, n.note_note in
+             if print then Printf.printf "note off (%d): %d\n%!" c n;
              add c (`Note_off n)
            | Sequencer.Event.Controller c ->
              let c, n, v = c.controller_channel, c.controller_param, float c.controller_value /. 127. in
+             if print then Printf.printf "controller (%d): %d at %f\n%!" c n v;
              add c (`Controller (n, v))
            | Sequencer.Event.Pitch_bend c ->
              let c, n, v = c.controller_channel, c.controller_param, float c.controller_value /. 8192. in
+             if print then Printf.printf "pitch bend (%d): %d at %f\n%!" c n v;
              add c (`Pitch_bend (n, v))
            | Sequencer.Event.Program_change c ->
              let c, n, v = c.controller_channel, c.controller_param, c.controller_value in
+             if print then Printf.printf "program change (%d): %d at %d\n%!" c n v;
              add c (`Program_change (n, v))
-           | _ -> ()
+           | _ ->
+             if print then Printf.printf "unknown event\n%!"
          done
       ) ()
   in
@@ -96,21 +102,6 @@ let map midi f =
     f c e
   in
   { midi with map }
-
-(** Print events (useful for debugging). *)
-let print midi =
-  map midi
-    (fun c e ->
-       (
-         match e with
-         | `Note_on (n, v) -> Printf.printf "note on  (%d): %d at %f\n%!" c n v
-         | `Note_off n -> Printf.printf "note off (%d): %d\n%!" c n
-         | `Controller (n, v) -> Printf.printf "controller (%d): %d at %f\n%!" c n v
-         | `Pitch_bend (n, v) -> Printf.printf "pitch bend (%d): %d at %f\n%!" c n v
-         | `Program_change (n, v) -> Printf.printf "program change (%d): %d at %d\n%!" c n v
-         | _ -> Printf.printf "unknown event\n%!"
-       );
-       c, e)
 
 (** Create a stream of midi events. *)
 let events ?channel midi : stream =
