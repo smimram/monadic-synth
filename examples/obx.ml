@@ -28,6 +28,7 @@ let synth
     ?(lp_r=cst 0.1)
     ?(lp_4pole=cst true)
     ?(portamento=cst 0.)
+    ?(pitch_bend=cst 0.)
     e
   =
   let lfo = bind2 (osc ()) lfo_form lfo_rate in
@@ -84,6 +85,9 @@ let synth
       fun freq -> osc (freq /. 2.) >>= smulc sub_volume >>= stereo
     in
     fun freq vol ->
+      (* Pitch bend *)
+      let* pitch_bend = pitch_bend in
+      let freq = freq *. (2. ** (pitch_bend /. 12.)) in
       (* Low pass filter *)
       let* lp_q = lp_q in
       let* lp_f = lp_f in
@@ -118,7 +122,7 @@ let () =
          | e -> c, e
       )
   in
-  (* let midi = MIDI.print midi in *)
+  let midi = MIDI.print midi in
   let knob n ?mode ?min ?max default = MIDI.controller midi n ?mode ?min ?max default in
   let detune = knob 0 ~max:0.25 0.01 in
   let stereo_amount = knob 4 0.5 >>= print "sa" in
@@ -137,7 +141,8 @@ let () =
   let lp_d = knob 13 0.01 >>= print "lpd" in
   let lp_s = knob 14 0.8 >>= print "lps" in
   let lp_r = knob 15 ~max:4. 0.1 >>= print "lpr" in
-  let s = synth ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r (MIDI.events midi) in
+  let pitch_bend = MIDI.pitch_bend midi () in
+  let s = synth ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r ~pitch_bend (MIDI.events midi) in
   (* Board. *)
   let board =
     Board.create

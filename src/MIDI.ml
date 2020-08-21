@@ -50,10 +50,10 @@ let create ?(synchronous=false) () =
              let c, n = n.note_channel, n.note_note in
              add c (`Note_off n)
            | Sequencer.Event.Controller c ->
-             let c, n, v = c.controller_channel, c.controller_param, float c.controller_value  /. 127. in
+             let c, n, v = c.controller_channel, c.controller_param, float c.controller_value /. 127. in
              add c (`Controller (n, v))
            | Sequencer.Event.Pitch_bend c ->
-             let c, n, v = c.controller_channel, c.controller_param, float c.controller_value  /. 127. in
+             let c, n, v = c.controller_channel, c.controller_param, float c.controller_value /. 8192. in
              add c (`Pitch_bend (n, v))
            | Sequencer.Event.Program_change c ->
              let c, n, v = c.controller_channel, c.controller_param, c.controller_value in
@@ -145,6 +145,22 @@ let controller midi ?channel number ?mode ?min ?max init =
     if channel = None || Some c = channel then
       match e with
       | `Controller (n,v) when n = number ->
+        Mutex.lock m;
+        x := stretch v;
+        Mutex.unlock m
+      | _ -> ()
+  in
+  register midi h;
+  Stream.stream_ref x
+
+let pitch_bend midi ?channel ?mode ?max () =
+  let stretch = Math.stretch ?mode ?max in
+  let m = Mutex.create () in
+  let x = ref 0. in
+  let h c e =
+    if channel = None || Some c = channel then
+      match e with
+      | `Pitch_bend (n,v) ->
         Mutex.lock m;
         x := stretch v;
         Mutex.unlock m
