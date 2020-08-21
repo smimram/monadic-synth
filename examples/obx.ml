@@ -17,6 +17,8 @@ let synth
     ?(osc2_shape=cst `Square)
     ?(osc2_volume=cst 1.)
     ?(osc2_detune=cst 1.01)
+    ?(sub_volume=cst 0.5)
+    ?(noise_volume=cst 0.5)
     ?(a=cst 0.01) ?(d=cst 0.05) ?(s=cst 0.8) ?(r=cst 0.1)
     ?(lp_q=cst 1.)
     ?(lp_f=cst 5000.)
@@ -24,6 +26,7 @@ let synth
     ?(lp_d=cst 10.)
     ?(lp_s=cst 0.1)
     ?(lp_r=cst 0.1)
+    ?(lp_4pole=cst true)
     ?(portamento=cst 0.)
     e
   =
@@ -38,6 +41,9 @@ let synth
     let unison = get unison in
     let stereo_amount = get stereo_amount in
     let stereo_mode = if stereo_amount = 0. then `Mono else get stereo_mode in
+    let stereo_coeff () = let d = 0.1 *. stereo_amount in 1. +. Random.float ~min:(-.d) d in
+    let stereo_coeff_l = stereo_coeff () in
+    let stereo_coeff_r = stereo_coeff () in
     let osc () =
       let osc1 = osc () in
       let osc2 = osc () in
@@ -49,9 +55,10 @@ let synth
         let* lfo_pwm2 = lfo_pwm2 in
         let* detune2 = osc2_detune in
         let* x1 = osc1 ~width:((1. +. lfo *. lfo_pwm1) /. 2.) s1 freq in
-        let* x2 = osc2 ~width:((1. +. lfo *. lfo_pwm2) /. 2.) s2 (freq *. detune2) in
+        let  o2 = osc2 ~width:((1. +. lfo *. lfo_pwm2) /. 2.) s2 (freq *. detune2) in
         let* v2 = osc2_volume in
-        return (x1 +. v2 *. x2)
+        let* x2 = scmul v2 o2 in
+        return (x1 +. x2)
     in
     let osc =
       List.init
@@ -67,24 +74,35 @@ let synth
     in
     let lp_adsr = adsr ~event () ~a:(get lp_a) ~d:(get lp_d) ~s:(get lp_s) ~r:(get lp_r) in
     let adsr = adsr ~event ~on_die () ~a:(get a) ~d:(get d) ~s:(get s) ~r:(get r) in
-    let lpl = Filter.ladder () `Low_pass in
-    let lpr = Filter.ladder () `Low_pass in
+    let lpl = lp_4pole >>= switch (Filter.ladder () `Low_pass) (Filter.biquad () `Low_pass) in
+    let lpr = lp_4pole >>= switch (Filter.ladder () `Low_pass) (Filter.biquad () `Low_pass) in
+    (* Noise *)
+    let noise = Stream.osc () `Noise 0. >>= smulc noise_volume >>= stereo in
+    (* Sub-oscillator *)
+    let sub =
+      let osc = Stream.osc () `Saw in
+      fun freq -> osc (freq /. 2.) >>= smulc sub_volume >>= stereo
+    in
     fun freq vol ->
+      (* Low pass filter *)
       let* lp_q = lp_q in
       let* lp_f = lp_f in
       let* lp_adsr = lp_adsr () in
-      let lpl = lpl lp_q (lp_f *. lp_adsr) in
-      let lpr = lpr lp_q (lp_f *. lp_adsr) in
+      let lpl = lpl lp_q (lp_f *. lp_adsr *. stereo_coeff_l) in
+      let lpr = lpr lp_q (lp_f *. lp_adsr *. stereo_coeff_r) in
       let l = List.map (fun (osc,d,p) -> osc (freq *. d) >>= Stereo.pan p) osc in
+      let l = noise::(sub freq)::l in
       let* a = adsr () in
       Stereo.mix l >>= Stereo.map lpl lpr >>= Stereo.amp (a *. vol)
   in
+  (* let reverb = Stereo.converb ~duration:0.01 () in *)
   let s = Instrument.play_stereo ~portamento note e in
   let* unison = unison in
   let* vol = master_volume in
   lfo_
   >> s
   >>= Stereo.amp (0.1 *. vol /. float unison)
+  (* >>= reverb *)
 
 let () =
   let midi = MIDI.create () in
@@ -108,7 +126,7 @@ let () =
   let lfo_rate = knob 5 ~max:10. 2. >>= print "lfo rate" in
   let lfo_pwm1 = knob 2 0.5 in
   let lfo_pwm2 = knob 6 0.5 in
-  let lp_f = knob 3 ~mode:`Logarithmic ~min:10. ~max:10000. 10000. >>= print "lp f" in
+  let lp_f = knob 3 ~mode:`Logarithmic ~min:10. ~max:20000. 10000. >>= print "lp f" in
   let lp_q = knob 7 ~min:0.1 ~max:5. 1. >>= print "lp q" in
   let a = knob 8 0.01 >>= print "a" in
   let d = knob 9 0.01 >>= print "d" in
@@ -128,7 +146,7 @@ let () =
           "detune",`Knob(0.,0.25,`Linear,detune);
           "osc2 vol",`Knob(0.,1.,`Linear,osc2_volume);
           "lfp pwm1",`Knob(0.,1.,`Linear,lfo_pwm1);
-          "lp freq",`Knob(10.,10000.,`Logarithmic,lp_f);
+          "lp freq",`Knob(10.,20000.,`Logarithmic,lp_f);
         ];
         [
           "stereo",`Knob(0.,1.,`Linear,stereo_amount);

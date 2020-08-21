@@ -211,6 +211,19 @@ let blank = cst 0.
 let bmul b x =
   if b then return x else return 0.
 
+(** Switched multiplication by a constant: if the first is 0, the second stream
+    is not evaluated. *)
+let scmul x s =
+  if x = 0. then return 0.
+  else
+    let* y = s in
+    return (x *. y)
+
+let smulc s y =
+  let* x = s in
+  if x = 0. then return 0.
+  else return (x *. y)
+
 (** Multiply two streams. *)
 let mul x y = return (x *. y)
 
@@ -247,19 +260,32 @@ let samples t =
 (** {2 Time} *)
 
 (** Integrate a stream. *)
-let integrate ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
+let integrate ?(kind=`Euler) ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
   let y = ref init in
   let handler = function
     | `Reset -> y := init; on_reset ()
     | `Set x -> y := x
   in
   Event.register event handler;
-  fun x ->
-    let* dt = dt in
-    let ans = !y in
-    y := ans +. x *. dt;
-    if periodic && ans >= 1. then (y := ans -. 1.; on_reset ());
+  let return ans =
+    if periodic && !y >= 1. then (y := !y -. 1.; on_reset ());
     return ans
+  in
+  match kind with
+  | `Euler ->
+    fun x ->
+      let* dt = dt in
+      let ans = !y in
+      y := !y +. x *. dt;
+      return ans
+  | `Trapezoidal ->
+    let u = ref 0. in
+    fun x ->
+      let* dt = dt in
+      let ans = !y in
+      y := !u +. x /. 2.;
+      u := !u +. x;
+      return ans
 
 (** Current time. *)
 let now ?event () : sample t =
@@ -405,10 +431,9 @@ let on_change ?(first=false) f =
     | Some _ -> old := Some x; f x; return x
     | None -> old := Some x; if first then f x; return x
 
-let fallback (x:'a t) (y:'a t) b : 'a t =
+(** Switch between two streams depending on a boolean. *)
+let switch x y b =
   if b then x else y
-
-let fallblank x b = fallback x blank b
 
 (** Generate a random value at given frequency. *)
 let random () =
@@ -428,11 +453,13 @@ module Sample = struct
       if b then t := !t - n;
       return b
 
+  (** Convolution with an impulse response. *)
   let convolve a =
     let len = Array.length a in
     let prev = Array.make len 0. in
     let n = ref 0 in
-    fun x () ->
+    fun x ->
+      let* _ = dt in
       prev.(!n) <- x;
       let ans = ref 0. in
       for i = 0 to len - 1 do
@@ -440,7 +467,7 @@ module Sample = struct
       done;
       incr n;
       if !n = len then n := 0;
-      !ans
+      return !ans
 
   (** Ringbuffers. *)
   module Ringbuffer = struct
@@ -863,7 +890,7 @@ module Envelope = struct
         let a' = 1. /. duration in
         if duration = 0. then arrived := true;
         stream_ref arrived >>=
-        fallback
+        switch
           (return target)
           (let* t = t a' in return (a *. t +. from))
     | `Exponential ->
@@ -906,27 +933,49 @@ let smooth ?(init=0.) ?(kind=`Exponential) () =
 (** Filters. *)
 module Filter = struct
   (** First order filter. *)
-  (* TODO: Zavalishin says that it should be better to use trapzoidal integration *)
-  let first_order () =
-    let x' = ref 0. in
-    let y' = ref 0. in
-    fun kind freq ->
-      let rc = 1. /. (2. *. Float.pi *. freq) in
-      fun (x : sample) ->
-        match kind with
-        | `Low_pass ->
-          let* dt = dt in
-          let a = dt /. (rc +. dt) in
-          let y = !y' +. a *. (x -. !y') in
-          y' := y;
-          return y
-        | `High_pass ->
-          let* dt = dt in
-          let a = rc /. (rc +. dt) in
-          let y = a *. (!y' +. x -. !x') in
-          x' := x;
-          y' := y;
-          return (y : sample)
+  let first_order ?(variant=`Simple) () =
+    match variant with
+    (* This is the first implementation anyone would write. *)
+    | `Simple ->
+      (
+        (* Previous value for low-pass. *)
+        let lp' = ref 0. in
+        fun kind freq ->
+          let omega = 2. *. Float.pi *. freq in
+          fun (x : sample) ->
+            let* dt = dt in
+            let omega = omega *. dt in
+            (* The digital sampling rate... *)
+            let omega = omega /. (1. +. omega) in
+            let hp = x -. !lp' in
+            let lp = !lp' +. hp *. omega /. (1. +. omega) in
+            lp' := lp;
+            match kind with
+            | `Low_pass -> return lp
+            | `High_pass -> return hp
+      )
+    (* The trapezoidal variant is supposed to behave much better at high
+       frequencies, see "The art of VA filter design", although this is not what
+       I hear... *)
+    | `Trapezoidal ->
+      (* TODO: we could merge with the above, the only difference is the
+         pre-wrapping... *)
+      (
+        let integrate = integrate ~kind:`Trapezoidal () in
+        let lp' = ref 0. in
+        fun kind freq ->
+          let omega = 2. *. Float.pi *. freq in
+          fun x ->
+            let* dt = dt in
+            (* Pre-wrapping *)
+            let omega = tan (omega *. dt /. 2.) in
+            let hp = x -. !lp' in
+            let* lp = integrate (hp *. omega) in
+            lp' := lp;
+            match kind with
+            | `Low_pass -> return lp
+            | `High_pass -> return hp
+      )
 
   (** Biquadratic / second order filter. *)
   (* See https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html
@@ -978,17 +1027,14 @@ module Filter = struct
       advance x y;
       return y
 
-  (** Moog-type 4 pole ladder filter. *)
-  let ladder () kind =
-    let fo1 = first_order () kind in
-    let fo2 = first_order () kind in
-    let fo3 = first_order () kind in
-    let fo4 = first_order () kind in
+  (** Moog-type n pole ladder filter. *)
+  let ladder ?(order=4) () =
+    let fo = List.init order (fun _ -> first_order ()) in
     let y = ref 0. in (* previous output *)
-    fun q freq x ->
+    fun kind q freq x ->
       let* _ = dt in
       let x = x -. q *. !y in
-      let* x = return x >>= fo1 freq >>= fo2 freq >>= fo3 freq >>= fo4 freq in
+      let* x = List.fold_left (fun x fo -> x >>= fo kind freq) (return x) fo in
       y := x;
       return x      
 end
@@ -1362,6 +1408,7 @@ module Stereo = struct
 
   (** {2 Effects} *)
 
+  (** The {{: https://ccrma.stanford.edu/~jos/pasp/Freeverb.html } freeverb} reverberation. *)
   (* TODO: this assumes 44.1 kHz sampling rate *)
   let freeverb () =
     (* Constants. *)
@@ -1434,6 +1481,18 @@ module Stereo = struct
       let x = outl *. wet1 +. outr *. wet2 +. x *. dry in
       let y = outr *. wet1 +. outl *. wet2 +. y *. dry in
       return (x,y)
+
+  (** Testing reverb with convolution with noise. *)
+  let converb ?(duration=1.) () =
+    (* Mono *)
+    let cv () =
+      let len = int_of_float (44100. *. duration) in
+      let a = Array.init len (fun i -> Random.float (float i /. float len)) in
+      Sample.convolve a
+    in
+    let l = cv () in
+    let r = cv () in
+    map l r
 end
 
 (** Duplicate a mono stream to become a stereo stream. *)

@@ -481,6 +481,12 @@ you need to get started with the library the rest consist in
 - adding functions to the library,
 - using your imagination.
 
+As a matter of illustration, we provide
+
+- [the
+  implementation](https://github.com/smimram/monadic-synth/blob/master/examples/obx.ml)
+  of an emulation of the [Oberheim OB-Xa](https://en.wikipedia.org/wiki/Oberheim_OB-X)
+
 # Advanced topics
 
 ## Using a stream multiple times

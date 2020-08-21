@@ -26,8 +26,8 @@ let create board =
                 Graphics.draw_circle (x+dx/2) (y-dx/2) 30;
                 let v = get s in
                 let v = Math.unstretch ~mode ~min ~max v in
-                let a = int_of_float (225. -. v *. 270.) in
-                Graphics.draw_arc (x+dx/2) (y-dx/2) 25 25 225 a;
+                let a = int_of_float (270. -. v *. 360.) in
+                Graphics.draw_arc (x+dx/2) (y-dx/2) 25 25 270 a;
               | `Switch s ->
                 let r = 20 in
                 (if get s then Graphics.fill_rect else Graphics.draw_rect) (x+dx/2-r/2) (y-dx/2-r/2) r r
