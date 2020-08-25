@@ -1,9 +1,9 @@
-(** Trying to have a state monad too. This fully monadic approach has the
-    advantage of being cleaner: there is no ambiguity about when the state is
-    created and we could think of modifying the implementation of this library
-    only in order to have a compiler (say to C, to produce LV2 instruments)
-    instead of a player. However, as you can see, the syntax is quite
-    heavy.... *)
+(** Trying to have a state monad too: the "outer monad" is state and the "inner
+   monad" is stream. This fully monadic approach has the advantage of being
+   cleaner: there is no ambiguity about when the state is created and we could
+   think of modifying the implementation of this library only in order to have a
+   compiler (say to C, to produce LV2 instruments) instead of a player. However,
+   as you can see, the syntax is quite heavy.... *)
 
 open Extlib
 
