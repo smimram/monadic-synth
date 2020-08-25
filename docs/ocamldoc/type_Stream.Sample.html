@@ -7,18 +7,21 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><title>Stream.Sample</title>
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><title>Stream.Sample</title>
 </head>
 <body>
 <code class="code"><span class="keyword">sig</span><br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;every&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool&nbsp;<span class="constructor">Stream</span>.t<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;convolve&nbsp;:&nbsp;float&nbsp;array&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;convolve&nbsp;:&nbsp;float&nbsp;array&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="constructor">Stream</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Ringbuffer</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;{&nbsp;<span class="keyword">mutable</span>&nbsp;buffer&nbsp;:&nbsp;<span class="constructor">Stream</span>.sample&nbsp;array;&nbsp;<span class="keyword">mutable</span>&nbsp;pos&nbsp;:&nbsp;int;&nbsp;}<br>

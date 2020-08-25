@@ -12,13 +12,16 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><link title="Effects" rel="Section" href="#2_Effects">
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><link title="Effects" rel="Section" href="#2_Effects">
 <title>Stream.Stereo</title>
 </head>
 <body>
@@ -68,12 +71,12 @@
 <pre><span id="VALamp"><span class="keyword">val</span> amp</span> : <code class="type">float -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALcmul"><span class="keyword">val</span> cmul</span> : <code class="type">float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALbmul"><span class="keyword">val</span> bmul</span> : <code class="type">bool <a href="Stream.Stereo.html#TYPEt">t</a> -><br>       (float * float) <a href="Stream.Stereo.html#TYPEt">t</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
-<pre><span id="VALmap"><span class="keyword">val</span> map</span> : <code class="type">('a -> 'b <a href="Stream.html#TYPEstream">Stream.stream</a>) -><br>       ('c -> 'd <a href="Stream.html#TYPEstream">Stream.stream</a>) -> 'a * 'a -> ('b * 'b) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
+<pre><span id="VALmap"><span class="keyword">val</span> map</span> : <code class="type">('a -> 'b <a href="Stream.Stereo.html#TYPEt">t</a>) -><br>       ('c -> 'd <a href="Stream.Stereo.html#TYPEt">t</a>) -> 'a * 'c -> ('b * 'd) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALto_mono"><span class="keyword">val</span> to_mono</span> : <code class="type">float * float -> float <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALleft"><span class="keyword">val</span> left</span> : <code class="type">'a * 'b -> 'a <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALright"><span class="keyword">val</span> right</span> : <code class="type">'a * 'b -> 'b <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALdephase"><span class="keyword">val</span> dephase</span> : <code class="type">unit -><br>       float -><br>       <a href="Stream.html#TYPEsample">Stream.sample</a> * <a href="Stream.html#TYPEsample">Stream.sample</a> -><br>       (<a href="Stream.html#TYPEsample">Stream.sample</a> * <a href="Stream.html#TYPEsample">Stream.sample</a>) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
-<pre><span id="VALpan"><span class="keyword">val</span> pan</span> : <code class="type">?law:[< `Circular | `Linear | `Mixed > `Linear ] -><br>       unit -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALpan"><span class="keyword">val</span> pan</span> : <code class="type">?law:[< `Circular | `Linear | `Mixed > `Circular ] -><br>       float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Pan the sound according to a number between -1 (full left) and 1 (full
      right). Various <a href="
@@ -91,5 +94,17 @@
 <pre><span id="VALschroeder_random"><span class="keyword">val</span> schroeder_random</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALschroeder2"><span class="keyword">val</span> schroeder2</span> : <code class="type">unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> (<a href="Stream.html#TYPEsample">Stream.sample</a> * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
 <pre><span id="VALagc"><span class="keyword">val</span> agc</span> : <code class="type">unit -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre>
-<pre><span id="MODULEEnvelope"><span class="keyword">module</span> <a href="Stream.Stereo.Envelope.html">Envelope</a></span>: <code class="code">sig</code> <a href="Stream.Stereo.Envelope.html">..</a> <code class="code">end</code></pre><h3 id="2_Effects">Effects</h3>
-<pre><span id="VALfreeverb"><span class="keyword">val</span> freeverb</span> : <code class="type">unit -><br>       ?roomsize:float -><br>       ?damp:float -><br>       ?width:float -><br>       ?wet:float -> ?dry:float -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre></body></html>
+<pre><span id="MODULEEnvelope"><span class="keyword">module</span> <a href="Stream.Stereo.Envelope.html">Envelope</a></span>: <code class="code">sig</code> <a href="Stream.Stereo.Envelope.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULESlicer"><span class="keyword">module</span> <a href="Stream.Stereo.Slicer.html">Slicer</a></span>: <code class="code">sig</code> <a href="Stream.Stereo.Slicer.html">..</a> <code class="code">end</code></pre><h3 id="2_Effects">Effects</h3>
+<pre><span id="VALfreeverb"><span class="keyword">val</span> freeverb</span> : <code class="type">unit -><br>       ?roomsize:float -><br>       ?damp:float -><br>       ?width:float -><br>       ?wet:float -> ?dry:float -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>The <a href=" https://ccrma.stanford.edu/~jos/pasp/Freeverb.html "> freeverb</a> reverberation.</p>
+</div>
+</div>
+
+<pre><span id="VALconverb"><span class="keyword">val</span> converb</span> : <code class="type">?duration:float -> unit -> float * float -> (float * float) <a href="Stream.Stereo.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Testing reverb with convolution with noise.</p>
+</div>
+</div>
+</body></html>

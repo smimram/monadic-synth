@@ -483,6 +483,9 @@ you need to get started with the library the rest consist in
 
 As a matter of illustration, we provide
 
+- a [quick and dirty
+  implementation](https://github.com/smimram/monadic-synth/blob/master/examples/theremin.ml)
+  of a [Theremin](https://en.wikipedia.org/wiki/Theremin)
 - [the
   implementation](https://github.com/smimram/monadic-synth/blob/master/examples/obx.ml)
   of an emulation of the [Oberheim OB-Xa](https://en.wikipedia.org/wiki/Oberheim_OB-X)

@@ -12,13 +12,16 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><title>Stream.Sample</title>
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><title>Stream.Sample</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Stream.Event.html" title="Stream.Event">Previous</a>
@@ -35,7 +38,12 @@
 <hr width="100%">
 
 <pre><span id="VALevery"><span class="keyword">val</span> every</span> : <code class="type">unit -> int -> bool <a href="Stream.html#TYPEt">Stream.t</a></code></pre>
-<pre><span id="VALconvolve"><span class="keyword">val</span> convolve</span> : <code class="type">float array -> float -> unit -> float</code></pre>
+<pre><span id="VALconvolve"><span class="keyword">val</span> convolve</span> : <code class="type">float array -> float -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Convolution with an impulse response.</p>
+</div>
+</div>
+
 <pre><span id="MODULERingbuffer"><span class="keyword">module</span> <a href="Stream.Sample.Ringbuffer.html">Ringbuffer</a></span>: <code class="code">sig</code> <a href="Stream.Sample.Ringbuffer.html">..</a> <code class="code">end</code></pre><div class="info">
 <p>Ringbuffers.</p>
 

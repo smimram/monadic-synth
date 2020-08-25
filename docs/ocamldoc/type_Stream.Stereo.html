@@ -7,13 +7,16 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><title>Stream.Stereo</title>
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><title>Stream.Stereo</title>
 </head>
 <body>
 <code class="code"><span class="keyword">sig</span><br>
@@ -43,8 +46,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;map&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="constructor">Stream</span>.stream)&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>c&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>d&nbsp;<span class="constructor">Stream</span>.stream)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;*&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>b&nbsp;*&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>c&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>d&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;*&nbsp;<span class="keywordsign">'</span>c&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>b&nbsp;*&nbsp;<span class="keywordsign">'</span>d)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;to_mono&nbsp;:&nbsp;float&nbsp;*&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;left&nbsp;:&nbsp;<span class="keywordsign">'</span>a&nbsp;*&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;right&nbsp;:&nbsp;<span class="keywordsign">'</span>a&nbsp;*&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
@@ -54,8 +57,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Stream</span>.sample&nbsp;*&nbsp;<span class="constructor">Stream</span>.sample&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Stream</span>.sample&nbsp;*&nbsp;<span class="constructor">Stream</span>.sample)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;pan&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;?law:[&lt;&nbsp;<span class="keywordsign">`</span><span class="constructor">Circular</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Linear</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Mixed</span>&nbsp;&gt;&nbsp;<span class="keywordsign">`</span><span class="constructor">Linear</span>&nbsp;]&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Stream</span>.sample&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Stream</span>.sample&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?law:[&lt;&nbsp;<span class="keywordsign">`</span><span class="constructor">Circular</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Linear</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Mixed</span>&nbsp;&gt;&nbsp;<span class="keywordsign">`</span><span class="constructor">Circular</span>&nbsp;]&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Stream</span>.sample&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Stream</span>.sample&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;schroeder&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;?size:[&lt;&nbsp;<span class="keywordsign">`</span><span class="constructor">Large</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Small</span>&nbsp;&gt;&nbsp;<span class="keywordsign">`</span><span class="constructor">Small</span>&nbsp;]&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Stream</span>.sample&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
@@ -70,6 +73,11 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;float&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;float&nbsp;*&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Slicer</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;eurotrance&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;*&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;freeverb&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;?roomsize:float&nbsp;<span class="keywordsign">-&gt;</span><br>
@@ -77,4 +85,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;?width:float&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;?wet:float&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;?dry:float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;*&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;converb&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?duration:float&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;*&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(float&nbsp;*&nbsp;float)&nbsp;<span class="constructor">Stream</span>.<span class="constructor">Stereo</span>.t<br>
 <span class="keyword">end</span></code></body></html>

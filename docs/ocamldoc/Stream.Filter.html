@@ -12,13 +12,16 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><title>Stream.Filter</title>
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><title>Stream.Filter</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Stream.Envelope.html" title="Stream.Envelope">Previous</a>
@@ -34,7 +37,7 @@
 </div>
 <hr width="100%">
 
-<pre><span id="VALfirst_order"><span class="keyword">val</span> first_order</span> : <code class="type">unit -><br>       [< `High_pass | `Low_pass ] -><br>       float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<pre><span id="VALfirst_order"><span class="keyword">val</span> first_order</span> : <code class="type">?variant:[< `Simple | `Trapezoidal > `Simple ] -><br>       unit -><br>       [< `High_pass | `Low_pass ] -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>First order filter.</p>
 </div>
@@ -43,6 +46,12 @@
 <pre><span id="VALbiquad"><span class="keyword">val</span> biquad</span> : <code class="type">unit -><br>       [< `All_pass | `Band_pass | `High_pass | `Low_pass | `Notch ] -><br>       float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Biquadratic / second order filter.</p>
+</div>
+</div>
+
+<pre><span id="VALladder"><span class="keyword">val</span> ladder</span> : <code class="type">?order:int -><br>       unit -><br>       [< `High_pass | `Low_pass ] -><br>       float -> float -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Moog-type n pole ladder filter.</p>
 </div>
 </div>
 </body></html>

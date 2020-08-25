@@ -12,13 +12,16 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><title>Note</title>
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><title>Note</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Visu.html" title="Visu">Previous</a>
@@ -34,7 +37,7 @@
 </div>
 <hr width="100%">
 
-<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'event</code> t</span> = <code class="type">event:'event <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>       on_die:(unit -> unit) -><br>       unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float -> <a href="Stream.html#TYPEsample">Stream.sample</a> <a href="Stream.html#TYPEstream">Stream.stream</a></code> </pre>
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">('sample, 'event)</code> t</span> = <code class="type">event:'event <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>       on_die:(unit -> unit) -><br>       unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float -> 'sample <a href="Stream.html#TYPEstream">Stream.stream</a></code> </pre>
 <div class="info ">
 <div class="info-desc">
 <p>A function for creating notes. It takes as arugment the events it can
@@ -58,14 +61,14 @@
 </div>
 </div>
 
-<pre><span id="VALsimple"><span class="keyword">val</span> simple</span> : <code class="type">(unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float <a href="Stream.html#TYPEt">Stream.t</a>) -> [< `Release ] <a href="Note.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALsimple"><span class="keyword">val</span> simple</span> : <code class="type">(unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float <a href="Stream.html#TYPEt">Stream.t</a>) -> (float, [< `Release ]) <a href="Note.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Note from an oscillator.</p>
 </div>
 </div>
 
-<pre><span id="VALdetune"><span class="keyword">val</span> detune</span> : <code class="type">?cents:float <a href="Stream.html#TYPEt">Stream.t</a> -> ?wet:float <a href="Stream.html#TYPEt">Stream.t</a> -> 'a <a href="Note.html#TYPEt">t</a> -> 'a <a href="Note.html#TYPEt">t</a></code></pre>
-<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type">(dt:float <a href="Stream.html#TYPEstream">Stream.stream</a> -><br>        event:'a <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>        on_die:(unit -> unit) -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float -> float) -><br>       (dt:float <a href="Stream.html#TYPEstream">Stream.stream</a> -><br>        event:'a <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>        on_die:(unit -> unit) -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float -> float) -><br>       'a <a href="Note.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALdetune"><span class="keyword">val</span> detune</span> : <code class="type">?cents:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>       ?wet:float <a href="Stream.html#TYPEt">Stream.t</a> -> (float, 'a) <a href="Note.html#TYPEt">t</a> -> (float, 'a) <a href="Note.html#TYPEt">t</a></code></pre>
+<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type">(dt:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>        event:'a <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>        on_die:(unit -> unit) -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float -> float) -><br>       (dt:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>        event:'a <a href="Stream.Event.html#TYPEt">Stream.Event.t</a> -><br>        on_die:(unit -> unit) -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float -> float) -><br>       (float, 'a) <a href="Note.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Add two notes.</p>
 </div>
@@ -76,7 +79,7 @@
 
 </div>
 
-<pre><span id="VALadsr"><span class="keyword">val</span> adsr</span> : <code class="type">?a:float <a href="Stream.html#TYPEstream">Stream.stream</a> -><br>       ?d:float <a href="Stream.html#TYPEstream">Stream.stream</a> -><br>       ?s:float <a href="Stream.html#TYPEstream">Stream.stream</a> -><br>       ?r:float <a href="Stream.html#TYPEstream">Stream.stream</a> -><br>       (unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float <a href="Stream.html#TYPEt">Stream.t</a>) -> [< `Release | `Reset ] <a href="Note.html#TYPEt">t</a></code></pre><div class="info ">
+<pre><span id="VALadsr"><span class="keyword">val</span> adsr</span> : <code class="type">?a:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>       ?d:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>       ?s:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>       ?r:float <a href="Stream.html#TYPEt">Stream.t</a> -><br>       (unit -> <a href="Stream.html#TYPEsample">Stream.sample</a> -> float <a href="Stream.html#TYPEt">Stream.t</a>) -><br>       (float, [< `Release | `Reset ]) <a href="Note.html#TYPEt">t</a></code></pre><div class="info ">
 <div class="info-desc">
 <p>Simple note with adsr envelope and volume.</p>
 </div>

@@ -8,13 +8,16 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><title>Index of modules</title>
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><title>Index of modules</title>
 </head>
 <body>
 <div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
@@ -25,6 +28,12 @@
 <tr><td><a href="Stream.B.html">B</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Binded functions.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Board.html">Board</a> </td>
+<td><div class="info">
+<p>A board stores all the parameters of a synthesizer and can display those.</p>
 
 </div>
 </td></tr>
@@ -64,6 +73,12 @@
 <tr><td align="left"><div>F</div></td></tr>
 <tr><td><a href="Extlib.File.html">File</a> [<a href="Extlib.html">Extlib</a>]</td>
 <td></td></tr>
+<tr><td><a href="Op.Filter.html">Filter</a> [<a href="Op.html">Op</a>]</td>
+<td><div class="info">
+<p>Filters.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Filter.html">Filter</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Filters.</p>
@@ -89,6 +104,12 @@
 
 </div>
 </td></tr>
+<tr><td><a href="Math.html">Math</a> </td>
+<td><div class="info">
+<p>Generic arithmetical operations .</p>
+
+</div>
+</td></tr>
 <tr><td align="left"><div>N</div></td></tr>
 <tr><td><a href="Note.html">Note</a> </td>
 <td><div class="info">
@@ -103,12 +124,26 @@
 
 </div>
 </td></tr>
+<tr><td><a href="Op.html">Op</a> </td>
+<td><div class="info">
+<p>Trying to have a state monad too.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Operations.html">Operations</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Notations for usual operations of the stream monad.</p>
 
 </div>
 </td></tr>
+<tr><td><a href="Math.Osc.html">Osc</a> [<a href="Math.html">Math</a>]</td>
+<td><div class="info">
+<p>Oscillators with period 1., first going up, starting from 0.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Op.Output.html">Output</a> [<a href="Op.html">Op</a>]</td>
+<td></td></tr>
 <tr><td align="left"><div>P</div></td></tr>
 <tr><td><a href="Pattern.html">Pattern</a> </td>
 <td><div class="info">
@@ -117,9 +152,13 @@
 </div>
 </td></tr>
 <tr><td align="left"><div>R</div></td></tr>
-<tr><td><a href="Stream.Ref.html">Ref</a> [<a href="Stream.html">Stream</a>]</td>
+<tr><td><a href="Extlib.Random.html">Random</a> [<a href="Extlib.html">Extlib</a>]</td>
+<td></td></tr>
+<tr><td><a href="Op.Ref.html">Ref</a> [<a href="Op.html">Op</a>]</td>
+<td></td></tr>
+<tr><td><a href="Op.Sample.Ringbuffer.html">Ringbuffer</a> [<a href="Op.Sample.html">Op.Sample</a>]</td>
 <td><div class="info">
-<p>Streams of references.</p>
+<p>Ringbuffers.</p>
 
 </div>
 </td></tr>
@@ -132,12 +171,20 @@
 </div>
 </td></tr>
 <tr><td align="left"><div>S</div></td></tr>
+<tr><td><a href="Op.Sample.html">Sample</a> [<a href="Op.html">Op</a>]</td>
+<td><div class="info">
+<p>Operations with samples as unit time.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Stream.Sample.html">Sample</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Operations with samples as unit time.</p>
 
 </div>
 </td></tr>
+<tr><td><a href="Stream.Stereo.Slicer.html">Slicer</a> [<a href="Stream.Stereo.html">Stream.Stereo</a>]</td>
+<td></td></tr>
 <tr><td><a href="Stream.Slicer.html">Slicer</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Slicers: those regularly mute the stream according to various patterns.</p>
@@ -145,6 +192,8 @@
 </div>
 </td></tr>
 <tr><td><a href="Stream.Spectral.html">Spectral</a> [<a href="Stream.html">Stream</a>]</td>
+<td></td></tr>
+<tr><td><a href="Op.State.html">State</a> [<a href="Op.html">Op</a>]</td>
 <td></td></tr>
 <tr><td><a href="Visu.Stereo.html">Stereo</a> [<a href="Visu.html">Visu</a>]</td>
 <td><div class="info">
@@ -155,6 +204,12 @@
 <tr><td><a href="Stream.Stereo.html">Stereo</a> [<a href="Stream.html">Stream</a>]</td>
 <td><div class="info">
 <p>Operations on stereo streams.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Op.Stream.html">Stream</a> [<a href="Op.html">Op</a>]</td>
+<td><div class="info">
+<p>Pure streams.</p>
 
 </div>
 </td></tr>

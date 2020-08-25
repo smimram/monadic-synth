@@ -7,13 +7,16 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
 <link title="Stream" rel="Chapter" href="Stream.html">
 <link title="Visu" rel="Chapter" href="Visu.html">
 <link title="Note" rel="Chapter" href="Note.html">
 <link title="MIDI" rel="Chapter" href="MIDI.html">
 <link title="Pattern" rel="Chapter" href="Pattern.html">
 <link title="Instrument" rel="Chapter" href="Instrument.html">
-<link title="OSC" rel="Chapter" href="OSC.html"><title>Note.Drum</title>
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><title>Note.Drum</title>
 </head>
 <body>
 <code class="code"><span class="keyword">sig</span><br>
@@ -21,8 +24,7 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;snare&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;?on_die:(unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;?a:float&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;?d:float&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;?s:float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?r:float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?lp:float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Stream</span>.sample&nbsp;<span class="constructor">Stream</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?d:float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?s:float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?r:float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?lp:float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="constructor">Stream</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;crash&nbsp;:&nbsp;?on_die:(unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="constructor">Stream</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;closed_hat&nbsp;:&nbsp;?on_die:(unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="constructor">Stream</span>.t<br>
 <span class="keyword">end</span></code></body></html>
