@@ -1,0 +1,318 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Instrument.html">
+<link rel="next" href="OSC.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
+<link title="Stream" rel="Chapter" href="Stream.html">
+<link title="Visu" rel="Chapter" href="Visu.html">
+<link title="Note" rel="Chapter" href="Note.html">
+<link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
+<link title="Instrument" rel="Chapter" href="Instrument.html">
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><link title="Pure operations" rel="Section" href="#2_Pureoperations">
+<link title="Arithmetic" rel="Section" href="#2_Arithmetic">
+<link title="Time" rel="Section" href="#2_Time">
+<link title="Control" rel="Section" href="#2_Control">
+<link title="Oscillators" rel="Section" href="#2_Oscillators">
+<link title="Effects" rel="Section" href="#2_Effects">
+<title>Op</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Instrument.html" title="Instrument">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="OSC.html" title="OSC">Next</a>
+</div>
+<h1>Module <a href="type_Op.html">Op</a></h1>
+
+<pre><span id="MODULEOp"><span class="keyword">module</span> Op</span>: <code class="code">sig</code> <a href="Op.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Trying to have a state monad too. This fully monadic approach has the
+    advantage of being cleaner: there is no ambiguity about when the state is
+    created and we could think of modifying the implementation of this library
+    only in order to have a compiler (say to C, to produce LV2 instruments)
+    instead of a player. However, as you can see, the syntax is quite
+    heavy....</p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEsample"><span class="keyword">type</span> <code class="type"></code>sample</span> = <code class="type">float</code> </pre>
+
+
+<pre><span id="MODULEStream"><span class="keyword">module</span> <a href="Op.Stream.html">Stream</a></span>: <code class="code">sig</code> <a href="Op.Stream.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Pure streams.</p>
+
+</div>
+
+<pre><span id="TYPEstream"><span class="keyword">type</span> <code class="type">'a</code> stream</span> = <code class="type">'a <a href="Op.Stream.html#TYPEt">Stream.t</a></code> </pre>
+
+
+<pre><span id="VALstream"><span class="keyword">val</span> stream</span> : <code class="type">'a -> 'a <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre>
+<pre><span id="VALdt"><span class="keyword">val</span> dt</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre>
+<pre><span id="MODULEState"><span class="keyword">module</span> <a href="Op.State.html">State</a></span>: <code class="code">sig</code> <a href="Op.State.html">..</a> <code class="code">end</code></pre>
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> = <code class="type">'a <a href="Op.State.html#TYPEt">State.t</a></code> </pre>
+
+
+<pre><span id="TYPEop"><span class="keyword">type</span> <code class="type">'a</code> op</span> = <code class="type">'a <a href="Op.State.html#TYPEt">State.t</a></code> </pre>
+
+
+<pre><span id="VALreturn"><span class="keyword">val</span> return</span> : <code class="type">'a -> 'a <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALlet+"><span class="keyword">val</span> let+</span> : <code class="type">'a <a href="Op.State.html#TYPEt">State.t</a> -> ('a -> 'b <a href="Op.State.html#TYPEt">State.t</a>) -> 'b <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VAL(>>)"><span class="keyword">val</span> (&gt;&gt;)</span> : <code class="type">unit <a href="Op.State.html#TYPEt">State.t</a> -> 'a <a href="Op.State.html#TYPEt">State.t</a> -> 'a <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALdlaw"><span class="keyword">val</span> dlaw</span> : <code class="type">'a <a href="Op.html#TYPEop">op</a> <a href="Op.html#TYPEstream">stream</a> -> 'a <a href="Op.html#TYPEstream">stream</a> <a href="Op.html#TYPEop">op</a></code></pre>
+<pre><span id="VALdbind"><span class="keyword">val</span> dbind</span> : <code class="type">('a -> 'b <a href="Op.html#TYPEstream">stream</a> <a href="Op.html#TYPEop">op</a>) -> 'a <a href="Op.html#TYPEstream">stream</a> <a href="Op.html#TYPEop">op</a> -> 'b <a href="Op.html#TYPEstream">stream</a> <a href="Op.html#TYPEop">op</a></code></pre>
+<pre><span id="VAL( let* )"><span class="keyword">val</span> ( let* )</span> : <code class="type">'a <a href="Op.html#TYPEstream">stream</a> -> ('a -> 'b <a href="Op.html#TYPEstream">stream</a> <a href="Op.html#TYPEop">op</a>) -> 'b <a href="Op.html#TYPEstream">stream</a> <a href="Op.html#TYPEop">op</a></code></pre>
+<pre><span id="VALcollect"><span class="keyword">val</span> collect</span> : <code class="type">('a -> 'b <a href="Op.State.html#TYPEt">State.t</a>) -> ('a -> 'b) <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALcollect2"><span class="keyword">val</span> collect2</span> : <code class="type">('a -> 'b -> 'c <a href="Op.State.html#TYPEt">State.t</a>) -> ('a -> 'b -> 'c) <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALcollect3"><span class="keyword">val</span> collect3</span> : <code class="type">('a -> 'b -> 'c -> 'd <a href="Op.State.html#TYPEt">State.t</a>) -> ('a -> 'b -> 'c -> 'd) <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALdefun"><span class="keyword">val</span> defun</span> : <code class="type">('a -> 'b <a href="Op.html#TYPEstream">stream</a> <a href="Op.html#TYPEop">op</a>) -> ('a <a href="Op.html#TYPEstream">stream</a> -> 'b <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Define a function.</p>
+</div>
+</div>
+
+<pre><span id="VALrstream"><span class="keyword">val</span> rstream</span> : <code class="type">'a -> 'a <a href="Op.Stream.html#TYPEt">Stream.t</a> <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="MODULERef"><span class="keyword">module</span> <a href="Op.Ref.html">Ref</a></span>: <code class="code">sig</code> <a href="Op.Ref.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALnop"><span class="keyword">val</span> nop</span> : <code class="type">unit -> unit <a href="Op.State.html#TYPEt">State.t</a></code></pre><h3 id="2_Pureoperations">Pure operations</h3>
+<pre><span id="VALdrop"><span class="keyword">val</span> drop</span> : <code class="type">'a <a href="Op.Stream.html#TYPEt">Stream.t</a> -> unit <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Forget the result of the stream (this is <code class="code">ignore</code> for streams).</p>
+</div>
+</div>
+
+<pre><span id="VALseq"><span class="keyword">val</span> seq</span> : <code class="type">(unit -> 'a) -> 'a <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Create a stream from a function indicating its value at each call.</p>
+</div>
+</div>
+
+<pre><span id="VALprev"><span class="keyword">val</span> prev</span> : <code class="type">'a -> ('a <a href="Op.html#TYPEstream">stream</a> -> 'a <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Value of the stream at previous instant.</p>
+</div>
+</div>
+
+<pre><span id="VALinitialize"><span class="keyword">val</span> initialize</span> : <code class="type">'a list -> 'a -> 'a <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Set the first values of a stream. This is useful to allocate the buffers in
+    operators which have some.</p>
+</div>
+</div>
+<h3 id="2_Arithmetic">Arithmetic</h3>
+<pre><span id="VALcst"><span class="keyword">val</span> cst</span> : <code class="type">'a -> 'a <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Create a constant stream.</p>
+</div>
+</div>
+
+<pre><span id="VALblank"><span class="keyword">val</span> blank</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>The constantly zero stream.</p>
+</div>
+</div>
+
+<pre><span id="VALmul"><span class="keyword">val</span> mul</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Multiply two streams.</p>
+</div>
+</div>
+
+<pre><span id="VALbmul"><span class="keyword">val</span> bmul</span> : <code class="type">bool -> float -> float <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Multiply a stream by a boolean (interpreted as 0 / 1 for false / true).</p>
+</div>
+</div>
+
+<pre><span id="VALamp"><span class="keyword">val</span> amp</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Amplify a stream.</p>
+</div>
+</div>
+
+<pre><span id="VALadd"><span class="keyword">val</span> add</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Add two streams.</p>
+</div>
+</div>
+
+<pre><span id="VALmix"><span class="keyword">val</span> mix</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a> list -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Add a list of streams.</p>
+</div>
+</div>
+
+<pre><span id="VALsub"><span class="keyword">val</span> sub</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Subtract streams.</p>
+</div>
+</div>
+
+<pre><span id="VALclip"><span class="keyword">val</span> clip</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Clip a stream in the interval <code class="code">-1., 1.</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALsoft_clip"><span class="keyword">val</span> soft_clip</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre>
+<pre><span id="VALstretch"><span class="keyword">val</span> stretch</span> : <code class="type">?mode:[< `Linear | `Logarithmic > `Linear ] -><br>       ?min:float -> ?max:float -> float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Stretch a parameter between 0 and 1 to be between given bounds.</p>
+</div>
+</div>
+
+<pre><span id="VALunstretch"><span class="keyword">val</span> unstretch</span> : <code class="type">?mode:[< `Linear | `Logarithmic > `Linear ] -><br>       ?min:float -> ?max:float -> float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Inverse of <code class="code">stretch</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALoctaves"><span class="keyword">val</span> octaves</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">Stream.t</a> -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Convert octave numbers to multiplicative coefficient for frequency.</p>
+</div>
+</div>
+
+<pre><span id="VALsamples"><span class="keyword">val</span> samples</span> : <code class="type">float -> int <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Number of samples in a given amount of time.</p>
+</div>
+</div>
+<h3 id="2_Time">Time</h3>
+<pre><span id="VALintegrate"><span class="keyword">val</span> integrate</span> : <code class="type">?on_reset:(unit -> unit <a href="Op.State.html#TYPEt">State.t</a>) -><br>       ?init:float -><br>       ?periodic:bool -> unit -> (float <a href="Op.html#TYPEstream">stream</a> -> float <a href="Op.html#TYPEstream">stream</a>) <a href="Op.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Integrate a stream.</p>
+</div>
+</div>
+
+<pre><span id="VALnow"><span class="keyword">val</span> now</span> : <code class="type">float <a href="Op.html#TYPEstream">stream</a> <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Current time.</p>
+</div>
+</div>
+
+<pre><span id="VALperiodic"><span class="keyword">val</span> periodic</span> : <code class="type">?init:float -><br>       ?on_reset:(unit -> unit <a href="Op.State.html#TYPEt">State.t</a>) -><br>       unit -> (float <a href="Op.html#TYPEstream">stream</a> -> float <a href="Op.html#TYPEstream">stream</a>) <a href="Op.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Current time for a periodic function.</p>
+</div>
+</div>
+
+<pre><span id="VALtimed"><span class="keyword">val</span> timed</span> : <code class="type">?tempo:float -><br>       ?loop:bool -> (float * 'a) list -> 'a list <a href="Op.html#TYPEstream">stream</a> <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Create a stream from timed events, supposed to be sorted. If tempo is
+    not specified, time is assumed in seconds (otherwise, in notes).</p>
+</div>
+</div>
+<h3 id="2_Control">Control</h3>
+<pre><span id="VALactivates"><span class="keyword">val</span> activates</span> : <code class="type">(bool <a href="Op.html#TYPEstream">stream</a> -> bool <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>When a stream becomes true.</p>
+</div>
+</div>
+
+<pre><span id="VALchanges"><span class="keyword">val</span> changes</span> : <code class="type">unit -> (bool <a href="Op.html#TYPEstream">stream</a> -> bool <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>When a stream changes value.</p>
+</div>
+</div>
+
+<pre><span id="VALzc"><span class="keyword">val</span> zc</span> : <code class="type">(float <a href="Op.Stream.html#TYPEt">Stream.t</a> <a href="Op.html#TYPEstream">stream</a> -> bool <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Zero-crossing: is true when the stream was negative and becomes positive.</p>
+</div>
+</div>
+
+<pre><span id="VALat"><span class="keyword">val</span> at</span> : <code class="type">(float <a href="Op.html#TYPEstream">stream</a> -> bool <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Check whether we are at a particular instant.</p>
+</div>
+</div>
+
+<pre><span id="VALafter"><span class="keyword">val</span> after</span> : <code class="type">(float <a href="Op.html#TYPEstream">stream</a> -> bool <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Check whether we are after a particular instant.</p>
+</div>
+</div>
+
+<pre><span id="VALfrequently"><span class="keyword">val</span> frequently</span> : <code class="type">(float -> bool <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Generate an event at a given frequency.</p>
+</div>
+</div>
+
+<pre><span id="VALevery"><span class="keyword">val</span> every</span> : <code class="type">(float <a href="Op.html#TYPEstream">stream</a> -> bool <a href="Op.html#TYPEstream">stream</a> <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Generate an event every period of time.</p>
+</div>
+</div>
+
+<pre><span id="VALon"><span class="keyword">val</span> on</span> : <code class="type">(unit -> unit <a href="Op.html#TYPEop">op</a>) -> (bool <a href="Op.Stream.html#TYPEt">Stream.t</a> -> unit <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Execute an action when a stream is true.</p>
+</div>
+</div>
+
+<pre><span id="VALsample_and_hold"><span class="keyword">val</span> sample_and_hold</span> : <code class="type">(bool -> float -> float <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Sample when a condition is true and hold the sample the rest of the time.</p>
+</div>
+</div>
+
+<pre><span id="VALon_change"><span class="keyword">val</span> on_change</span> : <code class="type">?first:bool -><br>       ('a -> unit <a href="Op.State.html#TYPEt">State.t</a>) -> ('a <a href="Op.html#TYPEstream">stream</a> -> 'a <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Execute a function when a stream change its value.</p>
+</div>
+</div>
+
+<pre><span id="VALswitch"><span class="keyword">val</span> switch</span> : <code class="type">bool <a href="Op.Stream.html#TYPEt">Stream.t</a> -> 'a <a href="Op.Stream.html#TYPEt">Stream.t</a> -> 'a <a href="Op.Stream.html#TYPEt">Stream.t</a> -> 'a <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Switch between two streams: the one which is not selected will not be
+    advanced!</p>
+</div>
+</div>
+
+<pre><span id="VALrandom"><span class="keyword">val</span> random</span> : <code class="type">unit -> (?min:float -> ?max:float -> float -> float <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Generate a random value at given frequency.</p>
+</div>
+</div>
+
+<pre><span id="MODULESample"><span class="keyword">module</span> <a href="Op.Sample.html">Sample</a></span>: <code class="code">sig</code> <a href="Op.Sample.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Operations with samples as unit time.</p>
+
+</div>
+<h3 id="2_Oscillators">Oscillators</h3>
+<pre><span id="VALsaw"><span class="keyword">val</span> saw</span> : <code class="type">(float <a href="Op.html#TYPEstream">stream</a> -> float <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALtriangle"><span class="keyword">val</span> triangle</span> : <code class="type">(?width:float -> float <a href="Op.html#TYPEstream">stream</a> -> float <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALsine"><span class="keyword">val</span> sine</span> : <code class="type">(float <a href="Op.html#TYPEstream">stream</a> -> float <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALsquare"><span class="keyword">val</span> square</span> : <code class="type">(?width:float -> float <a href="Op.html#TYPEstream">stream</a> -> float <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre>
+<pre><span id="VALnoise"><span class="keyword">val</span> noise</span> : <code class="type">unit -> float <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre>
+<pre><span id="VALsampler"><span class="keyword">val</span> sampler</span> : <code class="type">?interpolation:[ `Closest ] -><br>       ?freq:float -> 'a array -> (float <a href="Op.html#TYPEstream">stream</a> -> 'a <a href="Op.html#TYPEstream">stream</a>) <a href="Op.State.html#TYPEt">State.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Play a sample stored in a buffer at various speeds.</p>
+</div>
+</div>
+<h3 id="2_Effects">Effects</h3>
+<pre><span id="MODULEFilter"><span class="keyword">module</span> <a href="Op.Filter.html">Filter</a></span>: <code class="code">sig</code> <a href="Op.Filter.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Filters.</p>
+
+</div>
+
+<pre><span id="VALstereo"><span class="keyword">val</span> stereo</span> : <code class="type">'a <a href="Op.Stream.html#TYPEt">Stream.t</a> -> ('a * 'a) <a href="Op.Stream.html#TYPEt">Stream.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Duplicate a mono stream to become a stereo stream.</p>
+</div>
+</div>
+
+<pre><span id="MODULEOutput"><span class="keyword">module</span> <a href="Op.Output.html">Output</a></span>: <code class="code">sig</code> <a href="Op.Output.html">..</a> <code class="code">end</code></pre></body></html>

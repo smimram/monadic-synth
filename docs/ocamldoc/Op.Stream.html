@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="next" href="Op.State.html">
+<link rel="Up" href="Op.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Extlib" rel="Chapter" href="Extlib.html">
+<link title="Math" rel="Chapter" href="Math.html">
+<link title="Stream" rel="Chapter" href="Stream.html">
+<link title="Visu" rel="Chapter" href="Visu.html">
+<link title="Note" rel="Chapter" href="Note.html">
+<link title="MIDI" rel="Chapter" href="MIDI.html">
+<link title="Pattern" rel="Chapter" href="Pattern.html">
+<link title="Instrument" rel="Chapter" href="Instrument.html">
+<link title="Op" rel="Chapter" href="Op.html">
+<link title="OSC" rel="Chapter" href="OSC.html">
+<link title="Board" rel="Chapter" href="Board.html"><title>Op.Stream</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Op.html" title="Op">Up</a>
+&nbsp;<a class="post" href="Op.State.html" title="Op.State">Next</a>
+</div>
+<h1>Module <a href="type_Op.Stream.html">Op.Stream</a></h1>
+
+<pre><span id="MODULEStream"><span class="keyword">module</span> Stream</span>: <code class="code">sig</code> <a href="Op.Stream.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Pure streams.</p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEdt"><span class="keyword">type</span> <code class="type"></code>dt</span> = <code class="type">float</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>Type for time differences.</p>
+</div>
+</div>
+
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> = <code class="type"><a href="Op.Stream.html#TYPEdt">dt</a> -> 'a</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>The stream monad.</p>
+</div>
+</div>
+
+
+<pre><span id="VALreturn"><span class="keyword">val</span> return</span> : <code class="type">'a -> 'a <a href="Op.Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Return operation of the stream monad.</p>
+</div>
+</div>
+
+<pre><span id="VALbind"><span class="keyword">val</span> bind</span> : <code class="type">('a -> 'b <a href="Op.Stream.html#TYPEt">t</a>) -> 'a <a href="Op.Stream.html#TYPEt">t</a> -> 'b <a href="Op.Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Bind operation of the stream monad.</p>
+</div>
+</div>
+
+<pre><span id="VALbind2"><span class="keyword">val</span> bind2</span> : <code class="type">('a -> 'b -> 'c <a href="Op.Stream.html#TYPEt">t</a>) -><br>       'a <a href="Op.Stream.html#TYPEt">t</a> -> 'b <a href="Op.Stream.html#TYPEt">t</a> -> 'c <a href="Op.Stream.html#TYPEt">t</a></code></pre>
+<pre><span id="VALbind_list"><span class="keyword">val</span> bind_list</span> : <code class="type">('a list -> 'b <a href="Op.Stream.html#TYPEt">t</a>) -> 'a <a href="Op.Stream.html#TYPEt">t</a> list -> 'b <a href="Op.Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Bind a function taking a list of arguments.</p>
+</div>
+</div>
+
+<pre><span id="VALfunct"><span class="keyword">val</span> funct</span> : <code class="type">('a -> 'b) -> 'a <a href="Op.Stream.html#TYPEt">t</a> -> 'b <a href="Op.Stream.html#TYPEt">t</a></code></pre>
+<pre><span id="VALfunct2"><span class="keyword">val</span> funct2</span> : <code class="type">('a -> 'b -> 'c) -> 'a <a href="Op.Stream.html#TYPEt">t</a> -> 'b <a href="Op.Stream.html#TYPEt">t</a> -> 'c <a href="Op.Stream.html#TYPEt">t</a></code></pre>
+<pre><span id="VALmul"><span class="keyword">val</span> mul</span> : <code class="type">'a <a href="Op.Stream.html#TYPEt">t</a> <a href="Op.Stream.html#TYPEt">t</a> -> 'a <a href="Op.Stream.html#TYPEt">t</a></code></pre>
+<pre><span id="VALdt"><span class="keyword">val</span> dt</span> : <code class="type">float <a href="Op.Stream.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Current infinitesimal variation of a stream.</p>
+</div>
+</div>
+</body></html>
