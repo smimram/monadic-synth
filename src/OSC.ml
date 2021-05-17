@@ -24,8 +24,8 @@ let handler path msg =
   List.iter (fun (p,h) -> if p = path then List.iter h msg) !handlers
 
 let server port =
-  let server = LO.Server.create port handler in
-  ignore (Thread.create (fun () -> while true do LO.Server.recv server done) ())
+  let server = Lo.Server.create port handler in
+  ignore (Thread.create (fun () -> while true do Lo.Server.recv server done) ())
 
 let register_float path f =
   let h = function
