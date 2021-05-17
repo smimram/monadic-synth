@@ -437,7 +437,9 @@ small "harp like" synth with
 
 If you were too lazy to try by yourself [your can hear the result
 here](https://youtu.be/F7q-wtJRgjM) (please remember that no further effects
-where applied, nor a decent mix was performed).
+where applied, nor a decent mix was performed):
+
+https://user-images.githubusercontent.com/2012073/118515808-03838500-b736-11eb-9834-802613298758.mp4
 
 ### Live MIDI input
 
