@@ -17,6 +17,8 @@ Languages / APIs
 - [Faust](http://faust.grame.fr/)
 - [Web Audio API](https://www.w3.org/TR/webaudio/) (see also [MDN
   documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API))
+- [Pure data]() (this [manual](http://archive.flossmanuals.net/pure-data/) has
+  some nice explanations about aliasing for instance)
 
 Software synths
 ===============
@@ -35,7 +37,7 @@ Hardware synths
 
 - [Oberheim OB-X](https://en.wikipedia.org/wiki/Oberheim_OB-X) (and -Xa)
 - [Roland SH-101](https://en.wikipedia.org/wiki/Roland_SH-101)
-- [Roland Jupiter-6](https://en.wikipedia.org/wiki/Roland_Jupiter-6)
+- [Roland Jupiter-6](https://en.wikipedia.org/wiki/Roland_Jupiter-6) (its [oscillators explained](https://blog.thea.codes/the-design-of-the-juno-dco/))
 - [Roland TB-303](https://en.wikipedia.org/wiki/Roland_TB-303)
 - [ARP Odyssey](https://en.wikipedia.org/wiki/ARP_Odyssey)
 - [Sequential Circuits Prophet-5](https://en.wikipedia.org/wiki/Prophet-5) (see [this video](https://www.youtube.com/watch?v=SRWhrxpIqpU)) and [Pro-One](https://www.youtube.com/watch?v=GgSCZTckcqk)
@@ -43,6 +45,8 @@ Hardware synths
 - [EMS VCS 3](https://en.wikipedia.org/wiki/EMS_VCS_3)
 - [Yamaha DX7](https://en.wikipedia.org/wiki/Yamaha_DX7)
 - [RSF Kobol])() (see [this video](https://www.youtube.com/watch?v=tHKt0-ihEow))
+- Roland JP-8000 and in particular its super saw (see _How to Emulate the Super
+  Saw_)
 
 Specific topics
 ===============
