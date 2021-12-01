@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Setup OCaml
@@ -12,10 +12,13 @@ jobs:
     - name: Use latest ocaml-alsa
       run: git clone https://github.com/savonet/ocaml-alsa.git && opam pin -y add --no-action ocaml-alsa
     - name: Pin locally
-      run: opam pin -y add --no-action .
+      run: opam pin -y add -n .
     - name: Install locally
-      run: opam depext -y -i msynth
-    - name: Build locally
-      run: eval $(opam env) && make
-    - name: Build examples
-      run: eval $(opam env) && make -C examples
+      run: opam install -y odoc msynth
+    - name: Build doc
+      run: make -C docs
+    - name: Deploy doc
+      uses: JamesIves/github-pages-deploy-action@4.1.6
+      with:
+        branch: gh-pages
+        folder: docs
