@@ -16,9 +16,9 @@ jobs:
     - name: Install locally
       run: opam install -y odoc msynth
     - name: Build doc
-      run: cd docs && opam exec make
+      run: cd doc && opam exec make site
     - name: Deploy doc
       uses: JamesIves/github-pages-deploy-action@4.1.6
       with:
         branch: gh-pages
-        folder: docs
+        folder: doc/site

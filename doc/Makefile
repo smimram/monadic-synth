@@ -1,12 +1,14 @@
-all: index.html doc
+all: site
 
 index.html: ../README.md
 	pandoc $< -s -c github.css --toc --metadata title="Monadic synthesizers in OCaml" -o $@
 
-doc:
+site: index.html
 	@$(MAKE) -C .. doc
-	rm -rf doc
-	cp -r ../_build/default/_doc/_html odoc
+	rm -rf site
+	mkdir site
+	cp $(wildcard *.html *.css) site/
+	cp -r ../_build/default/_doc/_html site/odoc
 
 watch:
 	while inotifywait ../README.md -e modify; do $(MAKE) index.html; done
