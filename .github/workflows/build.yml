@@ -1,7 +1,5 @@
 name: Build
-
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +14,10 @@ jobs:
     - name: Install locally
       run: opam install -y odoc msynth
     - name: Build doc
-      run: cd doc && opam exec make
+      run: |
+        sudo apt-get install pandoc
+        cd doc
+        opam exec make
     - name: Deploy doc
       uses: JamesIves/github-pages-deploy-action@4.1.6
       with:
