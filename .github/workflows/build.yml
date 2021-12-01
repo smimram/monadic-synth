@@ -8,9 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Setup OCaml
-      uses: avsm/setup-ocaml@v1.1.11
-    - name: Install depext module
-      run: opam install -y depext
+      uses: avsm/setup-ocaml@v2
     - name: Use latest ocaml-alsa
       run: git clone https://github.com/savonet/ocaml-alsa.git && opam pin -y add --no-action ocaml-alsa
     - name: Pin locally
