@@ -1,11 +1,11 @@
-all: index.html doc
+all: site
 
 index.html: ../README.md
 	pandoc $< -s -c github.css --toc --metadata title="Monadic synthesizers in OCaml" -o $@
 
-doc:
-	@$(MAKE) -C .. doc
-	rm -rf doc
+site: index.html
+	cd .. && dune build @doc
+	rm -rf odoc
 	cp -r ../_build/default/_doc/_html odoc
 
 watch:
