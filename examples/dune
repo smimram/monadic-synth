@@ -1,0 +1,79 @@
+(executable
+ (name better_off_alone)
+ (modules better_off_alone)
+ (libraries msynth))
+
+(executable
+ (name bug)
+ (modules bug)
+ (libraries msynth))
+
+(executable
+ (name doc)
+ (modules doc)
+ (libraries msynth))
+
+(executable
+ (name filter)
+ (modules filter)
+ (libraries msynth))
+
+(executable
+ (name fm_arpeggiator)
+ (modules fm_arpeggiator)
+ (libraries msynth))
+
+(executable
+ (name midi)
+ (modules midi)
+ (libraries msynth))
+
+(executable
+ (name obx)
+ (modules obx)
+ (libraries msynth))
+
+(executable
+ (name sine)
+ (modules sine)
+ (libraries msynth))
+
+(executable
+ (name song0)
+ (modules song0)
+ (libraries msynth))
+
+(executable
+ (name song1)
+ (modules song1)
+ (libraries msynth))
+
+(executable
+ (name song2)
+ (modules song2)
+ (libraries msynth))
+
+(executable
+ (name song3)
+ (modules song3)
+ (libraries msynth))
+
+(executable
+ (name spectral)
+ (modules spectral)
+ (libraries msynth))
+
+(executable
+ (name theremin)
+ (modules theremin)
+ (libraries msynth))
+
+(executable
+ (name thx)
+ (modules thx)
+ (libraries msynth))
+
+(executable
+ (name trance)
+ (modules trance)
+ (libraries msynth))

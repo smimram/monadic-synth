@@ -1,5 +1,6 @@
 (** Testing filters. *)
 
+open Msynth
 open Stream
 
 let () =

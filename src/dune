@@ -1,0 +1,6 @@
+(library
+ (name msynth)
+ (public_name msynth)
+ (synopsis "A monadic audio synthesizer")
+ (libraries threads str alsa lo graphics)
+)

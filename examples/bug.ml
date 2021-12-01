@@ -1,5 +1,6 @@
 (** Recreating "Better off alone" by Alice DJ. *)
 
+open Msynth
 open Stream
 
 let () =

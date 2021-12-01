@@ -23,7 +23,7 @@ type t =
     send : int -> event -> unit
   }
 
-let create ?(synchronous=false) ?(print=false) () =
+let create ?(print=false) () =
   let mutex = Mutex.create () in
   let handlers = ref [] in
   let seq = Alsa.Sequencer.create "default" `Duplex in
@@ -151,7 +151,7 @@ let pitch_bend midi ?channel ?mode ?max () =
   let h c e =
     if channel = None || Some c = channel then
       match e with
-      | `Pitch_bend (n,v) ->
+      | `Pitch_bend (_,v) ->
         Mutex.lock m;
         x := stretch v;
         Mutex.unlock m

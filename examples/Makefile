@@ -1,34 +1,21 @@
-ML = $(wildcard *.ml)
-PROG = $(ML:.ml=)
+all: .gitignore build
 
-all: .gitignore lib $(PROG)
+build:
+	@dune build
 
 ci:
 	@$(MAKE) -C .. $@
 
-lib:
-	@$(MAKE) -C ../src
-
-test: lib midi
+test: build
 	./midi
 
-debug: lib bug
+debug: bug
 	./bug
 
-perf: lib bug
+perf: bug
 	-perf record --call-graph=dwarf -- ./bug
 	pref report
-
-clean:
-	rm -f $(wildcard *.cmi *.cmx *.o) $(PROG)
-
-%: %.ml ../src/msynth.cmxa
-	ocamlfind ocamlopt -package alsa,lo,graphics,threads -thread -I ../src \
-	graphics.cmxa str.cmxa alsa.cmxa unix.cmxa threads.cmxa lo.cmxa msynth.cmxa \
-	-o $@ $<
 
 .gitignore: $(PROG)
 	@rm -f $@
 	@for i in $(PROG); do echo $$i >> $@; done
-
-.PHONY: lib

@@ -156,7 +156,7 @@ let play_drum note midi =
 let play_drums ?kick ?snare ?closed_hat midi =
   let streams = ref [] in
   let create d note =
-    let dnote ~on_die freq vol = B.cmul vol (d ~on_die) in
+    let dnote ~on_die _ vol = B.cmul vol (d ~on_die) in
     let note = Option.value ~default:dnote note in
     let event = Event.create () in
     let s = create_drum ~event note in
@@ -176,7 +176,7 @@ let play_drums ?kick ?snare ?closed_hat midi =
 
 let kick tempo =
   let event = Event.create () in
-  let note ~on_die freq vol = Note.Drum.kick ~on_die () in
+  let note ~on_die _ _ = Note.Drum.kick ~on_die () in
   let instr = create_drum ~event note in
   let midi = Pattern.stream ~loop:true tempo [0.,1.,`Nop;0.,0.25,`Note(69,1.)] in
   let* l = midi in

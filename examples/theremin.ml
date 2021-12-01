@@ -1,5 +1,6 @@
 (* A simple theremin. *)
 
+open Msynth
 open Stream
 
 let () =

@@ -1,3 +1,4 @@
+open Msynth
 open Stream
 
 let s =
@@ -17,7 +18,7 @@ let s =
     let dup_adsr, adsr = dup () adsr in
     let fm = fm ~carrier:`Saw ~modulator:`Triangle () in
     (* let exp = Envelope.exponential_hl () in *)
-    fun freq vol ->
+    fun freq _ ->
       let s = dup_adsr >> B.cmul 500. adsr >>= (fun depth -> fm ~ratio:1. depth freq) in
       (* let r = exp (vol *. 0.04) in *)
       (* let r = cadd 500. (cmul (10000.*.vol**4.) r) in *)
@@ -40,7 +41,7 @@ let s =
   (* let slice = Instrument.play ~dt (Note.simple saw) (Pattern.midi tempo slice) in *)
   (* let slice = slice >>= Slicer.eurotrance ~dt (Note.duration tempo 1.) in *)
   (* let slice = slice >>= amp 0.4 >>= stereo in *)
-  let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> Note.Drum.snare ~on_die ~lp:2400. () >>= amp vol) in
+  let pd = Instrument.play_drums ~snare:(fun ~on_die _ vol -> Note.Drum.snare ~on_die ~lp:2400. () >>= amp vol) in
   let drums = pd (Pattern.midi_drums ~loop:true tempo (Pattern.load_drums "basic.drums")) >>= amp 1. >>= stereo in
   (* let drums = *)
     (* let fv = Stereo.freeverb () in *)

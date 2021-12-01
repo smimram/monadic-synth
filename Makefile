@@ -1,6 +1,16 @@
-all clean install:
-	$(MAKE) -C src
+all: build
 
+build:
+	@dune build
+
+doc:
+	@dune build @doc
+
+clean:
+	@dune clean
+
+install:
+	@dune install
 
 ci:
 	git ci . -m "Worked on synth."

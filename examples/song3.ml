@@ -1,3 +1,4 @@
+open Msynth
 open Stream
 
 let tempo = 130.

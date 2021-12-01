@@ -12,4 +12,4 @@ let to_stream init (s : 'a t) =
   let x = ref init in
   let f x' = x := x' in
   s f;
-  Stream.Ref.get x
+  Stream.stream_ref x

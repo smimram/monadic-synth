@@ -29,7 +29,7 @@ module List = struct
   let last l =
     let rec aux = function
       | [x] -> x
-      | x::t -> aux t
+      | _::t -> aux t
       | [] -> raise Not_found
     in
     aux l

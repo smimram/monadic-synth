@@ -3,6 +3,7 @@
 (* We are more or less following the explanations from
    http://earslap.com/article/recreating-the-thx-deep-note.html *)
 
+open Msynth
 open Extlib
 open Stream
 

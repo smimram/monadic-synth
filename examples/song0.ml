@@ -1,3 +1,4 @@
+open Msynth
 open Extlib
 open Stream
 

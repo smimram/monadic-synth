@@ -1,4 +1,0 @@
-B src/**
-B +threads
-S src/**
-PKG alsa graphics lo

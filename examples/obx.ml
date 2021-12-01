@@ -1,5 +1,6 @@
 (* Trying to recreate Oberheim OB-Xa. *)
 
+open Msynth
 open Extlib
 open Stream
 

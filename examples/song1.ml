@@ -1,3 +1,4 @@
+open Msynth
 open Stream
 
 let tempo = 130.
@@ -44,9 +45,9 @@ let s =
   let bass = [0.,16.,`Nop;0.,3.,`Note (41, vb);4.,3.,`Note (38, vb);8.,3.,`Note (45, vb);12.,3.,`Note (45, vb)] in
   let bass = Instrument.play (note ~s:0.8 ~r:0.4 sine) (Pattern.stream ~loop:true tempo bass) in
   let kick = Pattern.repeat 16 [0.,0.25,`Note(69,1.8);0.,1.,`Nop] in
-  let kick = Instrument.play_drum (fun ~on_die freq vol -> B.cmul vol (Note.Drum.kick ~on_die ())) (Pattern.stream ~loop:true tempo kick) in
+  let kick = Instrument.play_drum (fun ~on_die _ vol -> B.cmul vol (Note.Drum.kick ~on_die ())) (Pattern.stream ~loop:true tempo kick) in
   let snare = Pattern.repeat 16 [1.,0.25,`Note(69,0.8);0.,2.,`Nop] in
-  let snare = Instrument.play_drum (fun ~on_die freq vol -> B.cmul vol (Note.Drum.snare ~on_die ())) (Pattern.stream ~loop:true tempo snare) in
+  let snare = Instrument.play_drum (fun ~on_die _ vol -> B.cmul vol (Note.Drum.snare ~on_die ())) (Pattern.stream ~loop:true tempo snare) in
   let s = synth in
   (* (\* let s = bind2 (integrate ~dt 100.) s (Filter.first_order ~dt `Low_pass) in *\) *)
   (* (\* let s = s >>= slicer ~dt 0.01 in *\) *)

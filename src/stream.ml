@@ -17,7 +17,7 @@ type 'a t = dt -> 'a
 type 'a stream = 'a t
 
 (** Return operation of the stream monad. *)
-let return : 'a -> 'a t = fun x dt -> x
+let return : 'a -> 'a t = fun x _ -> x
 
 (** Bind operation of the stream monad. *)
 let bind : ('a -> 'b t) -> 'a t -> 'b t =
@@ -140,7 +140,7 @@ let dup () =
   let x = ref None in
   fun s ->
     (let* y = s in return (x := Some y)),
-    (fun dt -> try Option.get !x with _ -> failwith "Invalid evaluation order in dup.")
+    (fun _ -> try Option.get !x with _ -> failwith "Invalid evaluation order in dup.")
 
 (** Stream the current value of a reference. *)
 let stream_ref x = seq (fun () -> !x)
@@ -234,7 +234,7 @@ let amp = mul
 let add x y = return (x +. y)
 
 (** Add a list of streams. *)
-let rec mix ss =
+let mix ss =
   return (List.fold_left (+.) 0. ss)
 
 (** Subtract streams. *)
@@ -282,6 +282,7 @@ let integrate ?(kind=`Euler) ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.)
     let u = ref 0. in
     fun x ->
       let* dt = dt in
+      ignore dt;
       let ans = !y in
       y := !u +. x /. 2.;
       u := !u +. x;
@@ -865,7 +866,7 @@ module Envelope = struct
 
   (** Exponential decay with given parameter. *)
   let exponential ?(init=1.) () =
-    let y = ref 1. in
+    let y = ref init in
     fun k ->
       let* dt = dt in
       let ans = !y in
@@ -1050,7 +1051,7 @@ module Ringbuffer = struct
 
   let write r x = Sample.Ringbuffer.write r x
 
-  let prepare ?init r len =
+  let prepare r len =
     let* len = samples len in
     return (Sample.Ringbuffer.prepare r len)
 
@@ -1297,9 +1298,9 @@ module Stereo = struct
   let to_mono (x,y) =
     return ((x +. y) /. 2.)
 
-  let left (x,y) = return x
+  let left (x,_) = return x
 
-  let right (x,y) = return y
+  let right (_,y) = return y
 
   let dephase () =
     let delay_l = simple_delay () in
@@ -1428,7 +1429,7 @@ module Stereo = struct
     let apr = List.map (fun n -> n + stereo_spread) apl in
     let ap_feedback = 0.5 in
     let gain = 0.015 in
-    (** Comb filter. *)
+    (* Comb filter. *)
     let comb len =
       let buf = Array.make len 0. in
       let pos = ref 0 in
@@ -1442,7 +1443,7 @@ module Stereo = struct
         if !pos = len then pos := 0;
         return output
     in
-    (** All-pass filter. *)
+    (* All-pass filter. *)
     let ap len =
       let buf = Array.make len 0. in
       let pos = ref 0 in

@@ -1,3 +1,4 @@
+open Msynth
 open Stream
 
 let tempo = 130.
@@ -39,7 +40,7 @@ let s =
   let bass = B.cmul 0.5 bass in
   let bass = bass >>= stereo >>= Stereo.dephase () (-0.02) in
   (* let kick = Instrument.kick ~dt ~vol:1. tempo >>= stereo in *)
-  let pd = Instrument.play_drums ~snare:(fun ~on_die freq vol -> B.cmul vol (Note.Drum.snare ~on_die ~lp:2000. ())) in
+  let pd = Instrument.play_drums ~snare:(fun ~on_die _ vol -> B.cmul vol (Note.Drum.snare ~on_die ~lp:2000. ())) in
   let drums = pd (Pattern.midi_drums ~loop:true tempo (Pattern.load_drums "c1.drums")) >>= stereo in
   let drums = Stereo.bmul (OSC.bool "/1/toggle2" true) drums in
   let s = Stereo.mix [synth;drums;bass] in

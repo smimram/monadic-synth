@@ -1,3 +1,4 @@
+open Msynth
 open Stream
 
 let tempo = 130.
@@ -15,7 +16,7 @@ let s =
     let adsr = adsr ~event ~on_die () ~a:0.01 ~d:0.1 ~r:0.001 () in
     let dup_adsr, adsr = dup () adsr in
     let fm = fm ~carrier:`Saw ~modulator:`Triangle () in
-    fun freq vol ->
+    fun freq _(*vol*) ->
       let s = dup_adsr >> B.mul d adsr >>= (fun depth -> fm ~ratio:0.5 depth freq) in
       B.mul s adsr
   in

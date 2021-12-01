@@ -56,5 +56,5 @@ module Osc = struct
     if t <= 0.5 then 2. *. t
     else 2. *. (t -. 1.5)
 
-  let noise t = Random.float ~min:(-1.) 1.
+  let noise _ = Random.float ~min:(-1.) 1.
 end
