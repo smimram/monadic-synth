@@ -5,10 +5,8 @@ index.html: ../README.md
 
 site: index.html
 	@$(MAKE) -C .. doc
-	rm -rf site
-	mkdir site
-	cp $(wildcard *.html *.css) site/
-	cp -r ../_build/default/_doc/_html site/odoc
+	rm -rf odoc
+	cp -r ../_build/default/_doc/_html odoc
 
 watch:
 	while inotifywait ../README.md -e modify; do $(MAKE) index.html; done
