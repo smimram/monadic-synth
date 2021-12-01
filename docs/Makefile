@@ -1,20 +1,11 @@
-all: index.html ocamldoc
+all: index.html doc
 
 index.html: ../README.md
 	pandoc $< -s -c github.css --toc --metadata title="Monadic synthesizers in OCaml" -o $@
 
+doc:
+	@dune build @doc
+	cp -r ../_build/default/_doc/_html odoc
+
 watch:
 	while inotifywait ../README.md -e modify; do $(MAKE) index.html; done
-
-ocamldoc:
-	@rm -rf ../src/doc
-	@$(MAKE) -C ../src htdoc
-	@rm -rf ocamldoc
-	@cp -r ../src/doc/msynth/html ocamldoc
-
-ci: all
-	git add ocamldoc
-	git ci ../README.md . -m "Update website."
-	git push
-
-.PHONY: ocamldoc

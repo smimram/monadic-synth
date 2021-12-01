@@ -129,7 +129,7 @@
 <p>The main documentation consists in</p>
 <ul>
 <li>this file,</li>
-<li>the <a href="http://smimram.github.io/monadic-synth/ocamldoc/">documentation generated from the source code comments</a>,</li>
+<li>the <a href="http://smimram.github.io/monadic-synth/odoc/msynth/">documentation generated from the source code comments</a>,</li>
 <li>the source code.</li>
 </ul>
 <h1 id="tutorial">Tutorial</h1>
@@ -323,7 +323,8 @@
 <span id="cb27-8"><a href="#cb27-8" aria-hidden="true"></a>  <span class="kw">in</span></span>
 <span id="cb27-9"><a href="#cb27-9" aria-hidden="true"></a>  <span class="kw">let</span> arp = Pattern.arpeggiate `Up (Pattern.transpose <span class="dv">24</span> chords) <span class="kw">in</span></span>
 <span id="cb27-10"><a href="#cb27-10" aria-hidden="true"></a>  <span class="kw">let</span> arp = Instrument.play (Note.simple sine) (Pattern.stream ~loop:<span class="kw">true</span> tempo arp) <span class="kw">in</span></span></code></pre></div>
-<p>If you were too lazy to try by yourself <a href="https://youtu.be/F7q-wtJRgjM">your can hear the result here</a> (please remember that no further effects where applied, nor a decent mix was performed).</p>
+<p>If you were too lazy to try by yourself <a href="https://youtu.be/F7q-wtJRgjM">your can hear the result here</a> (please remember that no further effects where applied, nor a decent mix was performed):</p>
+<p>https://user-images.githubusercontent.com/2012073/118515808-03838500-b736-11eb-9834-802613298758.mp4</p>
 <h3 id="live-midi-input">Live MIDI input</h3>
 <p>An example of MIDI input (say, from a physical keyboard) in order to generates notes and values for parameters from physical controllers can be <a href="https://github.com/smimram/monadic-synth/blob/master/examples/midi.ml">found here</a>.</p>
 <p>In order to use MIDI, we should begin with using the function <code>MIDI.create</code> which provides us with a handle from which midi events can be drawn (with <code>MIDI.events</code>) as well as the value of controllers (with <code>MIDI.controller</code>). For instance, in the following example, we play the notes pressed on the keyboard with a saw instrument chained with a low pass filter whose Q parameter and cutoff frequency can be controlled by controller 0 and 1 respectively (you might have to change those numbers depending on your controller):</p>
