@@ -492,6 +492,30 @@ As a matter of illustration, we provide
   implementation](https://github.com/smimram/monadic-synth/blob/master/examples/obx.ml)
   of an emulation of the [Oberheim OB-Xa](https://en.wikipedia.org/wiki/Oberheim_OB-X)
 
+## Some other examples
+
+You can also hear some demo songs:
+
+- [FM arpeggiator](https://github.com/smimram/monadic-synth/blob/master/examples/fm_arpeggiator.ml)
+
+  https://user-images.githubusercontent.com/2012073/144207772-cb14315a-2e9a-45df-ba9e-4a5ba0674d2a.mp4
+
+- [Song 0](https://github.com/smimram/monadic-synth/blob/master/examples/song0.ml)
+
+  https://user-images.githubusercontent.com/2012073/144208136-1d71816d-a8ee-4128-b4d5-af722319a834.mp4
+
+- [Song 1](https://github.com/smimram/monadic-synth/blob/master/examples/song1.ml)
+
+  https://user-images.githubusercontent.com/2012073/144208263-0fa5967d-9f83-45e9-81a6-b3d0667a10be.mp4
+
+- [Song 2](https://github.com/smimram/monadic-synth/blob/master/examples/song2.ml)
+
+  https://user-images.githubusercontent.com/2012073/144208347-e920c297-453e-41d0-a60d-ec9380f308a7.mp4
+
+- [Trance](https://github.com/smimram/monadic-synth/blob/master/examples/trance.ml)
+
+  https://user-images.githubusercontent.com/2012073/144208467-14143f0b-9d67-4db5-bc06-d0712a96cfa9.mp4
+
 # Advanced topics
 
 ## Using a stream multiple times
