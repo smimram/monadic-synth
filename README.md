@@ -42,7 +42,7 @@ The main documentation consists in
 
 - this file,
 - the [documentation generated from the source
-  code comments](http://smimram.github.io/monadic-synth/ocamldoc/),
+  code comments](http://smimram.github.io/monadic-synth/odoc/msynth/),
 - the source code.
 
 # Tutorial
