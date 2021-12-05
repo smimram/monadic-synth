@@ -494,7 +494,7 @@ As a matter of illustration, we provide
 
 ## Some other examples
 
-You can also hear some demo songs:
+You can also hear some demo songs (guaranteed 100% sample-free!):
 
 - [FM arpeggiator](https://github.com/smimram/monadic-synth/blob/master/examples/fm_arpeggiator.ml)
 
