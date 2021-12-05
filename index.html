@@ -92,7 +92,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><a href="#modulating-parameters">Modulating parameters</a></li>
 <li><a href="#returning-streams">Returning streams</a></li>
 <li><a href="#parameters-from-osc">Parameters from OSC</a></li>
-<li><a href="#other-examples">Other examples</a></li>
 </ul></li>
 <li><a href="#instruments">Instruments</a><ul>
 <li><a href="#playing-notes">Playing notes</a></li>
@@ -235,10 +234,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Here, we begin by creating the saw oscillator (<code>osc</code>) and the low-pass filter (<code>lp</code>), as well as the streams corresponding to the controllers for amplification, q and cutoff frequency. The line</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode ocaml"><code class="sourceCode ocaml"><a class="sourceLine" id="cb18-1" title="1"><span class="kw">let</span> a = a &gt;&gt;= print <span class="st">&quot;a&quot;</span> <span class="kw">in</span></a></code></pre></div>
 <p>makes the value for amplification <code>a</code> being printed on standard output when it changes, which is useful for debugging. Finally, the stream consists in the oscillator which goes through the filter, is amplified, and finally converted to stereo.</p>
-<h3 id="other-examples">Other examples</h3>
-<ul>
-<li><a href="https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml">thx.ml</a>: a quick recreation of the <a href="https://www.youtube.com/watch?v=uYMpMcmpfkI">THX deep note</a> by adding many saw oscillators, whose frequency is initially between 200 and 400 Hz, and slowly evolve to the same note at various octaves.</li>
-</ul>
 <h2 id="instruments">Instruments</h2>
 <p>Unless you are making <a href="https://en.wikipedia.org/wiki/Musique_concr%C3%A8te">concrete music</a>, you certainly want to play some notes. In order to illustrate this let’s detail step by step how we can quickly recreate the song <em><a href="https://www.youtube.com/watch?v=Lj9GzcHbJ-w">better off alone</a></em> (sort of) by detailing <a href="https://github.com/smimram/monadic-synth/blob/master/examples/better_off_alone.ml">this example</a>.</p>
 <h3 id="playing-notes">Playing notes</h3>
@@ -355,6 +350,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2 id="some-other-examples">Some other examples</h2>
 <p>You can also hear some demo songs (guaranteed 100% sample-free!):</p>
 <ul>
+<li><p><a href="https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml">thx.ml</a>: a quick recreation of the <a href="https://www.youtube.com/watch?v=uYMpMcmpfkI">THX deep note</a> by adding many saw oscillators, whose frequency is initially between 200 and 400 Hz, and slowly evolve to the same note at various octaves.</p></li>
 <li><p><a href="https://github.com/smimram/monadic-synth/blob/master/examples/fm_arpeggiator.ml">FM arpeggiator</a></p>
 <p>https://user-images.githubusercontent.com/2012073/144207772-cb14315a-2e9a-45df-ba9e-4a5ba0674d2a.mp4</p></li>
 <li><p><a href="https://github.com/smimram/monadic-synth/blob/master/examples/song0.ml">Song 0</a></p>
