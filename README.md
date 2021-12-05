@@ -282,14 +282,6 @@ changes, which is useful for debugging. Finally, the stream consists in the
 oscillator which goes through the filter, is amplified, and finally converted to
 stereo.
 
-### Other examples
-
-- [thx.ml](https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml):
-  a quick recreation of the [THX deep
-  note](https://www.youtube.com/watch?v=uYMpMcmpfkI) by adding many saw
-  oscillators, whose frequency is initially between 200 and 400 Hz, and slowly
-  evolve to the same note at various octaves.
-
 ## Instruments
 
 Unless you are making [concrete
@@ -495,6 +487,12 @@ As a matter of illustration, we provide
 ## Some other examples
 
 You can also hear some demo songs (guaranteed 100% sample-free!):
+
+- [thx.ml](https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml):
+  a quick recreation of the [THX deep
+  note](https://www.youtube.com/watch?v=uYMpMcmpfkI) by adding many saw
+  oscillators, whose frequency is initially between 200 and 400 Hz, and slowly
+  evolve to the same note at various octaves.
 
 - [FM arpeggiator](https://github.com/smimram/monadic-synth/blob/master/examples/fm_arpeggiator.ml)
 
