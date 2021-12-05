@@ -486,13 +486,15 @@ As a matter of illustration, we provide
 
 ## Some other examples
 
-You can also hear some demo songs (guaranteed 100% sample-free!):
+You can also hear some demo songs, guaranteed 100% sample-free! Don't forget to turn the sound on (icon at the lower right of the video).
 
-- [thx.ml](https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml):
+- [THX](https://github.com/smimram/monadic-synth/blob/master/examples/thx.ml):
   a quick recreation of the [THX deep
   note](https://www.youtube.com/watch?v=uYMpMcmpfkI) by adding many saw
   oscillators, whose frequency is initially between 200 and 400 Hz, and slowly
   evolve to the same note at various octaves.
+
+  https://user-images.githubusercontent.com/2012073/144747066-56e3ba12-9078-4bcf-aa85-4723f77f9546.mp4
 
 - [FM arpeggiator](https://github.com/smimram/monadic-synth/blob/master/examples/fm_arpeggiator.ml)
 
