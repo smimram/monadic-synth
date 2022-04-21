@@ -160,8 +160,8 @@ module StreamList = struct
       fold_left f (f x0 x) l
 end
 
-(** Event hubs. On those handlers can be registered and will be called each time
-    a new event is emitted. *)
+(** Event hubs. On those, handlers can be registered and will be called each
+    time a new event is emitted. *)
 module Event = struct
   (** An event hub. *)
   type 'a t = ('a -> unit) list ref
@@ -243,6 +243,7 @@ let sub = funct2 ( -. )
 (** Clip a stream in the interval [-1., 1.]. *)
 let clip x = return (Math.clip x)
 
+(** Softer (and more distorted) version of the [clip] function. *)
 let soft_clip x =
   if x <= -1. then (-2.)/.3.
   else if x >= 1. then 2./.3.
@@ -1241,8 +1242,10 @@ let is_blank duration =
 
 (** Operations on stereo streams. *)
 module Stereo = struct
+  (** A stereo stream. *)
   type 'a t = ('a * 'a) stream
 
+  (** Create from mono stream. *)
   let of_mono x : 'a t =
     return (x, x)
 
@@ -1279,29 +1282,38 @@ module Stereo = struct
       let y = delay_r0 y >>= delay_r ?dry ?wet ~feedback delay in
       add (return c) (merge (bind (mul feedback) x) (bind (mul feedback) y))
 
+  (** Mix streams. *)
   let mix ss =
     List.fold_left add blank ss
 
+  (** Amplify. *)
   let amp a (x,y) = return (a *. x, a *. y)
 
+  (** Multiply by a constant. *)
   let cmul a s =
     s >>= amp a
 
+  (** Multiply by a boolean. *)
   let bmul b s =
     bind2 (fun b c -> if b then return c else return (0.,0.)) b s
 
+  (** Map functions. *)
   let map fl fr (x,y) =
     let* x = fl x in
     let* y = fr y in
     return (x, y)
 
+  (** Convert to mono. *)
   let to_mono (x,y) =
     return ((x +. y) /. 2.)
 
+  (** Left channel. *)
   let left (x,_) = return x
 
+  (** Right channel. *)
   let right (_,y) = return y
 
+  (** Dephase channels by given delay. *)
   let dephase () =
     let delay_l = simple_delay () in
     let delay_r = simple_delay () in
@@ -1387,6 +1399,7 @@ module Stereo = struct
     fun x ->
       bind4 add4 (fbcf1 x) (fbcf2 x) (fbcf3 x) (fbcf4 x) >>= ap1 >>= ap2 >>= ap3 >>= (fun x -> return (x, -.x))
 
+  (** Automatic gain control. *)
   let agc () =
     let agcl = agc () in
     let agcr = agc () in
@@ -1501,20 +1514,24 @@ end
 (** Duplicate a mono stream to become a stereo stream. *)
 let stereo = Stereo.of_mono
 
-(** Binded functions. *)
+(** Binded functions: those operate on streams instead of samples. *)
 module B = struct
   (** Add a constant. *)
   let cadd x = bind (add x)
 
+  (** Add two streams. *)
   let add = bind2 add
 
   (** Multiply by a constant. *)
   let cmul x = bind (mul x)
 
+  (** Multiply by a constant. *)
   let mulc x y = cmul y x
 
+  (** Multiply two streams. *)
   let mul = bind2 mul
 
+  (** Multiply by a boolean. *)
   let bmul = bind2 bmul
 
   let mix = bind_list mix

@@ -174,6 +174,7 @@ let play_drums ?kick ?snare ?closed_hat midi =
   in
   midi >>= (fun l -> return (List.iter emit l)) >> B.mix !streams
 
+(** Generate a recurrent kick at given tempo. *)
 let kick tempo =
   let event = Event.create () in
   let note ~on_die _ _ = Note.Drum.kick ~on_die () in

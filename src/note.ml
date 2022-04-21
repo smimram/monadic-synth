@@ -29,6 +29,7 @@ let simple f : _ t =
   fun freq vol ->
     B.bmul (stream_ref alive) (B.cmul vol (f freq))
 
+(** Add a detuned note on top of the note. *)
 let detune ?(cents=return 7.) ?(wet=return 0.5) (note : _ t) : _ t =
   fun ~event ~on_die () ->
   let n = note ~event ~on_die () in

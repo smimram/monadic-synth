@@ -1,3 +1,5 @@
+(** Outputs. *)
+
 open Stream
 
 (*
@@ -130,6 +132,7 @@ class wav ?(channels=2) samplerate fname =
 
 exception End_of_stream
 
+(** Play a stream using soundcard. *)
 let play ?(samplerate=44100) ?duration s =
   let s =
     match duration with
