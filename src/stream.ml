@@ -42,7 +42,6 @@ let bind4 f x y z t =
 (** Bind the first of two arguments. *)
 let bind1_2 f x y =
   bind (fun x -> f x y) x
-  
 
 (** Bind a function taking a list of arguments. *)
 let rec bind_list f = function
@@ -609,32 +608,60 @@ end
 
 (** {2 Oscillators} *)
 
-let saw () : float -> sample t =
-  let p = periodic ~init:0.5 () in
-  fun freq ->
-    let* t = p freq in
-    return (Math.Osc.saw t)
+(** Oscillators. *)
+module Osc = struct
+  let saw () : float -> sample t =
+    let p = periodic ~init:0.5 () in
+    fun freq ->
+      let* t = p freq in
+      return (Math.Osc.saw t)
 
-let triangle () =
-  let p = periodic ~init:0.25 () in
-  fun freq ->
-    let* t = p freq in
-    return (Math.Osc.triangle t)
+  let triangle () =
+    let p = periodic ~init:0.25 () in
+    fun freq ->
+      let* t = p freq in
+      return (Math.Osc.triangle t)
 
-let sine () : float -> sample t =
-  let p = periodic () in
-  fun freq ->
-    let* t = p freq in
-    return (Math.Osc.sine t)
+  let sine () : float -> sample t =
+    let p = periodic () in
+    fun freq ->
+      let* t = p freq in
+      return (Math.Osc.sine t)
 
-let square () =
-  let p = periodic () in
-  fun ?(width=0.5) freq ->
-    let* t = p freq in
-    let t = Math.Osc.width width t in
-    return (Math.Osc.square t)
+  let sine_tabulated ?(freq=44100.) () : float -> sample t =
+    let p = periodic () in
+    let s = Math.Osc.tabulate Math.Osc.sine freq in
+    fun freq ->
+      let* t = p freq in
+      return (s t)
 
-let noise () = seq (fun () -> Random.float ~min:(-1.) 1.)
+  let square () =
+    let p = periodic () in
+    fun ?(width=0.5) freq ->
+      let* t = p freq in
+      let t = Math.Osc.width width t in
+      return (Math.Osc.square t)
+
+  let noise () = seq (fun () -> Random.float ~min:(-1.) 1.)
+
+  (** Generic oscillator. *)
+  let osc () =
+    let p = periodic () in
+    fun ?(width=0.5) kind freq ->
+      let* t = p freq in
+      let t = Math.Osc.width width t in
+      let f =
+        match kind with
+        | `Sine -> Math.Osc.sine
+        | `Saw -> Math.Osc.saw
+        | `Square -> Math.Osc.square
+        | `Triangle -> Math.Osc.triangle
+        | `Noise -> Math.Osc.noise
+      in
+      return (f t)
+end
+
+include Osc
 
 (** Play a sample stored in a buffer at various speeds. *)
 let sampler ?(interpolation=`Closest) ?(freq=1.) buf =
@@ -739,22 +766,6 @@ module Spectral = struct
     sampler ~freq:f0 buf
    *)
 end
-
-(** Generic oscillator. *)
-let osc () =
-  let p = periodic () in
-  fun ?(width=0.5) kind freq ->
-    let* t = p freq in
-    let t = Math.Osc.width width t in
-    let f =
-      match kind with
-      | `Sine -> Math.Osc.sine
-      | `Saw -> Math.Osc.saw
-      | `Square -> Math.Osc.square
-      | `Triangle -> Math.Osc.triangle
-      | `Noise -> Math.Osc.noise
-    in
-    return (f t)
 
 (** Frequency modulation synthesis. *)
 let fm ?(carrier=`Sine) ?(modulator=`Sine) () =

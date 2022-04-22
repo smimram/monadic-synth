@@ -77,3 +77,8 @@
  (name trance)
  (modules trance)
  (libraries msynth))
+
+(executable
+ (name tabulated)
+ (modules tabulated)
+ (libraries msynth))

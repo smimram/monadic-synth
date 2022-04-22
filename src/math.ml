@@ -34,6 +34,13 @@ module Osc = struct
       if t <= 0.5 then t /. 0.5 *. width
       else (t -. 0.5) /. 0.5 *. (1. -. width) +. width
 
+  (** Tablulate a function at given frequency. *)
+  let tabulate f freq =
+    let freqn = Float.to_int freq in
+    let a = Array.init freqn (fun i -> f (float i /. freq)) in
+    fun t ->
+      a.(Float.to_int (t *. freq) mod freqn)
+
   let sine t = sin (2. *. Float.pi *. t)
 
   let triangle t =
