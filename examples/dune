@@ -82,3 +82,8 @@
  (name tabulated)
  (modules tabulated)
  (libraries msynth))
+
+(executable
+ (name r2d2)
+ (modules r2d2)
+ (libraries msynth))

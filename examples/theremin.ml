@@ -7,7 +7,7 @@ let () =
   Graphics.open_graph "";
   let pos = seq Graphics.mouse_pos in
   (* Graphics isn't ready to be queried 44100 times per second *)
-  let pos = downsample 100. pos in
+  let pos = resample 100. pos in
   let vol =
     let* x, _ = pos in
     let x = float x /. float (Graphics.size_x ()) in

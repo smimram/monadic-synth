@@ -144,6 +144,12 @@ let dup () =
 (** Stream the current value of a reference. *)
 let stream_ref x = seq (fun () -> !x)
 
+(** Generate a stream according to dt and previous value. *)
+let iterative f x0 =
+  let x = ref x0 in
+  let* dt = dt in
+  return (x := f dt !x; !x)
+
 (** Operations on lists of streams. *)
 module StreamList = struct
   let rec iter f = function
@@ -414,8 +420,11 @@ let sample_and_hold () =
     if b || !r = None then r := Some x;
     return (Option.get !r)
 
-(** Compute a source a lower sampling rate than the master sampling rate. *)
-let downsample freq s =
+(** Resample a source from given sampling rate to master sampling rate. The
+    [mode] parameter controls the resampling method: [`Last] means take the last
+    available value. *)
+let resample ?(mode=`Last) freq s =
+  ignore (mode);
   let r = ref None in
   let on_reset () = r := Some (s (1. /. freq)) in
   let p = periodic ~on_reset () in
