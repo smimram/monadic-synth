@@ -1090,6 +1090,7 @@ let delay () =
     return ans
 
 (** A {{: https://en.wikipedia.org/wiki/Comb_filter} comb filter}. *)
+(* TODO: use a dt-independent formulation for a (decay time). *)
 let comb ?kind () =
   let comb = Sample.comb ?kind () in
   fun delay a x ->
