@@ -12,7 +12,7 @@ type event =
   ]
 
 (** A stream of MIDI events. *)
-type stream = event list Stream.t
+type stream = (event list, Stream.empty) Stream.t
 
 type t =
   {

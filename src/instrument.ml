@@ -7,8 +7,7 @@ open Stream
 type ('sample, 'event) note =
   {
     note : int; (** Note: A4 is 69. *)
-    stream : 'sample stream;
-    event : 'event Event.t;
+    stream : ('sample, 'event) stream;
     mutable released : bool;
     alive : bool ref; (** is the note still playing? *)
   }
@@ -34,7 +33,6 @@ let create add ~event ?portamento (note:_ Note.t) =
   let last_freq = ref None in
   let handler = function
     | `Note_on (n,v) ->
-      let event = Event.create () in
       let alive = ref true in
       let on_die () = alive := false in
       let freq = Note.frequency (float n) in
@@ -57,7 +55,7 @@ let create add ~event ?portamento (note:_ Note.t) =
               ramp ~from:a ~target:b p
           )
       in
-      let note = note ~event ~on_die () in
+      let note = note ~on_die () in
       let stream =
         let* freq = freq in
         note freq v
@@ -66,7 +64,6 @@ let create add ~event ?portamento (note:_ Note.t) =
         {
           note = n;
           stream;
-          event;
           released = false;
           alive;
         }

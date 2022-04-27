@@ -148,7 +148,7 @@ let play ?(samplerate=44100) ?duration s =
   try
     while true do
       for i = 0 to buflen - 1 do
-        let l, r = s dt in
+        let l, r = fst (s dt) in
         buf.(0).(i) <- l;
         buf.(1).(i) <- r
       done;

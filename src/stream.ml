@@ -26,11 +26,14 @@ let default_handler : empty -> unit = function
 let return : 'a -> ('a , 'e) t = fun x _ -> (x, default_handler)
 
 (** Return with a handler. *)
-let return_handler x handler : ('a , _) t = fun _ -> (x, handler)
+let return_handler handler x : ('a , _) t = fun _ -> (x, handler)
 
 (** Bind operation of the stream monad. *)
 let bind : ('a -> ('b , 'e) t) -> ('a, _) t -> ('b, 'e) t =
   fun f x dt -> f (fst (x dt)) dt
+
+let bind_handler : (('a * ('e -> unit)) -> ('b , 'f) t) -> ('a, 'e) t -> ('b, 'f) t =
+  fun f x dt -> f (x dt) dt
 
 (** The stream monad is applicative. *)
 let apply : ('a -> 'b, 'e) t -> ('a, _) t -> ('b, 'e) t =
@@ -66,7 +69,7 @@ let funct : ('a -> 'b) -> ('a, 'e) t -> ('b, 'e) t =
   fun f x -> bind (fun x -> return (f x)) x
 
 (** Functoriality in two arguments of the stream monad. *)
-let funct2 : ('a -> 'b -> 'c) -> ('a,_) t -> ('b,'e) t -> ('c,'e) t =
+let funct2 : ('a -> 'b -> 'c) -> ('a,_) t -> ('b,_) t -> ('c,empty) t =
   fun f x y -> bind2 (fun x y -> return (f x y)) x y
 
 (** Strength of the stream monad. *)
@@ -102,6 +105,9 @@ module Operations = struct
 
   (** Bind. *)
   let ( let* ) x f = bind f x
+
+  (** Bind with handler. *)
+  let ( let** ) x f = bind_handler f x
 
   (** Strength. *)
   let ( and* ) = prod
@@ -176,6 +182,7 @@ module StreamList = struct
       fold_left f (f x0 x) l
 end
 
+(*
 (** Event hubs. On those, handlers can be registered and will be called each
     time a new event is emitted. *)
 module Event = struct
@@ -214,6 +221,7 @@ module Event = struct
     in
     register h f'
 end
+*)
 
 (** {2 Arithmetic} *)
 
@@ -254,7 +262,7 @@ let mix ss =
   return (List.fold_left (+.) 0. ss)
 
 (** Subtract streams. *)
-let sub = funct2 ( -. )
+let sub s t = funct2 ( -. ) s t
 
 (** Clip a stream in the interval [-1., 1.]. *)
 let clip x = return (Math.clip x)
@@ -285,7 +293,7 @@ let integrate ?(kind=`Euler) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
   in
   let return ans =
     if periodic && !y >= 1. then (y := !y -. 1.; on_reset ());
-    return_handler ans handler
+    return_handler handler ans
   in
   match kind with
   | `Euler ->
@@ -436,7 +444,7 @@ let sample_and_hold () =
 let resample ?(mode=`Last) freq s =
   ignore (mode);
   let r = ref None in
-  let on_reset () = r := Some (s (1. /. freq)) in
+  let on_reset () = r := Some (fst (s (1. /. freq))) in
   let p = periodic ~on_reset () in
   let* _ = p freq in
   if !r = None then r := Some (get s);
@@ -629,7 +637,7 @@ end
 
 (** Oscillators. *)
 module Osc = struct
-  let saw () : float -> sample t =
+  let saw () : float -> (sample,_) t =
     let p = periodic ~init:0.5 () in
     fun freq ->
       let* t = p freq in
@@ -641,13 +649,13 @@ module Osc = struct
       let* t = p freq in
       return (Math.Osc.triangle t)
 
-  let sine () : float -> sample t =
+  let sine () : float -> (sample,_) t =
     let p = periodic () in
     fun freq ->
       let* t = p freq in
       return (Math.Osc.sine t)
 
-  let sine_tabulated ?(freq=44100.) () : float -> sample t =
+  let sine_tabulated ?(freq=44100.) () : float -> (sample,_) t =
     let p = periodic () in
     let s = Math.Osc.tabulate Math.Osc.sine freq in
     fun freq ->
@@ -854,21 +862,26 @@ module Envelope = struct
     return (e *. x)
 
   (** ADSR (Attack / Decay / Sustain / Release) envelope. *)
-  let adsr ?(event=Event.create ()) ?(on_die=ignore) () =
+  let adsr ?(on_die=ignore) () =
     let state = ref `Attack in
     let log2 = log 2. in
     let amp = ref 0. in
-    let die () = state := `Dead; on_die (); amp := 0.; return 0. in
+    let set s =
+      (* Printf.printf "new state: %s\n%!" (match s with `Attack -> "a" | `Decay -> "d" | `Sustain -> "s" | `Release -> "r" | `Dead -> "x"); *)
+      state := s
+    in
+    let handler = function
+      | `Release -> set `Release
+      | `Reset -> amp := 0.; set `Attack
+    in
+    let return = return_handler handler in
     let integ amp' =
       let* dt = dt in
       let ans = !amp in
       amp := !amp +. amp' *. dt;
       return ans
     in
-    let set s =
-      (* Printf.printf "new state: %s\n%!" (match s with `Attack -> "a" | `Decay -> "d" | `Sustain -> "s" | `Release -> "r" | `Dead -> "x"); *)
-      state := s
-    in
+    let die () = state := `Dead; on_die (); amp := 0.; return 0. in
     let rec stream ?(a=0.01) ?(d=0.05) ?(s=0.8) ?(r=0.5) ?(sustain=true) ?(release=`Linear) () =
       let* _ = dt in
       match !state with
@@ -888,11 +901,6 @@ module Envelope = struct
       | `Attack ->
         if !amp >= 1. || a <= 0.0001 then (set `Decay; stream ()) else integ (1. /. a)
     in
-    let handler = function
-      | `Release -> set `Release
-      | `Reset -> amp := 0.; set `Attack
-    in
-    Event.register event handler;
     stream
 
   (** Exponential decay with given parameter. *)
@@ -1111,9 +1119,9 @@ let comb ?kind () =
    Schroeder allpass filter}. *)
 let schroeder_allpass () =
   let sa = Sample.schroeder_allpass () in
-  fun delay ->
+  fun delay g x ->
     let* delay = samples delay in
-    sa delay
+    sa delay g x
 
 (** A simple delay with no dry or feedback. *)
 let simple_delay () =
@@ -1166,14 +1174,13 @@ module Slicer = struct
       if y <= width then return x else return 0.
 
   let staccato () =
-    let event = Event.create () in
-    let adsr = adsr ~event () in
+    let adsr = adsr () in
     let lpf = Filter.biquad () `Low_pass in
-    let reset () = Event.emit event `Reset in
     let every = every () in
     fun ?a ?d ?s ?(lp=true) ?(lp_q=1.) ?(lp_freq=10000.) time x ->
+      let** a, emit = adsr ?a ?d ?s () in
+      let reset () = emit `Reset in
       let* () = every time >>= on reset in
-      let* a = adsr ?a ?d ?s () in
       if lp then
         lpf lp_q (lp_freq *. a) (x *. a)
       else
@@ -1274,10 +1281,10 @@ let is_blank duration =
 (** Operations on stereo streams. *)
 module Stereo = struct
   (** A stereo stream. *)
-  type 'a t = ('a * 'a) stream
+  type ('a, 'e) t = ('a * 'a, 'e) stream
 
   (** Create from mono stream. *)
-  let of_mono x : 'a t =
+  let of_mono x : ('a,_) t =
     return (x, x)
 
   (** Blank stereo stream. *)
@@ -1374,7 +1381,7 @@ module Stereo = struct
         sqrt ((1. -. a) *. cos (a *. Float.pi /. 2.)),
         sqrt ((1. -. a) *. sin (a *. Float.pi /. 2.))
     in
-    fun (x : sample) -> (return (l *. x, r *. x) : sample t)
+    fun (x : sample) -> (return (l *. x, r *. x) : (sample,_) t)
 
   (** {{: https://ccrma.stanford.edu/~jos/pasp/Schroeder_Reverberators.html} Schroeder reverberation}. *)
   let schroeder ?(size=`Small) () =
@@ -1551,7 +1558,7 @@ module B = struct
   let cadd x = bind (add x)
 
   (** Add two streams. *)
-  let add = bind2 add
+  let add s t = bind2 add s t
 
   (** Multiply by a constant. *)
   let cmul x = bind (mul x)
@@ -1560,10 +1567,10 @@ module B = struct
   let mulc x y = cmul y x
 
   (** Multiply two streams. *)
-  let mul = bind2 mul
+  let mul s t = bind2 mul s t
 
   (** Multiply by a boolean. *)
-  let bmul = bind2 bmul
+  let bmul b s = bind2 bmul b s
 
-  let mix = bind_list mix
+  let mix l = bind_list mix l
 end

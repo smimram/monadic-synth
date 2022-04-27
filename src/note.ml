@@ -7,7 +7,7 @@ open Stream
     has finished playing (we cannot determine this externally in case there is
     some release), and returns a function which plays a note at given frequency
     and volume. *)
-type ('sample, 'event) t = event:('event Event.t) -> on_die:(unit -> unit) -> unit -> sample -> float -> 'sample stream
+type ('sample, 'event) t = on_die:(unit -> unit) -> unit -> sample -> float -> ('sample, 'event) stream
 
 (** Convert note height into frequency. *)
 let frequency ?(detune=0.) n =
@@ -19,21 +19,21 @@ let duration tempo d =
 
 (** Note from an oscillator. *)
 let simple f : _ t =
-  fun ~event ~on_die () ->
+  fun ~on_die () ->
   let alive = ref true in
   let handler = function
     | `Release -> alive := false; on_die ()
   in
-  Event.register event handler;
   let f = f () in
   fun freq vol ->
-    B.bmul (stream_ref alive) (B.cmul vol (f freq))
+    let* x = B.bmul (stream_ref alive) (B.cmul vol (f freq)) in
+    return_handler handler x
 
 (** Add a detuned note on top of the note. *)
 let detune ?(cents=return 7.) ?(wet=return 0.5) (note : _ t) : _ t =
-  fun ~event ~on_die () ->
-  let n = note ~event ~on_die () in
-  let nd = note ~event ~on_die () in
+  fun ~on_die () ->
+  let n = note ~on_die () in
+  let nd = note ~on_die () in
   fun freq vol ->
     let cents = get cents in
     let wet = get wet in
@@ -44,9 +44,9 @@ let detune ?(cents=return 7.) ?(wet=return 0.5) (note : _ t) : _ t =
 
 (** Add two notes. *)
 let add n1 n2 : _ t =
-  fun ~event ~on_die () ->
-  let n1 = n1 ~dt ~event ~on_die in
-  let n2 = n2 ~dt ~event ~on_die in
+  fun ~on_die () ->
+  let n1 = n1 ~dt ~on_die in
+  let n2 = n2 ~dt ~on_die in
   fun freq vol ->
     add (n1 freq vol) (n2 freq vol)
 
@@ -79,12 +79,12 @@ end
 
 (** Simple note with adsr envelope and volume. *)
 let adsr ?a ?d ?s ?r osc : _ t =
-  fun ~event ~on_die () ->
+  fun ~on_die () ->
   let g = function
     | Some x -> Some (get x)
     | None -> None
   in
-  let env = adsr ~event ~on_die () ?a:(g a) ?d:(g d) ?s:(g s) ?r:(g r) () in
+  let env = adsr ~on_die () ?a:(g a) ?d:(g d) ?s:(g s) ?r:(g r) () in
   let osc = osc () in
   fun freq vol ->
     let s = osc freq in
