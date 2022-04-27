@@ -576,3 +576,8 @@ let () =
 
 - Make a compiler (into, say, C) for our synthesizers, possibly by simply
   changing the monad.
+
+## See also
+
+- [Haslell DSP library](https://hackage.haskell.org/package/dsp)
+- [Haskell synthesizer library](https://hackage.haskell.org/package/synthesizer-core)
