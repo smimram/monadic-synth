@@ -89,24 +89,37 @@ module E = struct
       )
     | Pair (t, u) -> Pair (eval env t, eval env u)
     | Unit -> Unit
+
+  (** Compute the value of an evaluated expression. *)
+  let rec value : type a . a t -> a = function
+    | Float x -> x
+    | Unit -> ()
+    | Var _ -> assert false
+    | Fun _ -> assert false
+    | App _ -> assert false
+    | Seq _ -> assert false
+    | Add _ -> assert false
+    | Pair (t, u) -> (value t, value u)
 end
 
 module Stream = struct
   open E
   
-  (** A stream is an expression encoding a function which takes dt and returns a
-      float. *)
+  (** A stream basically is an expression encoding a function which takes dt and
+      returns a float. *)
   type 'a t = (float -> 'a) E.t
 
-  let return : 'a E.t -> 'a t = fun x -> Fun (None, ("dt", Float), x)
+  let dt = "dt", T.Float
+
+  let value : 'a t -> 'a E.t = fun x -> App (x, Var dt)
+
+  let return : 'a E.t -> 'a t = fun x -> Fun (None, dt, x)
 
   let float x : float t = return (Float x)
 
-  let bind (f : 'a E.t -> 'b t) (x : 'a t) : 'b t =
-    let dt = "dt", T.Float in
-    let x = App (x, Var dt) in
-    let y = f x in
-    Fun (None, dt, App (y, Var dt))
+  let bind (f : 'a E.t -> 'b t) (x : 'a t) : 'b t = Fun (None, dt, App (f (value x), Var dt))
+
+  let prod : 'a t -> 'b t -> ('a * 'b) t = fun x y -> return (E.Pair (value x, value y))
 
   module Operations = struct
     (** Return. *)
@@ -115,8 +128,8 @@ module Stream = struct
     (** Bind. *)
     let ( >>= ) x f = bind f x
 
-    (* (\** Bind with unit result. *\) *)
-    (* let ( >> ) x f = x >>= (fun () -> f) *)
+    (** Bind with unit result. *)
+    let ( >> ) x (f : unit t) = x >>= (fun _ -> f)
 
     (* (\** Functoriality. *\) *)
     (* let ( <$> ) = funct *)
@@ -127,13 +140,11 @@ module Stream = struct
     (** Bind. *)
     let ( let* ) x f = bind f x
 
-    (* (\** Strength. *\) *)
-    (* let ( and* ) = prod *)
-end
+    (** Strength. *)
+    let ( and* ) = prod
+  end
 
   include Operations
 
-  let dt : float t =
-    let dt = "dt", T.Float in
-    Fun (None, dt, Var dt)
+  let dt : float t = Fun (None, dt, Var dt)
 end
