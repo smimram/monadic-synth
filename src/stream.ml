@@ -10,22 +10,33 @@ type sample = float
 (** Type for time differences. *)
 type dt = float
 
-(** The stream monad. *)
-type 'a t = dt -> 'a
+(** The stream monad: ['a] is the returned value and ['e] is the variant of
+    events handled. *)
+type ('a, 'e) t = dt -> 'a * ('e -> unit)
 
 (** Alias for the stream monad. *)
-type 'a stream = 'a t
+type ('a, 'e) stream = ('a, 'e) t
+
+type empty = |
+
+let default_handler : empty -> unit = function
+  | _ -> .
 
 (** Return operation of the stream monad. *)
-let return : 'a -> 'a t = fun x _ -> x
+let return : 'a -> ('a , 'e) t = fun x _ -> (x, default_handler)
+
+(** Return with a handler. *)
+let return_handler x handler : ('a , _) t = fun _ -> (x, handler)
 
 (** Bind operation of the stream monad. *)
-let bind : ('a -> 'b t) -> 'a t -> 'b t =
-  fun f x dt -> f (x dt) dt
+let bind : ('a -> ('b , 'e) t) -> ('a, _) t -> ('b, 'e) t =
+  fun f x dt -> f (fst (x dt)) dt
 
 (** The stream monad is applicative. *)
-let apply : ('a -> 'b) t -> 'a t -> 'b t =
-  fun f x dt -> f dt (x dt)
+let apply : ('a -> 'b, 'e) t -> ('a, _) t -> ('b, 'e) t =
+  fun f x dt ->
+  let f = f dt in
+  fst f (fst (x dt)), snd f
 
 (** Bind two arguments. *)
 let bind2 f x y =
@@ -51,24 +62,24 @@ let rec bind_list f = function
     bind (fun x -> bind_list (f x) l) x
 
 (** Functoriality of the stream monad. *)
-let funct : ('a -> 'b) -> 'a t -> 'b t =
+let funct : ('a -> 'b) -> ('a, 'e) t -> ('b, 'e) t =
   fun f x -> bind (fun x -> return (f x)) x
 
 (** Functoriality in two arguments of the stream monad. *)
-let funct2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t =
+let funct2 : ('a -> 'b -> 'c) -> ('a,_) t -> ('b,'e) t -> ('c,'e) t =
   fun f x y -> bind2 (fun x y -> return (f x y)) x y
 
 (** Strength of the stream monad. *)
-let prod : 'a t -> 'b t -> ('a * 'b) t =
-  fun x y dt -> (x dt, y dt)
+let prod : ('a,_) t -> ('b,_) t -> ('a * 'b, _) t =
+  fun x y dt -> (fst (x dt), fst (y dt)), default_handler
 
 (** Current infinitesimal variation of a stream. *)
-let dt : float t =
-  fun dt -> dt
+let dt : (float,empty) t =
+  fun dt -> dt, default_handler
 
 (** Current value of a stream (this function might be removed in the future). *)
-let get : 'a t -> 'a =
-  fun f -> f 0.
+let get : ('a,_) t -> 'a =
+  fun f -> fst (f 0.)
 
 (** Notations for usual operations of the stream monad. You usually want to open
     this module when dealing with streams. *)
@@ -266,16 +277,15 @@ let samples t =
 (** {2 Time} *)
 
 (** Integrate a stream. *)
-let integrate ?(kind=`Euler) ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
+let integrate ?(kind=`Euler) ?(on_reset=nop) ?(init=0.) ?(periodic=false) () =
   let y = ref init in
   let handler = function
     | `Reset -> y := init; on_reset ()
     | `Set x -> y := x
   in
-  Event.register event handler;
   let return ans =
     if periodic && !y >= 1. then (y := !y -. 1.; on_reset ());
-    return ans
+    return_handler ans handler
   in
   match kind with
   | `Euler ->
@@ -295,8 +305,8 @@ let integrate ?(kind=`Euler) ?(event=Event.create ()) ?(on_reset=nop) ?(init=0.)
       return ans
 
 (** Current time. *)
-let now ?event () : sample t =
-  integrate ?event () 1.
+let now () : (sample,_) t =
+  integrate () 1.
 
 (** Current time for a periodic function. *)
 (* TODO: implement periodic with events *)
