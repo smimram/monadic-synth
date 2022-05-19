@@ -1,8 +1,6 @@
 (** Extensions to standard library. *)
 
-(** Identity function. *)
-let id x = x
-
+(** Don't do anything. *)
 let nop () = ()
 
 (** Round to the nearest integer. *)
@@ -10,13 +8,6 @@ let round x = int_of_float (x +. 0.5)
 
 module List = struct
   include List
-
-  let mapi f l =
-    let rec aux n = function
-      | x::t -> (f n x)::(aux (n+1) t)
-      | [] -> []
-    in
-    aux 0 l
 
   let make n x = init n (fun _ -> x)
 
@@ -59,13 +50,6 @@ module File = struct
       ans := !ans ^ String.sub (Bytes.unsafe_to_string buf) 0 !n
     done;
     !ans
-end
-
-module String = struct
-  include String
-
-  let concat_map s f l =
-    concat s (List.map f l)
 end
 
 module Complex = struct
