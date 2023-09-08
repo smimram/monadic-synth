@@ -4,9 +4,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup OCaml
-      uses: avsm/setup-ocaml@v2
+      uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: 5.0
     - name: Use latest ocaml-alsa
       run: git clone https://github.com/savonet/ocaml-alsa.git && opam pin -y add --no-action ocaml-alsa
     - name: Pin locally
@@ -19,7 +21,7 @@ jobs:
         cd doc
         opam exec make
     - name: Deploy doc
-      uses: JamesIves/github-pages-deploy-action@4.1.6
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
         branch: gh-pages
         folder: doc
