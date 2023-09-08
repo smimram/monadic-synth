@@ -1,6 +1,6 @@
 open Msynth
 open Stream
 
-let () =
-  let s = sine () 440. >>= amp 0.2 in
-  Output.play (s >>= stereo)
+let s = Stream.sine () 440. >>= Stereo.of_mono
+
+let () = Output.play s
