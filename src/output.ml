@@ -25,7 +25,7 @@ class pulseaudio ?(channels=2) samplerate =
 class alsa ?(channels=2) samplerate =
   let open Alsa in
   let dev, period_size =
-    let buflen = 1024 in
+    let buflen = 2048 in
     let periods = 4 in
     let dev = Pcm.open_pcm "default" [Pcm.Playback] [] in
     let params = Pcm.get_params dev in
