@@ -494,27 +494,27 @@ You can also hear some demo songs, guaranteed 100% sample-free! Don't forget to 
   oscillators, whose frequency is initially between 200 and 400 Hz, and slowly
   evolve to the same note at various octaves.
 
-  https://user-images.githubusercontent.com/2012073/144747066-56e3ba12-9078-4bcf-aa85-4723f77f9546.mp4
+  https://github.com/smimram/monadic-synth/assets/2012073/31d8450b-03e8-48d1-9774-b6030c7f4b8d
 
 - [FM arpeggiator](https://github.com/smimram/monadic-synth/blob/master/examples/fm_arpeggiator.ml)
 
-  https://user-images.githubusercontent.com/2012073/144207772-cb14315a-2e9a-45df-ba9e-4a5ba0674d2a.mp4
+  https://github.com/smimram/monadic-synth/assets/2012073/72ca834b-bd7b-42a5-9391-ce9684ca4866
 
 - [Song 0](https://github.com/smimram/monadic-synth/blob/master/examples/song0.ml)
 
-  https://user-images.githubusercontent.com/2012073/144208136-1d71816d-a8ee-4128-b4d5-af722319a834.mp4
+  https://github.com/smimram/monadic-synth/assets/2012073/8b48c1f6-20ed-44fa-9a70-76668ceaeb70
 
 - [Song 1](https://github.com/smimram/monadic-synth/blob/master/examples/song1.ml)
 
-  https://user-images.githubusercontent.com/2012073/144208263-0fa5967d-9f83-45e9-81a6-b3d0667a10be.mp4
+  https://github.com/smimram/monadic-synth/assets/2012073/ff157491-a41e-41d6-a8b7-0145f7432b4b
 
 - [Song 2](https://github.com/smimram/monadic-synth/blob/master/examples/song2.ml)
 
-  https://user-images.githubusercontent.com/2012073/144208347-e920c297-453e-41d0-a60d-ec9380f308a7.mp4
+  https://github.com/smimram/monadic-synth/assets/2012073/bffd4660-7349-4cde-9e74-dd9ccc4f19ca
 
 - [Trance](https://github.com/smimram/monadic-synth/blob/master/examples/trance.ml)
 
-  https://user-images.githubusercontent.com/2012073/144208467-14143f0b-9d67-4db5-bc06-d0712a96cfa9.mp4
+  https://github.com/smimram/monadic-synth/assets/2012073/e67b7425-ec7d-4d98-ab13-3f509d4ca638
 
 # Advanced topics
 
