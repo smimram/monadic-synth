@@ -28,8 +28,8 @@ let s =
   let melody = Pattern.append melody [0.,4.,`Nop] in
   let melody = Instrument.play (note ~detune:false ~r:0.3 saw) (Pattern.stream ~loop:true tempo melody) in
   let melody = bind2 (Filter.first_order () `Low_pass) (B.add (cst 600.) (B.cmul 300. (sine () 10.))) melody in
-  let melody = B.mul melody (OSC.float "/1/fader2" 1.) in
-  let melody = bind3 (Filter.biquad () `Low_pass) (OSC.float "/1/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/1/fader4" ~max:10000. 10000.) melody in
+  let melody = B.mul melody (OSC.float "/oscControl/fader2" 1.) in
+  let melody = bind3 (Filter.biquad () `Low_pass) (OSC.float "/oscControl/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/oscControl/fader4" ~max:10000. 10000.) melody in
   let melody = melody >>= Stereo.of_mono in
   let melody = melody >>= Stereo.dephase () 0.01 in
   let vs = 0.7 in
@@ -37,9 +37,9 @@ let s =
   let synth2 = Pattern.repeat 16 [0., 0.25, `Chord ([64;69;72],vs); 0.25, 0.25, `Nop] in
   let synth = Pattern.append synth1 synth2 in
   let synth = Instrument.play (note karplus_strong) (Pattern.stream ~loop:true tempo synth) in
-  (* (\* let disto = add (cst (-1.)) (cmul 2. (OSC.float "/1/fader4" 0.5)) in *\) *)
+  (* (\* let disto = add (cst (-1.)) (cmul 2. (OSC.float "/oscControl/fader4" 0.5)) in *\) *)
   (* (\* let synth = bind2 disto synth (distortion ~dt) in *\) *)
-  let synth = B.mul (OSC.float "/1/fader1" 0.5) synth in
+  let synth = B.mul (OSC.float "/oscControl/fader1" 0.5) synth in
   let synth = synth >>= flanger () ~wet:0.8 0.001 (Note.duration tempo 1.) in
   let vb = 1.1 in
   let bass = [0.,16.,`Nop;0.,3.,`Note (41, vb);4.,3.,`Note (38, vb);8.,3.,`Note (45, vb);12.,3.,`Note (45, vb)] in
@@ -53,7 +53,7 @@ let s =
   (* (\* let s = s >>= slicer ~dt 0.01 in *\) *)
   let s = s >>= Stereo.of_mono in
   (* (\* let deph = let deph = Stereo.dephase ~dt 0.1 in fun d x -> deph ~delay:d x in *\) *)
-  (* (\* let s = bind2 (sub (cmul 0.1 (OSC.float "/1/fader5" 0.51)) (cst 0.05)) s deph in *\) *)
+  (* (\* let s = bind2 (sub (cmul 0.1 (OSC.float "/oscControl/fader5" 0.51)) (cst 0.05)) s deph in *\) *)
   let s = Stereo.add s (bass >>= Stereo.of_mono >>= Stereo.dephase () (-0.02)) in
   let s = Stereo.add s (snare >>= Stereo.of_mono >>= Stereo.dephase () (-0.01)) in
   let s = Stereo.add s (kick >>= Stereo.of_mono) in
