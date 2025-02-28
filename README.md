@@ -579,5 +579,5 @@ let () =
 
 ## See also
 
-- [Haslell DSP library](https://hackage.haskell.org/package/dsp)
+- [Haskell DSP library](https://hackage.haskell.org/package/dsp)
 - [Haskell synthesizer library](https://hackage.haskell.org/package/synthesizer-core)
