@@ -6,22 +6,30 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup OCaml
-      uses: ocaml/setup-ocaml@v2
-      with:
-        ocaml-compiler: 5.0
-    - name: Use latest ocaml-alsa
-      run: git clone https://github.com/savonet/ocaml-alsa.git && opam pin -y add --no-action ocaml-alsa
-    - name: Pin locally
-      run: opam pin -y add -n .
-    - name: Install locally
-      run: opam install -y odoc msynth
+      run: sudo apt-get -y install ocaml libalsa-ocaml-dev liblo-ocaml-dev libgraphics-ocaml-dev
+    - name: Build
+      run: make
     - name: Build doc
       run: |
-        sudo apt-get install pandoc
+        sudo apt-get -y install ocaml-odoc pandoc
         cd doc
-        opam exec make
-    - name: Deploy doc
-      uses: JamesIves/github-pages-deploy-action@v4
+        make
+    - name: Upload website artifact
+      uses: actions/upload-pages-artifact@v3
       with:
-        branch: gh-pages
-        folder: doc
+        path: doc
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4
