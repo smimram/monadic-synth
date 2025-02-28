@@ -6,7 +6,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup OCaml
-      run: sudo apt-get -y install ocaml ocaml-dune libalsa-ocaml-dev liblo-ocaml-dev libgraphics-ocaml-dev
+      run: sudo apt-get -y install ocaml ocaml-dune libalsa-ocaml-dev liblo-ocaml-dev libgraphics-ocaml-dev libx11-dev
     - name: Build
       run: make
     - name: Build doc
