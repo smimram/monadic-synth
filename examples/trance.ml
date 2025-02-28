@@ -30,7 +30,7 @@ let s =
   let bass = Pattern.transpose (-24) bass in
   let bass = Instrument.play bass_note (Pattern.stream ~loop:true tempo bass) in
   let bass = B.cmul 0.08 bass in
-  (* let bass = bind3 (Filter.biquad ~dt `Low_pass) (OSC.float "/1/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/1/fader4" ~min:1. ~max:5000. 5000.) bass in *)
+  (* let bass = bind3 (Filter.biquad ~dt `Low_pass) (OSC.float "/oscControl/fader3" ~min:0.1 ~max:20. 0.5) (OSC.float "/oscControl/fader4" ~min:1. ~max:5000. 5000.) bass in *)
   (* let bass = bass >>= stereo >>= Stereo.dephase ~dt 0.01 in *)
   let bass = bass >>= Stereo.schroeder2 () in
   let bass = let d = Note.duration tempo 0.5 in bass >>= Stereo.delay () d ~feedback:0.1 ~ping_pong:d in
@@ -47,11 +47,11 @@ let s =
     (* let fv = Stereo.freeverb () in *)
     (* bind6 *)
       (* (fun roomsize damp width wet dry -> fv ~roomsize ~damp ~width ~dry ~wet) *)
-      (* (OSC.float "/1/fader1" 0.5) *)
-      (* (OSC.float "/1/fader2" ~min:1. ~max:0. 0.5) *)
-      (* (OSC.float "/1/fader3" 1.) *)
-      (* (OSC.float "/1/fader4" 0.3) *)
-      (* (OSC.float "/1/fader5" 0.3) *)
+      (* (OSC.float "/oscControl/fader1" 0.5) *)
+      (* (OSC.float "/oscControl/fader2" ~min:1. ~max:0. 0.5) *)
+      (* (OSC.float "/oscControl/fader3" 1.) *)
+      (* (OSC.float "/oscControl/fader4" 0.3) *)
+      (* (OSC.float "/oscControl/fader5" 0.3) *)
       (* drums *)
   (* in *)
   let s = Stereo.mix [bass;drums;pad] >>= Stereo.amp 0.3 in
@@ -59,5 +59,5 @@ let s =
   (* s >>= Visu.Stereo.bands ~dt ~amp:5. () *)
 
 let () =
-  OSC.server 8000;
+  OSC.server 10000;
   Output.play s
