@@ -9,7 +9,7 @@ jobs:
       run: sudo apt-get -y install ocaml ocaml-dune libalsa-ocaml-dev libgraphics-ocaml-dev libx11-dev
     - name: Install OSC
       run: |
-        sudo apt-get -y install libounit-ocaml-dev
+        sudo apt-get -y install libounit-ocaml-dev libocplib-endian-ocaml-dev liblwt-ocaml-dev
         git clone https://github.com/johnelse/ocaml-osc.git
         cd ocaml-osc
         dune build
