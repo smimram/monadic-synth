@@ -1,5 +1,5 @@
-(lang dune 2.8)
-(version 0.1.0)
+(lang dune 3.0)
+(version 0.1.2)
 (name msynth)
 (source (github smimram/ocaml-msynth))
 (license LGPL-2.1)
@@ -12,7 +12,7 @@
   (synopsis "A monadic audio synthesizer")
   (depends
     (alsa (>= 0.3.0))
-    lo
+    osc-unix
     graphics
   )
 )

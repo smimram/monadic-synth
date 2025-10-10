@@ -1,3 +1,8 @@
+0.1.2 (unreleased)
+=====
+
+- Switch to osc instead of lo.
+
 0.1.1 (2021-01-01)
 =====
 
