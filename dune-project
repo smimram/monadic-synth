@@ -14,5 +14,6 @@
     (alsa (>= 0.3.0))
     osc-unix
     graphics
+    re
   )
 )

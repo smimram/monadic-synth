@@ -2,6 +2,7 @@
 =====
 
 - Switch to osc instead of lo.
+- Switch to re instead of str.
 
 0.1.1 (2021-01-01)
 =====

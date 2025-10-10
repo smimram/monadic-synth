@@ -125,6 +125,7 @@ let midi_drums ?loop bpm (p:'a t) =
   Stream.timed ?loop events
 
 let load_drums fname : 'a t =
+  let open Re in
   let lines = Str.split (Str.regexp "\n") (File.to_string fname) in
   let ans = ref [] in
   let add t d e = ans := (t,d,e) :: !ans in

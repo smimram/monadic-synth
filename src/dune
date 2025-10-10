@@ -2,5 +2,5 @@
  (name msynth)
  (public_name msynth)
  (synopsis "A monadic audio synthesizer")
- (libraries threads str alsa osc osc-unix graphics)
+ (libraries threads re alsa osc osc-unix graphics)
 )

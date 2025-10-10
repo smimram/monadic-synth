@@ -10,8 +10,9 @@ bug-reports: "https://github.com/smimram/ocaml-msynth/issues"
 depends: [
   "dune" {>= "3.0"}
   "alsa" {>= "0.3.0"}
-  "osc"
+  "osc-unix"
   "graphics"
+  "re"
   "odoc" {with-doc}
 ]
 build: [
