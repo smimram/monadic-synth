@@ -3,6 +3,7 @@
 
 - Switch to osc instead of lo.
 - Switch to re instead of str.
+- Add pink noise generator.
 
 0.1.1 (2021-01-01)
 =====

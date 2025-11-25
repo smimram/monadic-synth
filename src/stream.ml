@@ -400,6 +400,14 @@ let every () =
   let f = frequently () in
   fun time -> f (1. /. time)
 
+(** Alternate between false and true at given frequency. *)
+let alternately () =
+  let p = periodic () in
+  fun freq ->
+  let* t = p freq in
+  return (t >= 0.5)
+  
+
 (** Whether this is the first sample of the stream. *)
 let is_first () =
   let first = ref true in
@@ -651,7 +659,31 @@ module Osc = struct
       let t = Math.Osc.width width t in
       return (Math.Osc.square t)
 
-  let noise () = seq (fun () -> Random.float ~min:(-1.) 1.)
+  let noise () = seq (fun () -> Math.Osc.noise ())
+
+  (** Pink noise. Generated using the Voss-McCartney algorithm. *)
+  (* See https://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney *)
+  let pink_noise ?(bits=8) () =
+    let osc = Array.init bits (fun _ -> Math.Osc.noise ()) in
+    let n = ref 0 in
+    seq
+      (fun () ->
+        incr n;
+        (* Number of trailing zeroes of n. *)
+        let k =
+          let n = ref !n in
+          let k = ref 0 in
+          while !n mod 2 = 0 && !k < bits - 1 do
+            n := !n lsr 1
+          done;
+          !k
+        in
+        osc.(k) <- Math.Osc.noise ();
+        let ans = ref (Math.Osc.noise ()) in
+        for i = 0 to bits - 1 do
+          ans := !ans +. osc.(i)
+        done;
+        !ans /. 2.)
 
   (** Generic oscillator. *)
   let osc () =

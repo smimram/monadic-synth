@@ -87,3 +87,8 @@
  (name r2d2)
  (modules r2d2)
  (libraries msynth))
+
+(executable
+ (name noise)
+ (modules noise)
+ (libraries msynth))
