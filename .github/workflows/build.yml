@@ -13,7 +13,7 @@ jobs:
         git clone https://github.com/johnelse/ocaml-osc.git
         cd ocaml-osc
         sed -i "s/Result.result/Result.t/" src/lwt/osc_lwt.mli
-        dune build
+        dune build @install
         sudo dune install
     - name: Build
       run: make
