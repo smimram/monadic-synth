@@ -8,7 +8,7 @@ license: "LGPL-2.1"
 homepage: "https://github.com/smimram/ocaml-msynth"
 bug-reports: "https://github.com/smimram/ocaml-msynth/issues"
 depends: [
-  "dune" {>= "3.0"}
+  "dune" {>= "3.14"}
   "alsa" {>= "0.3.0"}
   "osc-unix"
   "graphics"
