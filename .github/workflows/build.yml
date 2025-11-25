@@ -16,7 +16,7 @@ jobs:
         sed -i "s/2.9/3.14/" dune-project
         sed -i "s/Result.result/Result.t/" src/lwt/osc_lwt.mli
         dune build @install
-        sudo dune install --prefix=/usr --verbose
+        sudo dune install --prefix=/usr --libdir=`ocamlc -where` --verbose
     - name: Build
       run: make
     - name: Build doc
