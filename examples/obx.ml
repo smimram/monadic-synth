@@ -5,32 +5,32 @@ open Extlib
 open Stream
 
 let synth
-    ?(master_volume=cst 1.)
-    ?(detune=cst 0.1) (* detuning in semitone *)
-    ?(unison=cst 1) (* number of unison channels *)
-    ?(stereo_amount=cst 0.5)
-    ?(stereo_mode=cst `Spread)
-    ?(lfo_form=cst `Sine)
-    ?(lfo_rate=cst 2.)
-    ?(lfo_pwm1=cst 0.5)
-    ?(lfo_pwm2=cst 0.5)
-    ?(osc1_shape=cst `Saw)
-    ?(osc2_shape=cst `Square)
-    ?(osc2_volume=cst 1.)
-    ?(osc2_detune=cst 1.01)
-    ?(sub_volume=cst 0.5)
-    ?(noise_volume=cst 0.5)
-    ?(a=cst 0.01) ?(d=cst 0.05) ?(s=cst 0.8) ?(r=cst 0.1)
-    ?(lp_q=cst 1.)
-    ?(lp_f=cst 5000.)
-    ?(lp_a=cst 0.1)
-    ?(lp_d=cst 10.)
-    ?(lp_s=cst 0.1)
-    ?(lp_r=cst 0.1)
-    ?(lp_4pole=cst true)
-    ?(portamento=cst 0.)
-    ?(pitch_bend=cst 0.)
-    e
+      ?(master_volume=cst 1.)
+      ?(detune=cst 0.1) (* detuning in semitone *)
+      ?(unison=cst 1) (* number of unison channels *)
+      ?(stereo_amount=cst 0.5)
+      ?(stereo_mode=cst `Spread)
+      ?(lfo_form=cst `Sine)
+      ?(lfo_rate=cst 2.)
+      ?(lfo_pwm1=cst 0.5)
+      ?(lfo_pwm2=cst 0.5)
+      ?(osc1_shape=cst `Saw)
+      ?(osc2_shape=cst `Square)
+      ?(osc2_volume=cst 1.)
+      ?(osc2_detune=cst 1.01)
+      ?(sub_volume=cst 0.5)
+      ?(noise_volume=cst 0.5)
+      ?(a=cst 0.01) ?(d=cst 0.05) ?(s=cst 0.8) ?(r=cst 0.1)
+      ?(lp_q=cst 1.)
+      ?(lp_f=cst 5000.)
+      ?(lp_a=cst 0.1)
+      ?(lp_d=cst 10.)
+      ?(lp_s=cst 0.1)
+      ?(lp_r=cst 0.1)
+      ?(lp_4pole=cst true)
+      ?(portamento=cst 0.)
+      ?(pitch_bend=cst 0.)
+      e
   =
   let lfo = bind2 (osc ()) lfo_form lfo_rate in
   let lfo_, lfo = dup () lfo in
@@ -50,28 +50,28 @@ let synth
       let osc1 = osc () in
       let osc2 = osc () in
       fun freq ->
-        let* s1 = osc1_shape in
-        let* s2 = osc2_shape in
-        let* lfo = lfo in
-        let* lfo_pwm1 = lfo_pwm1 in
-        let* lfo_pwm2 = lfo_pwm2 in
-        let* detune2 = osc2_detune in
-        let* x1 = osc1 ~width:((1. +. lfo *. lfo_pwm1) /. 2.) s1 freq in
-        let  o2 = osc2 ~width:((1. +. lfo *. lfo_pwm2) /. 2.) s2 (freq *. detune2) in
-        let* v2 = osc2_volume in
-        let* x2 = scmul v2 o2 in
-        return (x1 +. x2)
+      let* s1 = osc1_shape in
+      let* s2 = osc2_shape in
+      let* lfo = lfo in
+      let* lfo_pwm1 = lfo_pwm1 in
+      let* lfo_pwm2 = lfo_pwm2 in
+      let* detune2 = osc2_detune in
+      let* x1 = osc1 ~width:((1. +. lfo *. lfo_pwm1) /. 2.) s1 freq in
+      let  o2 = osc2 ~width:((1. +. lfo *. lfo_pwm2) /. 2.) s2 (freq *. detune2) in
+      let* v2 = osc2_volume in
+      let* x2 = scmul v2 o2 in
+      return (x1 +. x2)
     in
     let osc =
       List.init
         (if stereo_mode = `Spread then 2 * unison else unison)
         (fun i ->
-           osc (),
-           tuning (),
-           match stereo_mode with
-           | `Mono -> 0.
-           | `Spread -> if i < unison then -.stereo_amount else stereo_amount
-           | `Pan -> Random.float ~min:(-.stereo_amount) stereo_amount
+          osc (),
+          tuning (),
+          match stereo_mode with
+          | `Mono -> 0.
+          | `Spread -> if i < unison then -.stereo_amount else stereo_amount
+          | `Pan -> Random.float ~min:(-.stereo_amount) stereo_amount
         )
     in
     let lp_adsr = adsr ~event () ~a:(get lp_a) ~d:(get lp_d) ~s:(get lp_s) ~r:(get lp_r) in
@@ -86,19 +86,19 @@ let synth
       fun freq -> osc (freq /. 2.) >>= smulc sub_volume >>= stereo
     in
     fun freq vol ->
-      (* Pitch bend *)
-      let* pitch_bend = pitch_bend in
-      let freq = freq *. (2. ** (pitch_bend /. 12.)) in
-      (* Low pass filter *)
-      let* lp_q = lp_q in
-      let* lp_f = lp_f in
-      let* lp_adsr = lp_adsr () in
-      let lpl = lpl lp_q (lp_f *. lp_adsr *. stereo_coeff_l) in
-      let lpr = lpr lp_q (lp_f *. lp_adsr *. stereo_coeff_r) in
-      let l = List.map (fun (osc,d,p) -> osc (freq *. d) >>= Stereo.pan p) osc in
-      let l = noise::(sub freq)::l in
-      let* a = adsr () in
-      Stereo.mix l >>= Stereo.map lpl lpr >>= Stereo.amp (a *. vol)
+    (* Pitch bend *)
+    let* pitch_bend = pitch_bend in
+    let freq = freq *. (2. ** (pitch_bend /. 12.)) in
+    (* Low pass filter *)
+    let* lp_q = lp_q in
+    let* lp_f = lp_f in
+    let* lp_adsr = lp_adsr () in
+    let lpl = lpl lp_q (lp_f *. lp_adsr *. stereo_coeff_l) in
+    let lpr = lpr lp_q (lp_f *. lp_adsr *. stereo_coeff_r) in
+    let l = List.map (fun (osc,d,p) -> osc (freq *. d) >>= Stereo.pan p) osc in
+    let l = noise::(sub freq)::l in
+    let* a = adsr () in
+    Stereo.mix l >>= Stereo.map lpl lpr >>= Stereo.amp (a *. vol)
   in
   (* let reverb = Stereo.freeverb () in *)
   let s = Instrument.play_stereo ~portamento note e in
@@ -107,7 +107,7 @@ let synth
   lfo_
   >> s
   >>= Stereo.amp (0.1 *. vol /. float unison)
-  (* >>= reverb *)
+(* >>= reverb *)
 
 let () =
   let midi = MIDI.create ~print:true () in
@@ -116,11 +116,11 @@ let () =
     let t = shift in
     MIDI.map midi
       (fun c e ->
-         match e with
-         | `Controller (n, v) ->
+        match e with
+        | `Controller (n, v) ->
            let n = if get t then n + 8 else n in
            c, `Controller (n, v)
-         | e -> c, e
+        | e -> c, e
       )
   in
   let knob n ?mode ?min ?max default = MIDI.controller midi n ?mode ?min ?max default in
@@ -176,15 +176,16 @@ let () =
   in
   let s = board >> s in
   (* LED animation *)
-  let _ = Thread.create
+  let _ =
+    Thread.create
       (fun () ->
-         for n = 0 to 16 do
-           Unix.sleepf 0.04;
-           MIDI.send midi 0 (`Note_on (n, 1.));
-         done;
-         for n = 0 to 16 do
-           Unix.sleepf 0.04;
-           MIDI.send midi 0 (`Note_on (n, 0.));
-         done) ()
+        for n = 0 to 16 do
+          Unix.sleepf 0.04;
+          MIDI.send midi 0 (`Note_on (n, 1.));
+        done;
+        for n = 0 to 16 do
+          Unix.sleepf 0.04;
+          MIDI.send midi 0 (`Note_on (n, 0.));
+        done) ()
   in
   Output.play s
