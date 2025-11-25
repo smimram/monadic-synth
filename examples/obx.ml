@@ -1,4 +1,4 @@
-(* Trying to recreate Oberheim OB-Xa. *)
+(** Trying to recreate Oberheim OB-Xa. *)
 
 open Msynth
 open Extlib
@@ -30,6 +30,8 @@ let synth
       ?(lp_4pole=cst true)
       ?(portamento=cst 0.)
       ?(pitch_bend=cst 0.)
+      ?(reverb=cst 0.5)
+      ?(room_size=cst 1.)
       e
   =
   let lfo = bind2 (osc ()) lfo_form lfo_rate in
@@ -100,14 +102,17 @@ let synth
     let* a = adsr () in
     Stereo.mix l >>= Stereo.map lpl lpr >>= Stereo.amp (a *. vol)
   in
-  (* let reverb = Stereo.freeverb () in *)
+  let reverb_wet = reverb in
+  let reverb = Stereo.freeverb () in
   let s = Instrument.play_stereo ~portamento note e in
+  let* reverb_wet = reverb_wet in
   let* unison = unison in
   let* vol = master_volume in
+  let* room_size = room_size in
   lfo_
   >> s
   >>= Stereo.amp (0.1 *. vol /. float unison)
-(* >>= reverb *)
+  >>= reverb ~room_size ~wet:reverb_wet ~dry:(1.-.reverb_wet)
 
 let () =
   let midi = MIDI.create ~print:true () in
@@ -141,8 +146,11 @@ let () =
   let lp_d = knob 13 0.01 >>= print "lpd" in
   let lp_s = knob 14 0.8 >>= print "lps" in
   let lp_r = knob 15 ~max:4. 0.1 >>= print "lpr" in
+  let master_volume = knob 16 0.8 >>= print "volume" in
+  let reverb = knob 17 0.5 >>= print "reverb" in
+  let room_size = knob 18 0.8 >>= print "room size" in
   let pitch_bend = MIDI.pitch_bend midi () in
-  let s = synth ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r ~pitch_bend (MIDI.events midi) in
+  let s = synth ~master_volume ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r ~pitch_bend ~reverb ~room_size (MIDI.events midi) in
   (* Board. *)
   let board =
     Board.create
@@ -171,6 +179,11 @@ let () =
           "lp d",`Knob(0.,1.,`Linear,lp_d);
           "lp s",`Knob(0.,1.,`Linear,lp_s);
           "lp r",`Knob(0.,4.,`Linear,lp_r);
+        ];
+        [
+          "vol",`Knob(0.,1.,`Linear,master_volume);
+          "reverb",`Knob(0.,1.,`Linear,reverb);
+          "room sz",`Knob(0.,1.,`Linear,room_size);
         ]
       ]
   in

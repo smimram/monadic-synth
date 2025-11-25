@@ -70,8 +70,7 @@ let dt : float t =
 let get : 'a t -> 'a =
   fun f -> f 0.
 
-(** Notations for usual operations of the stream monad. You usually want to open
-    this module when dealing with streams. *)
+(** Notations for usual operations of the stream monad. You usually want to open this module when dealing with streams. *)
 (* Nice explanation of monadic syntax at https://jobjo.github.io/2019/04/24/ocaml-has-some-new-shiny-syntax.html *)
 module Operations = struct
   (** Return. *)
@@ -122,8 +121,7 @@ let prev (x0:'a) =
     prev := x;
     return ans
 
-(** Set the first values of a stream. This is useful to allocate the buffers in
-    operators which have some. *)
+(** Set the first values of a stream. This is useful to allocate the buffers in operators which have some. *)
 let initialize l =
   let l = ref l in
   fun x ->
@@ -131,10 +129,7 @@ let initialize l =
     | [] -> return x
     | x::l' -> l := l'; return x
 
-(** Stream duplication. Once the left part has been evaluated, the right part
-    can be used as many times as wanted. This has to be used if you need to use a
-    stream more than once, in order to avoid each copy asking for a different
-    sample. *)
+(** Stream duplication. Once the left part has been evaluated, the right part can be used as many times as wanted. This has to be used if you need to use a stream more than once, in order to avoid each copy asking for a different sample. *)
 let dup () =
   let x = ref None in
   fun s ->
@@ -165,8 +160,7 @@ module StreamList = struct
       fold_left f (f x0 x) l
 end
 
-(** Event hubs. On those, handlers can be registered and will be called each
-    time a new event is emitted. *)
+(** Event hubs. On those, handlers can be registered and will be called each time a new event is emitted. *)
 module Event = struct
   (** An event hub. *)
   type 'a t = ('a -> unit) list ref
@@ -216,8 +210,7 @@ let blank = cst 0.
 let bmul b x =
   if b then return x else return 0.
 
-(** Switched multiplication by a constant: if the first is 0, the second stream
-    is not evaluated. *)
+(** Switched multiplication by a constant: if the first is 0, the second stream is not evaluated. *)
 let scmul x s =
   if x = 0. then return 0.
   else
@@ -303,8 +296,7 @@ let now ?event () : sample t =
 let periodic ?(init=0.) ?on_reset () =
   integrate ~periodic:true ~init ?on_reset ()
 
-(** Create a stream from timed events, supposed to be sorted. If tempo is
-    not specified, time is assumed in seconds (otherwise, in notes). *)
+(** Create a stream from timed events, supposed to be sorted. If tempo is not specified, time is assumed in seconds (otherwise, in notes). *)
 let timed ?tempo ?(loop=false) l =
   let l =
     match tempo with
@@ -428,9 +420,7 @@ let sample_and_hold () =
     if b || !r = None then r := Some x;
     return (Option.get !r)
 
-(** Resample a source from given sampling rate to master sampling rate. The
-    [mode] parameter controls the resampling method: [`Last] means take the last
-    available value. *)
+(** Resample a source from given sampling rate to master sampling rate. The [mode] parameter controls the resampling method: [`Last] means take the last available value. *)
 let resample ?(mode=`Last) freq s =
   ignore (mode);
   let r = ref None in
@@ -544,9 +534,7 @@ module Sample = struct
       let x = Ringbuffer.past r delay in
       return x
 
-  (** A fixed delay which inputs the sample at t-delay, passes it to a function,
-      and writes the result. Useful for implementing the recursive part of
-      filters. *)
+  (** A fixed delay which inputs the sample at t-delay, passes it to a function, and writes the result. Useful for implementing the recursive part of filters. *)
   let rec_delay () =
     let r = Ringbuffer.create () in
     fun delay f ->
@@ -956,8 +944,7 @@ end
 
 let adsr = Envelope.adsr
 
-(** Smoothen the stream. This is useful to avoid big jumps in controllers. The
-    parmeter is roughly the time taken to reach the desired value. *)
+(** Smoothen the stream. This is useful to avoid big jumps in controllers. The parmeter is roughly the time taken to reach the desired value. *)
 let smooth ?(init=0.) ?(kind=`Exponential) () =
   let x = ref init in
   match kind with
@@ -1377,10 +1364,7 @@ module Stereo = struct
         let* y = delay_r dr y in
         return (x, y)
 
-  (** Pan the sound according to a number between -1 (full left) and 1 (full
-     right). Various {{:
-     http://www.cs.cmu.edu/~music/icm-online/readings/panlaws/} pan laws} can be
-     used. *)
+  (** Pan the sound according to a number between -1 (full left) and 1 (full right). Various {{: http://www.cs.cmu.edu/~music/icm-online/readings/panlaws/} pan laws} can be used. *)
   let pan ?(law=`Circular) =
     fun a ->
     let a = (a +. 1.) /. 2. in
@@ -1527,9 +1511,9 @@ module Stereo = struct
     let apr = List.map ap apr in
     let apl = List.compose (List.map bind apl) in
     let apr = List.compose (List.map bind apr) in
-    fun  ?(roomsize=0.5) ?(damp=0.5) ?(width=1.) ?(wet=1./.3.) ?(dry=0.) ->
+    fun ?(room_size=0.5) ?(damp=0.5) ?(width=1.) ?(wet=1./.3.) ?(dry=0.) ->
       (* Update parameters. *)
-      let roomsize = roomsize *. room_scale +. room_offset in
+      let room_size = room_size *. room_scale +. room_offset in
       let damp = damp *. damp_scale in
       let wet = wet *. wet_scale in
       let dry = dry *. dry_scale in
@@ -1537,7 +1521,7 @@ module Stereo = struct
       let wet2 = wet *. ((1. -. width) /. 2.) in
       damp1 := damp;
       damp2 := 1. -. damp;
-      comb_feedback := roomsize;
+      comb_feedback := room_size;
       fun (x,y) ->
         (* Apply filters. *)
         let i = (x +. y) *. gain in
