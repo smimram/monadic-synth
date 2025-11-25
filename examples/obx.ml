@@ -31,7 +31,9 @@ let synth
       ?(portamento=cst 0.)
       ?(pitch_bend=cst 0.)
       ?(reverb=cst 0.5)
-      ?(room_size=cst 1.)
+      ?(reverb_size=cst 1.)
+      ?(delay_feedback=cst 0.)
+      ?(delay_length=cst 0.5)
       e
   =
   let lfo = bind2 (osc ()) lfo_form lfo_rate in
@@ -102,16 +104,20 @@ let synth
     let* a = adsr () in
     Stereo.mix l >>= Stereo.map lpl lpr >>= Stereo.amp (a *. vol)
   in
+  let delay = Stereo.delay () in
   let reverb_wet = reverb in
   let reverb = Stereo.freeverb () in
   let s = Instrument.play_stereo ~portamento note e in
+  let* delay_length = delay_length in
+  let* delay_feedback = delay_feedback in
   let* reverb_wet = reverb_wet in
   let* unison = unison in
   let* vol = master_volume in
-  let* room_size = room_size in
+  let* room_size = reverb_size in
   lfo_
   >> s
   >>= Stereo.amp (0.1 *. vol /. float unison)
+  >>= delay ~feedback:delay_feedback delay_length
   >>= reverb ~room_size ~wet:reverb_wet ~dry:(1.-.reverb_wet)
 
 let () =
@@ -147,10 +153,12 @@ let () =
   let lp_s = knob 14 0.8 >>= print "lps" in
   let lp_r = knob 15 ~max:4. 0.1 >>= print "lpr" in
   let master_volume = knob 16 0.8 >>= print "volume" in
-  let reverb = knob 17 0.5 >>= print "reverb" in
-  let room_size = knob 18 0.8 >>= print "room size" in
+  let reverb = knob 17 0.2 >>= print "reverb" in
+  let reverb_size = knob 18 0.8 >>= print "room size" in
+  let delay_feedback = knob 20 0. >>= print "delay feedback" in
+  let delay_length = knob 21 0.5 ~max:2. >>= print "delay length" in
   let pitch_bend = MIDI.pitch_bend midi () in
-  let s = synth ~master_volume ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r ~pitch_bend ~reverb ~room_size (MIDI.events midi) in
+  let s = synth ~master_volume ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r ~pitch_bend ~reverb ~reverb_size ~delay_feedback ~delay_length (MIDI.events midi) in
   (* Board. *)
   let board =
     Board.create
@@ -183,7 +191,11 @@ let () =
         [
           "vol",`Knob(0.,1.,`Linear,master_volume);
           "reverb",`Knob(0.,1.,`Linear,reverb);
-          "room sz",`Knob(0.,1.,`Linear,room_size);
+          "reverb size",`Knob(0.,1.,`Linear,reverb_size);
+        ];
+        [
+          "delay",`Knob(0.,1.,`Linear,delay_feedback);
+          "delay length",`Knob(0.,2.,`Linear,delay_length);
         ]
       ]
   in
