@@ -10,6 +10,7 @@ jobs:
     - name: Install OSC
       run: |
         sudo apt-get -y install libounit-ocaml-dev libocplib-endian-ocaml-dev liblwt-ocaml-dev
+        cd /tmp
         git clone https://github.com/johnelse/ocaml-osc.git
         cd ocaml-osc
         sed -i "s/Result.result/Result.t/" src/lwt/osc_lwt.mli
