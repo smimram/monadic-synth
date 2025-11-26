@@ -111,6 +111,7 @@ let synth
   let* delay_length = delay_length in
   let* delay_feedback = delay_feedback in
   let* reverb_wet = reverb_wet in
+  let reverb_wet = reverb_wet /. 2. in
   let* unison = unison in
   let* vol = master_volume in
   let* room_size = reverb_size in
@@ -152,13 +153,29 @@ let () =
   let lp_d = knob 13 0.01 >>= print "lpd" in
   let lp_s = knob 14 0.8 >>= print "lps" in
   let lp_r = knob 15 ~max:4. 0.1 >>= print "lpr" in
-  let master_volume = knob 16 0.8 >>= print "volume" in
+  let master_volume = knob 16 0.5 >>= print "volume" in
   let reverb = knob 17 0.2 >>= print "reverb" in
   let reverb_size = knob 18 0.8 >>= print "room size" in
   let delay_feedback = knob 20 0. >>= print "delay feedback" in
   let delay_length = knob 21 0.5 ~max:2. >>= print "delay length" in
   let pitch_bend = MIDI.pitch_bend midi () in
-  let s = synth ~master_volume ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r ~pitch_bend ~reverb ~reverb_size ~delay_feedback ~delay_length (MIDI.events midi) in
+  let s = synth ~master_volume ~detune ~stereo_amount ~osc2_volume ~lfo_rate ~lfo_pwm1 ~lfo_pwm2 ~lp_f ~lp_q ~a ~d ~s ~r ~lp_a ~lp_d ~lp_s ~lp_r ~pitch_bend ~reverb ~reverb_size ~delay_feedback ~delay_length (MIDI.events ~channel:0 midi) in
+  let drums =
+    let midi =
+      MIDI.events ~channel:9 midi >>=
+        Stream.map
+          (List.filter_map
+             (function
+              | `Note_on (64,x) -> Some (`Kick x)
+              | `Note_on (65,x) -> Some (`Snare x)
+              | `Note_on (66,x) -> Some (`Closed_hat x)
+              | _ -> None
+             )
+          )
+    in
+    Instrument.play_drums midi >>= stereo
+  in
+  let s = Stereo.add s drums in
   (* Board. *)
   let board =
     Board.create
