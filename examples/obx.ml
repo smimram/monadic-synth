@@ -111,7 +111,6 @@ let synth
   let* delay_length = delay_length in
   let* delay_feedback = delay_feedback in
   let* reverb_wet = reverb_wet in
-  let reverb_wet = reverb_wet /. 2. in
   let* unison = unison in
   let* vol = master_volume in
   let* room_size = reverb_size in
@@ -119,7 +118,7 @@ let synth
   >> s
   >>= Stereo.amp (0.1 *. vol /. float unison)
   >>= delay ~feedback:delay_feedback delay_length
-  >>= reverb ~room_size ~wet:reverb_wet ~dry:(1.-.reverb_wet)
+  >>= reverb ~room_size ~wet:reverb_wet
 
 let () =
   let midi = MIDI.create ~print:true () in

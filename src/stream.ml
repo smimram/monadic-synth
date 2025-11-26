@@ -1190,10 +1190,12 @@ module Slicer = struct
 
   let eurotrance () =
     let p = periodic () in
-    fun duration x ->
+    fun duration ?(attack=0.01) x ->
       let* t = p (1. /. duration) in
       let d = int_of_float (t *. 8.) in
-      if d = 0 || d = 4 || d = 6 then return x else return 0.
+      let c = if d = 0 || d = 4 || d = 6 then min 1. ((t -. (float_of_int d) /. 8.) /. attack) else 0. in
+      Printf.printf "c: %.02f\n%!" c;
+      return (c *. x)
 end
 
 (** Chorus effect. *)
@@ -1485,25 +1487,25 @@ module Stereo = struct
       let pos = ref 0 in
       let filterstore = ref 0. in
       fun input ->
-        let* _ = dt in
-        let output = buf.(!pos) in
-        filterstore := output *. !damp2 +. !filterstore *. !damp1;
-        buf.(!pos) <- input +. !filterstore *. !comb_feedback;
-        incr pos;
-        if !pos = len then pos := 0;
-        return output
+      let* _ = dt in
+      let output = buf.(!pos) in
+      filterstore := output *. !damp2 +. !filterstore *. !damp1;
+      buf.(!pos) <- input +. !filterstore *. !comb_feedback;
+      incr pos;
+      if !pos = len then pos := 0;
+      return output
     in
     (* All-pass filter. *)
     let ap len =
       let buf = Array.make len 0. in
       let pos = ref 0 in
       fun x ->
-        let y' = buf.(!pos) in
-        let o = y' -. x in
-        buf.(!pos) <- x +. (ap_feedback *. y');
-        incr pos;
-        if !pos = len then pos := 0;
-        return o
+      let y' = buf.(!pos) in
+      let o = y' -. x in
+      buf.(!pos) <- x +. (ap_feedback *. y');
+      incr pos;
+      if !pos = len then pos := 0;
+      return o
     in
     let combl = List.map comb combl in
     let combr = List.map comb combr in
@@ -1511,29 +1513,30 @@ module Stereo = struct
     let apr = List.map ap apr in
     let apl = List.compose (List.map bind apl) in
     let apr = List.compose (List.map bind apr) in
-    fun ?(room_size=0.5) ?(damp=0.5) ?(width=1.) ?(wet=1./.3.) ?(dry=0.) ->
-      (* Update parameters. *)
-      let room_size = room_size *. room_scale +. room_offset in
-      let damp = damp *. damp_scale in
-      let wet = wet *. wet_scale in
-      let dry = dry *. dry_scale in
-      let wet1 = wet *. (width /. 2. +. 0.5) in
-      let wet2 = wet *. ((1. -. width) /. 2.) in
-      damp1 := damp;
-      damp2 := 1. -. damp;
-      comb_feedback := room_size;
-      fun (x,y) ->
-        (* Apply filters. *)
-        let i = (x +. y) *. gain in
-        let combl = List.map (fun c -> c i) combl in
-        let combr = List.map (fun c -> c i) combr in
-        let outl = List.fold_left (funct2 (+.)) (return 0.) combl in
-        let outr = List.fold_left (funct2 (+.)) (return 0.) combr in
-        let* outl = apl outl in
-        let* outr = apr outr in
-        let x = outl *. wet1 +. outr *. wet2 +. x *. dry in
-        let y = outr *. wet1 +. outl *. wet2 +. y *. dry in
-        return (x,y)
+    fun ?(room_size=0.5) ?(damp=0.5) ?(width=1.) ?(wet=1./.3.) ->
+    (* Update parameters. *)
+    let dry = 1. in
+    let room_size = room_size *. room_scale +. room_offset in
+    let damp = damp *. damp_scale in
+    let wet = wet *. wet_scale in
+    let dry = dry *. dry_scale in
+    let wet1 = wet *. (width /. 2. +. 0.5) in
+    let wet2 = wet *. ((1. -. width) /. 2.) in
+    damp1 := damp;
+    damp2 := 1. -. damp;
+    comb_feedback := room_size;
+    fun (x,y) ->
+    (* Apply filters. *)
+    let i = (x +. y) *. gain in
+    let combl = List.map (fun c -> c i) combl in
+    let combr = List.map (fun c -> c i) combr in
+    let outl = List.fold_left (funct2 (+.)) (return 0.) combl in
+    let outr = List.fold_left (funct2 (+.)) (return 0.) combr in
+    let* outl = apl outl in
+    let* outr = apr outr in
+    let x = outl *. wet1 +. outr *. wet2 +. x *. dry in
+    let y = outr *. wet1 +. outl *. wet2 +. y *. dry in
+    return (x,y)
 
   (** Testing reverb with convolution with noise. *)
   let converb ?(duration=1.) () =

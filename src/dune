@@ -3,4 +3,5 @@
  (public_name msynth)
  (synopsis "A monadic audio synthesizer")
  (libraries threads re alsa osc osc-unix graphics)
+ (flags (:standard -warn-error -27))
 )
