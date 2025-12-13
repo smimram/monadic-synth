@@ -2,8 +2,7 @@
 
 open Extlib
 
-(** Musical patterns. Events in patterns are (time,duration,event). All time
-    units are bpm here. *)
+(** Musical patterns. Events in patterns are (time,duration,event). All time units are bpm here. *)
 type 'event t = (float * float * 'event) list
 
 (* TODO: handle unsorted patterns? *)
